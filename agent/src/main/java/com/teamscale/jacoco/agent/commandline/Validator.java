@@ -6,7 +6,7 @@
 package com.teamscale.jacoco.agent.commandline;
 
 import com.teamscale.client.StringUtils;
-import org.conqat.lib.commons.assertion.CCSMAssert;
+import com.teamscale.jacoco.agent.util.Assertions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,14 +45,14 @@ public class Validator {
 	 * Checks that the given condition is <code>true</code> or adds the given error message.
 	 */
 	public void isTrue(boolean condition, String message) {
-		ensure(() -> CCSMAssert.isTrue(condition, message));
+		ensure(() -> Assertions.isTrue(condition, message));
 	}
 
 	/**
 	 * Checks that the given condition is <code>false</code> or adds the given error message.
 	 */
 	public void isFalse(boolean condition, String message) {
-		ensure(() -> CCSMAssert.isFalse(condition, message));
+		ensure(() -> Assertions.isFalse(condition, message));
 	}
 
 	/** Returns <code>true</code> if the validation succeeded. */
