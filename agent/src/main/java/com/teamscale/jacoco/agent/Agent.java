@@ -6,6 +6,7 @@
 package com.teamscale.jacoco.agent;
 
 import com.teamscale.client.FileSystemUtils;
+import com.teamscale.client.StringUtils;
 import com.teamscale.jacoco.agent.options.AgentOptions;
 import com.teamscale.jacoco.agent.upload.IUploadRetry;
 import com.teamscale.jacoco.agent.upload.IUploader;
@@ -17,7 +18,6 @@ import com.teamscale.report.jacoco.CoverageFile;
 import com.teamscale.report.jacoco.EmptyReportException;
 import com.teamscale.report.jacoco.JaCoCoXmlReportGenerator;
 import com.teamscale.report.jacoco.dump.Dump;
-import org.conqat.lib.commons.string.StringUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 

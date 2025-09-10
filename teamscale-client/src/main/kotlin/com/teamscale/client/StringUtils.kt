@@ -16,14 +16,13 @@
 +-------------------------------------------------------------------------*/
 package com.teamscale.client
 
-import java.text.NumberFormat
-
 /**
  * A utility class providing some advanced string functionality.
  */
 object StringUtils {
-	/** Line separator of the current platform.  */
-	private val LINE_SEPARATOR: String = System.lineSeparator()
+
+	/** Line feed ("\n"), platform independent.  */
+	const val LINE_FEED: String = "\n"
 
 	/** The empty string.  */
 	private const val EMPTY_STRING: String = ""
@@ -44,16 +43,6 @@ object StringUtils {
 	}
 
 	/**
-	 * Determine if the supplied [String] is *blank* (i.e., `null` or consisting only of whitespace
-	 * characters).
-	 *
-	 * @param str the string to check; may be `null`
-	 * @return `true` if the string is blank
-	 */
-	@JvmStatic
-	fun isBlank(str: String?) = (str == null || str.trim { it <= ' ' }.isEmpty())
-
-	/**
 	 * Returns the beginning of a String, cutting off the last part which is separated by the given character.
 	 *
 	 *
@@ -69,7 +58,7 @@ object StringUtils {
 			return string
 		}
 
-		return string.substring(0, idx)
+		return string.take(idx)
 	}
 
 	/**
@@ -96,49 +85,7 @@ object StringUtils {
 	 */
 	@JvmStatic
 	fun stripSuffix(string: String, suffix: String): String {
-		if (string.endsWith(suffix)) {
-			return string.substring(0, string.length - suffix.length)
-		}
-		return string
-	}
-
-	/**
-	 * Create string representation of a map.
-	 *
-	 * @param map    the map
-	 * @param indent a line indent
-	 */
-	/**
-	 * Create string representation of a map.
-	 */
-	@JvmOverloads
-	fun toString(map: Map<*, *>, indent: String? = EMPTY_STRING): String {
-		val result = StringBuilder()
-		val keyIterator = map.keys.iterator()
-
-		while (keyIterator.hasNext()) {
-			result.append(indent)
-			val key = keyIterator.next()!!
-			result.append(key)
-			result.append(" = ")
-			result.append(map[key])
-			if (keyIterator.hasNext()) {
-				result.append(LINE_SEPARATOR)
-			}
-		}
-
-		return result.toString()
-	}
-
-	/**
-	 * Format number with number formatter, if number formatter is
-	 * `null`, this uses [String.valueOf].
-	 */
-	fun format(number: Double, numberFormat: NumberFormat?): String {
-		if (numberFormat == null) {
-			return number.toString()
-		}
-		return numberFormat.format(number)
+		return string.removeSuffix(suffix)
 	}
 
 	/**
@@ -185,5 +132,31 @@ object StringUtils {
 		}
 
 		return cost[len0 - 1]
+	}
+
+	/**
+	 * Split string in lines. For the empty string and `null` an empty
+	 * list is returned.
+	 */
+	@JvmStatic
+	fun splitLinesAsList(content: String?): List<String> = content?.lines() ?: emptyList()
+
+	/**
+	 * Test if a string ends with one of the provided suffixes. Returns
+	 * `false` if the list of prefixes is empty. This should only be used
+	 * for short lists of suffixes.
+	 */
+	@JvmStatic
+	fun endsWithOneOf(string: String, vararg suffixes: String): Boolean {
+		return suffixes.any { string.endsWith(it) }
+	}
+
+	/**
+	 * Removes double quotes from beginning and end (if present) and returns the new
+	 * string.
+	 */
+	@JvmStatic
+	fun removeDoubleQuotes(string: String): String {
+		return string.removeSuffix("\"").removePrefix("\"")
 	}
 }

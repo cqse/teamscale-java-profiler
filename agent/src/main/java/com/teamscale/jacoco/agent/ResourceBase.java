@@ -1,11 +1,11 @@
 package com.teamscale.jacoco.agent;
 
 import com.teamscale.client.CommitDescriptor;
+import com.teamscale.client.StringUtils;
 import com.teamscale.client.TeamscaleServer;
-import com.teamscale.jacoco.agent.testimpact.TestwiseCoverageAgent;
 import com.teamscale.jacoco.agent.logging.LoggingUtils;
+import com.teamscale.jacoco.agent.testimpact.TestwiseCoverageAgent;
 import com.teamscale.report.testwise.model.RevisionInfo;
-import org.conqat.lib.commons.string.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 

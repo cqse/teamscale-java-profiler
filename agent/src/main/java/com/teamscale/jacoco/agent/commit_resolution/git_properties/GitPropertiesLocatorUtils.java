@@ -198,7 +198,7 @@ public class GitPropertiesLocatorUtils {
 	}
 
 	private static boolean isJarLikeFile(String segment) {
-		return org.conqat.lib.commons.string.StringUtils.endsWithOneOf(
+		return StringUtils.endsWithOneOf(
 				segment.toLowerCase(), ".jar", ".war", ".ear", ".aar");
 	}
 
@@ -343,9 +343,9 @@ public class GitPropertiesLocatorUtils {
 	}
 
 	/**
-	 * Returns the CommitInfo (revision and branch + timestmap) from a git properties file. The revision can be either in
-	 * {@link #GIT_PROPERTIES_GIT_COMMIT_ID} or {@link #GIT_PROPERTIES_GIT_COMMIT_ID_FULL}. The branch and timestamp in
-	 * {@link #GIT_PROPERTIES_GIT_BRANCH} + {@link #GIT_PROPERTIES_GIT_COMMIT_TIME} or in
+	 * Returns the CommitInfo (revision and branch + timestmap) from a git properties file. The revision can be either
+	 * in {@link #GIT_PROPERTIES_GIT_COMMIT_ID} or {@link #GIT_PROPERTIES_GIT_COMMIT_ID_FULL}. The branch and timestamp
+	 * in {@link #GIT_PROPERTIES_GIT_BRANCH} + {@link #GIT_PROPERTIES_GIT_COMMIT_TIME} or in
 	 * {@link #GIT_PROPERTIES_TEAMSCALE_COMMIT_BRANCH} + {@link #GIT_PROPERTIES_TEAMSCALE_COMMIT_TIME}. By default,
 	 * times will be parsed with {@link #GIT_PROPERTIES_DEFAULT_GRADLE_DATE_FORMAT} and
 	 * {@link #GIT_PROPERTIES_DEFAULT_MAVEN_DATE_FORMAT}. An additional format can be given with

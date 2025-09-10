@@ -1,7 +1,6 @@
 package com.teamscale.tia.client
 
 import com.teamscale.client.JsonUtils.deserialize
-import com.teamscale.client.StringUtils.isBlank
 import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.report.testwise.model.TestInfo
 import com.teamscale.tia.client.AgentCommunicationUtils.handleRequestError
