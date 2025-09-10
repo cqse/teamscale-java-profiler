@@ -5,7 +5,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.apache.commons.lang3.SystemUtils
-import org.conqat.lib.commons.io.ProcessUtils
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.create
@@ -69,19 +68,14 @@ object SystemTestUtils {
 	@JvmStatic
 	@Throws(IOException::class)
 	fun runMaven(mavenProjectPath: String, vararg mavenArguments: String) {
-		val result: ProcessUtils.ExecutionResult
-		try {
-			result = ProcessUtils.execute(buildMavenProcess(mavenProjectPath, *mavenArguments))
-		} catch (e: IOException) {
-			throw IOException("Failed to run ./mvnw clean verify in directory $mavenProjectPath", e)
-		}
+		val result = buildMavenProcess(mavenProjectPath, *mavenArguments).execute()
 
 		// in case the process succeeded, we still log stdout and stderr in case later assertions fail. This helps
 		// debug test failures
 		println("Maven stdout: ${result.stdout}")
 		println("Maven stderr: ${result.stderr}")
 
-		if (result.terminatedByTimeoutOrInterruption()) {
+		if (!result.isSuccess) {
 			throw IOException("Running Maven failed: ${result.stdout}\n${result.stderr}")
 		}
 	}
@@ -93,20 +87,15 @@ object SystemTestUtils {
 	 */
 	@JvmStatic
 	@Throws(IOException::class)
-	fun runGradle(gradleProjectPath: String, vararg gradleArguments: String): ProcessUtils.ExecutionResult {
-		val result: ProcessUtils.ExecutionResult
-		try {
-			result = ProcessUtils.execute(buildGradleProcess(gradleProjectPath, *gradleArguments))
-		} catch (e: IOException) {
-			throw IOException("Failed to run ./gradlew clean verify in directory $gradleProjectPath", e)
-		}
+	fun runGradle(gradleProjectPath: String, vararg gradleArguments: String): ProcessUtils.ProcessResult {
+		val result = buildGradleProcess(gradleProjectPath, *gradleArguments).execute()
 
 		// in case the process succeeded, we still log stdout and stderr in case later assertions fail. This helps
 		// debug test failures
 		println("Gradle stdout: ${result.stdout}")
 		println("Gradle stderr: ${result.stderr}")
 
-		if (result.terminatedByTimeoutOrInterruption()) {
+		if (!result.isSuccess) {
 			throw IOException("Running Gradle failed: ${result.stdout}\n${result.stderr}")
 		}
 		return result
@@ -117,7 +106,7 @@ object SystemTestUtils {
 	 * arguments.
 	 */
 	@JvmStatic
-	fun buildMavenProcess(mavenProjectDirectory: String, vararg mavenArguments: String): ProcessBuilder {
+	fun buildMavenProcess(mavenProjectDirectory: String, vararg mavenArguments: String): ProcessUtils.ProcessExecutor {
 		val arguments = mutableListOf<String>()
 		if (SystemUtils.IS_OS_WINDOWS) {
 			arguments.addAll(listOf("cmd", "/c", "mvnw.cmd"))
@@ -127,14 +116,17 @@ object SystemTestUtils {
 
 		arguments.addAll(listOf(*mavenArguments))
 
-		return ProcessBuilder(arguments).directory(File(mavenProjectDirectory))
+		return ProcessUtils.processBuilder(arguments).directory(File(mavenProjectDirectory))
 	}
 
 	/**
 	 * Creates the command-line arguments that can be passed to [ProcessBuilder] to invoke Gradle with the given
 	 * arguments.
 	 */
-	private fun buildGradleProcess(gradleProjectDirectory: String, vararg gradleArguments: String): ProcessBuilder {
+	private fun buildGradleProcess(
+		gradleProjectDirectory: String,
+		vararg gradleArguments: String
+	): ProcessUtils.ProcessExecutor {
 		val arguments = mutableListOf<String>()
 		if (SystemUtils.IS_OS_WINDOWS) {
 			arguments.addAll(listOf("cmd", "/c", "gradlew.bat"))
@@ -144,7 +136,7 @@ object SystemTestUtils {
 
 		arguments.addAll(listOf(*gradleArguments))
 
-		return ProcessBuilder(arguments).directory(File(gradleProjectDirectory))
+		return ProcessUtils.processBuilder(arguments).directory(File(gradleProjectDirectory))
 	}
 
 	/** Retrieve all files in the `tia/reports` folder sorted by name.  */

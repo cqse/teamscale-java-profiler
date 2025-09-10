@@ -1,8 +1,8 @@
 package com.teamscale.tia
 
+import com.teamscale.test.commons.ProcessUtils
 import com.teamscale.test.commons.SystemTestUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.conqat.lib.commons.io.ProcessUtils
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.util.concurrent.TimeUnit
@@ -19,14 +19,12 @@ class HttpServerShutdownSystemTest {
 		val agentJar = System.getenv("AGENT_JAR")
 		val sampleJar = System.getenv("SAMPLE_JAR")
 		val result = ProcessUtils.execute(
-			ProcessBuilder(
-				"java",
-				"-javaagent:$agentJar=http-server-port=${SystemTestUtils.AGENT_PORT}",
-				"-jar", sampleJar
-			)
+			"java",
+			"-javaagent:$agentJar=http-server-port=${SystemTestUtils.AGENT_PORT}",
+			"-jar", sampleJar
 		)
 		println(result.stderr)
 		println(result.stdout)
-		assertThat(result.returnCode).isEqualTo(0)
+		assertThat(result.exitCode).isEqualTo(0)
 	}
 }
