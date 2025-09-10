@@ -2,13 +2,13 @@ package com.teamscale.upload
 
 import com.teamscale.client.EReportFormat
 import com.teamscale.client.FileSystemUtils
+import com.teamscale.test.commons.ProcessUtils
 import com.teamscale.test.commons.SystemTestUtils
 import com.teamscale.test.commons.SystemTestUtils.runMavenTests
 import com.teamscale.test.commons.TeamscaleMockServer
 import org.apache.commons.lang3.SystemUtils
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.conqat.lib.commons.io.ProcessUtils
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -32,16 +32,15 @@ class MavenExternalUploadSystemTest {
 		teamscaleMockServer?.reset()
 	}
 
-	private fun runCoverageUploadGoal(projectPath: String): ProcessUtils.ExecutionResult? {
+	private fun runCoverageUploadGoal(projectPath: String): ProcessUtils.ProcessResult? {
 		val workingDirectory = File(projectPath)
 		var executable = "./mvnw"
 		if (SystemUtils.IS_OS_WINDOWS) {
 			executable = Paths.get(projectPath, "mvnw.cmd").toUri().getPath()
 		}
 		try {
-			return ProcessUtils.execute(
-				ProcessBuilder(executable, MAVEN_COVERAGE_UPLOAD_GOAL).directory(workingDirectory)
-			)
+			return ProcessUtils.processBuilder(executable, MAVEN_COVERAGE_UPLOAD_GOAL).directory(workingDirectory)
+				.execute()
 		} catch (e: IOException) {
 			Assertions.fail(e.toString())
 		}
@@ -87,7 +86,7 @@ class MavenExternalUploadSystemTest {
 		runMavenTests(projectPath)
 		val result = runCoverageUploadGoal(projectPath)
 		assertThat(result).isNotNull()
-		assertThat(result!!.returnCode).isNotEqualTo(0)
+		assertThat(result!!.exitCode).isNotEqualTo(0)
 		assertThat(teamscaleMockServer!!.getSessions()).isEmpty()
 		assertThat(result.stdout)
 			.contains("There is no <revision> or <commit> configured in the pom.xml and it was not possible to determine the current revision")
