@@ -29,6 +29,7 @@ import java.util.regex.PatternSyntaxException
 object AntPatternUtils {
 	/** Converts an ANT pattern to a regex pattern.  */
 	@Throws(PatternSyntaxException::class)
+	@JvmStatic
 	fun convertPattern(antPattern: String, caseSensitive: Boolean): Pattern {
 		var normalized = normalizePattern(antPattern)
 
