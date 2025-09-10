@@ -1,10 +1,8 @@
 package com.teamscale.maven.tia;
 
 import com.teamscale.client.FileSystemUtils;
+import com.teamscale.client.StringUtils;
 import com.teamscale.maven.TeamscaleMojoBase;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
@@ -162,7 +160,7 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 	public void execute() throws MojoFailureException, MojoExecutionException {
 		super.execute();
 
-		if (StringUtils.isNotEmpty(baselineCommit) && StringUtils.isNotEmpty(baselineRevision)) {
+		if (!StringUtils.isEmpty(baselineCommit) && StringUtils.isEmpty(baselineRevision)) {
 			getLog().warn("Both baselineRevision and baselineCommit are set but only one of them is needed. " +
 					"The revision will be preferred in this case. If that's not intended, please do not set the baselineRevision manually.");
 		}
@@ -202,13 +200,13 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 		setTiaProperty("server.userName", username);
 		setTiaProperty("server.userAccessToken", accessToken);
 
-		if (StringUtils.isNotEmpty(resolvedRevision)) {
+		if (!StringUtils.isEmpty(resolvedRevision)) {
 			setTiaProperty("endRevision", resolvedRevision);
 		} else {
 			setTiaProperty("endCommit", resolvedCommit);
 		}
 
-		if (StringUtils.isNotEmpty(baselineRevision)) {
+		if (!StringUtils.isEmpty(baselineRevision)) {
 			setTiaProperty("baselineRevision", baselineRevision);
 		} else {
 			setTiaProperty("baseline", baselineCommit);
@@ -257,7 +255,7 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 	private void overrideProperty(String engineOption, String impactedEngineSuffix, String newValue,
 			Properties properties) {
 		Object originalValue = properties.put(getPropertyName(engineOption), newValue);
-		if (originalValue instanceof String && !Strings.isBlank((String) originalValue) && !newValue.equals(
+		if (originalValue instanceof String && !StringUtils.isEmpty((String) originalValue) && !newValue.equals(
 				originalValue)) {
 			setTiaProperty(impactedEngineSuffix, (String) originalValue);
 		}
@@ -402,10 +400,10 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 				"\nhttp-server-port=" + agentPort +
 				"\nlogging-config=" + loggingConfigPath +
 				"\nout=" + agentOutputDirectory.toAbsolutePath();
-		if (ArrayUtils.isNotEmpty(includes)) {
+		if (includes.length > 0) {
 			config += "\nincludes=" + String.join(";", includes);
 		}
-		if (ArrayUtils.isNotEmpty(excludes)) {
+		if (excludes.length > 0) {
 			config += "\nexcludes=" + String.join(";", excludes);
 		}
 		return config;

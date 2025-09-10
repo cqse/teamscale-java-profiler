@@ -5,7 +5,6 @@
 +-------------------------------------------------------------------------*/
 package com.teamscale.jacoco.agent.options;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.HttpUtils;
 import com.teamscale.client.ProxySystemProperties;
@@ -22,9 +21,9 @@ import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.ILogger;
 import kotlin.Pair;
 import okhttp3.HttpUrl;
-import org.apache.commons.compress.utils.Lists;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,6 +31,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,7 +96,7 @@ public class AgentOptionsParser {
 		this.environmentConfigFile = environmentConfigFile;
 		this.credentials = credentials;
 		this.environmentAccessToken = environmentAccessToken;
-		this.collectedErrors = Lists.newArrayList();
+		this.collectedErrors = new ArrayList<>();
 	}
 
 	private List<Exception> getCollectedErrors() {

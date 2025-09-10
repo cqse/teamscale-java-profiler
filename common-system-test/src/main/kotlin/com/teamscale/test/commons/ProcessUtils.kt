@@ -1,12 +1,12 @@
 package com.teamscale.test.commons
 
-import org.apache.commons.lang3.SystemUtils
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import com.teamscale.client.SystemUtils
 import java.io.*
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
+import java.util.logging.Level
+import java.util.logging.Logger
 import java.util.regex.Pattern
 
 /**
@@ -80,9 +80,7 @@ object ProcessUtils {
 		 * Executes the process and returns the result.
 		 */
 		fun execute(): ProcessResult {
-			val builder = ProcessBuilder(commands).apply {
-				workingDirectory?.let { directory(it) }
-			}
+			val builder = build()
 
 			val stdoutConsumer = DefaultStreamConsumer(consoleCharset, true)
 			val stderrConsumer = DefaultStreamConsumer(consoleCharset, true)
@@ -100,6 +98,10 @@ object ProcessUtils {
 			} catch (e: IOException) {
 				throw ProcessExecutionException("Failed to execute: ${commands.joinToString(" ")}", e)
 			}
+		}
+
+		fun build(): ProcessBuilder = ProcessBuilder(commands).apply {
+			workingDirectory?.let { directory(it) }
 		}
 	}
 
@@ -210,12 +212,12 @@ object ProcessUtils {
 			try {
 				streamConsumer.consume(inputStream)
 			} catch (e: IOException) {
-				LOGGER.warn("Encountered IOException during stream consumption", e)
+				LOGGER.log(Level.WARNING, "Encountered IOException during stream consumption", e)
 			}
 		}
 
 		companion object {
-			private val LOGGER: Logger = LogManager.getLogger()
+			private val LOGGER: Logger = Logger.getLogger(ProcessExecutor::class.java.canonicalName)
 		}
 	}
 

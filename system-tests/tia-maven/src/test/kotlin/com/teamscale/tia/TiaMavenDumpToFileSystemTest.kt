@@ -1,27 +1,20 @@
 package com.teamscale.tia
 
-import com.google.common.collect.Iterables
 import com.teamscale.client.JsonUtils
 import com.teamscale.report.testwise.model.ETestExecutionResult
-import com.teamscale.report.testwise.model.TestInfo
 import com.teamscale.report.testwise.model.TestwiseCoverageReport
 import com.teamscale.test.commons.SystemTestUtils
 import com.teamscale.test.commons.SystemTestUtils.coverage
 import com.teamscale.test.commons.SystemTestUtils.getReportFileNames
 import com.teamscale.test.commons.SystemTestUtils.runMavenTests
 import com.teamscale.test.commons.TeamscaleMockServer
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.iterable.ThrowingExtractor
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import org.junit.jupiter.api.function.Executable
 import java.io.IOException
 import java.nio.file.Files
-import java.nio.file.Path
 
 /**
  * Runs several Maven projects' Surefire tests that have the agent attached and one of our JUnit run listeners enabled.
@@ -80,7 +73,7 @@ class TiaMavenDumpToFileSystemTest {
 	private fun parseDumpedCoverageReport(folderName: String): TestwiseCoverageReport {
 		val files = getReportFileNames(MAVEN_PROJECT_NAME, folderName)
 		return JsonUtils.deserialize<TestwiseCoverageReport>(
-			String(Files.readAllBytes(Iterables.getOnlyElement<Path>(files)))
+			String(Files.readAllBytes(files.first()))
 		)
 	}
 

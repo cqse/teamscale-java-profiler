@@ -6,6 +6,7 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [breaking fix] _teamscale-gradle-plugin_: Adjusted to breaking API changes in Gradle 9.0
+- [feature] Reduced dependencies and hence the size of all artifacts
 
 # 35.2.2
 - [fix] _teamscale-gradle-plugin_: TeamscaleUpload task did not properly validate `revision` argument

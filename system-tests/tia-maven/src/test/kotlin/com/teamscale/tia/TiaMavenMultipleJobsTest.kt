@@ -25,7 +25,7 @@ class TiaMavenMultipleJobsTest {
 
 		// run three verify processes in parallel without waiting
 		repeat(3) {
-			buildMavenProcess(workingDirectory, "verify").start()
+			buildMavenProcess(workingDirectory, "verify").build().start()
 		}
 
 		// and one more that we wait for to terminate

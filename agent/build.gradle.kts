@@ -51,11 +51,11 @@ dependencies {
 	implementation(libs.logback.classic)
 
 	implementation(libs.jcommander)
-	implementation(libs.teamscaleLibCommons)
 
 	implementation(libs.retrofit.core)
 
 	implementation(libs.jackson.databind)
+	implementation(libs.jetbrains.annotations)
 
 	testImplementation(project(":tia-client"))
 	testImplementation(libs.retrofit.converter.jackson)

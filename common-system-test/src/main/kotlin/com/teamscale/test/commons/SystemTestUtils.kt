@@ -1,10 +1,10 @@
 package com.teamscale.test.commons
 
+import com.teamscale.client.SystemUtils
 import com.teamscale.report.testwise.model.TestInfo
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.apache.commons.lang3.SystemUtils
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.create

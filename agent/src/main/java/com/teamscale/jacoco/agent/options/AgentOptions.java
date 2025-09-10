@@ -38,9 +38,9 @@ import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
 import com.teamscale.report.util.ILogger;
 import kotlin.Pair;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jacoco.core.runtime.WildcardMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
