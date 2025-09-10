@@ -6,6 +6,7 @@
 package com.teamscale.jacoco.agent.options;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.HttpUtils;
 import com.teamscale.client.ProxySystemProperties;
 import com.teamscale.client.StringUtils;
@@ -23,7 +24,6 @@ import okhttp3.HttpUrl;
 import org.apache.commons.compress.utils.Lists;
 import org.conqat.lib.commons.collections.CollectionUtils;
 import org.conqat.lib.commons.collections.Pair;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;

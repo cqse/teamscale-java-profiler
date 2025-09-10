@@ -1,5 +1,6 @@
 package com.teamscale.maven.tia;
 
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.maven.TeamscaleMojoBase;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -11,7 +12,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

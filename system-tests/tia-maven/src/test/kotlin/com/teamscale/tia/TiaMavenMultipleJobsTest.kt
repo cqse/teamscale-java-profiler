@@ -3,7 +3,6 @@ package com.teamscale.tia
 import com.teamscale.test.commons.SystemTestUtils.buildMavenProcess
 import com.teamscale.test.commons.SystemTestUtils.runMaven
 import org.assertj.core.api.Assertions
-import org.conqat.lib.commons.filesystem.FileSystemUtils
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
 

@@ -1,5 +1,6 @@
 package com.teamscale.tia
 
+import com.teamscale.client.FileSystemUtils
 import com.teamscale.client.JsonUtils
 import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestwiseCoverageReport
@@ -8,7 +9,6 @@ import com.teamscale.test.commons.SystemTestUtils.coverage
 import com.teamscale.test.commons.SystemTestUtils.runMavenTests
 import com.teamscale.test.commons.TeamscaleMockServer
 import org.assertj.core.api.Assertions.assertThat
-import org.conqat.lib.commons.filesystem.FileSystemUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -114,10 +114,11 @@ class TiaMavenSystemTest {
 		runMavenTests("maven-project", "-Dtia", "-DreuseForks=false")
 		val workingDirectory = File("maven-project")
 		val testwiseCoverage = File(
-			Paths.get(workingDirectory.absolutePath, "coverage", "target", "tia", "reports", "testwise-coverage-1.json").toUri()
+			Paths.get(workingDirectory.absolutePath, "coverage", "target", "tia", "reports", "testwise-coverage-1.json")
+				.toUri()
 		)
 		val testwiseCoverageReport = JsonUtils.deserialize<TestwiseCoverageReport>(
-			FileSystemUtils.readFile(testwiseCoverage)
+			FileSystemUtils.readFileUTF8(testwiseCoverage)
 		)
 		checkExpectedUnitTestCoverage(testwiseCoverageReport)
 	}
@@ -139,7 +140,7 @@ class TiaMavenSystemTest {
 				.extracting<ETestExecutionResult> { it.result }
 				.allMatch { it == ETestExecutionResult.PASSED }
 			assertThat(testwiseCoverageReport.tests)
-				.extracting<String> {it.coverage}.containsExactly(
+				.extracting<String> { it.coverage }.containsExactly(
 					"SUTA.java:7,10-11;UnitTest.java:10-11",
 					"SUTA.java:7,14-15;UnitTest.java:15-16",
 					"SUTB1.java:7,14-15;UnitB1Test.java:10-11",

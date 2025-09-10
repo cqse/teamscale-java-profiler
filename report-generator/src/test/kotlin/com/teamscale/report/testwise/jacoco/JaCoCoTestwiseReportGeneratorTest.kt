@@ -1,5 +1,6 @@
 package com.teamscale.report.testwise.jacoco
 
+import com.teamscale.client.FileSystemUtils
 import com.teamscale.client.TestDetails
 import com.teamscale.report.EDuplicateClassFileBehavior
 import com.teamscale.report.ReportUtils.getTestwiseCoverageReportAsString
@@ -10,7 +11,6 @@ import com.teamscale.report.testwise.model.TestwiseCoverageReport
 import com.teamscale.report.testwise.model.builder.TestwiseCoverageReportBuilder.Companion.createFrom
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.test.TestDataBase
-import org.conqat.lib.commons.filesystem.FileSystemUtils
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.skyscreamer.jsonassert.JSONAssert

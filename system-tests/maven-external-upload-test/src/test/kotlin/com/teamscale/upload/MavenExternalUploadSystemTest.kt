@@ -1,22 +1,19 @@
 package com.teamscale.upload
 
 import com.teamscale.client.EReportFormat
-import com.teamscale.test.commons.ExternalReport
-import com.teamscale.test.commons.Session
+import com.teamscale.client.FileSystemUtils
 import com.teamscale.test.commons.SystemTestUtils
 import com.teamscale.test.commons.SystemTestUtils.runMavenTests
 import com.teamscale.test.commons.TeamscaleMockServer
 import org.apache.commons.lang3.SystemUtils
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.conqat.lib.commons.filesystem.FileSystemUtils
 import org.conqat.lib.commons.io.ProcessUtils
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.io.FileFilter
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.Paths

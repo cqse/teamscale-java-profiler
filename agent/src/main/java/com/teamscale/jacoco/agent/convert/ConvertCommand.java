@@ -8,6 +8,7 @@ package com.teamscale.jacoco.agent.convert;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.jacoco.agent.commandline.ICommand;
 import com.teamscale.jacoco.agent.commandline.Validator;
 import com.teamscale.jacoco.agent.options.ClasspathUtils;
@@ -15,7 +16,6 @@ import com.teamscale.jacoco.agent.options.FilePatternResolver;
 import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.CommandLineLogger;
 import org.conqat.lib.commons.assertion.CCSMAssert;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
 import org.conqat.lib.commons.string.StringUtils;
 
 import java.io.File;
