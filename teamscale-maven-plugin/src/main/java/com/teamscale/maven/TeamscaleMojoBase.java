@@ -1,6 +1,6 @@
 package com.teamscale.maven;
 
-import org.apache.commons.lang3.StringUtils;
+import com.teamscale.client.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
@@ -33,8 +33,8 @@ public abstract class TeamscaleMojoBase extends AbstractMojo {
 	public String projectId;
 
 	/**
-	 * The username to use to perform the upload. Must have the "Upload external data" permission for the {@link
-	 * #projectId}. Can also be specified via the Maven property {@code teamscale.username}.
+	 * The username to use to perform the upload. Must have the "Upload external data" permission for the
+	 * {@link #projectId}. Can also be specified via the Maven property {@code teamscale.username}.
 	 */
 	@Parameter(property = "teamscale.username")
 	public String username;
@@ -97,7 +97,7 @@ public abstract class TeamscaleMojoBase extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		if (StringUtils.isNotEmpty(revision) && StringUtils.isNotBlank(commit)) {
+		if (!StringUtils.isEmpty(revision) && !StringUtils.isEmpty(commit)) {
 			getLog().warn("Both revision and commit are set but only one of them is needed. " +
 					"Teamscale will prefer the revision. If that's not intended, please do not set the revision manually.");
 		}
@@ -110,11 +110,11 @@ public abstract class TeamscaleMojoBase extends AbstractMojo {
 	 * @see GitCommitUtils
 	 */
 	protected void resolveCommitOrRevision() throws MojoFailureException {
-		if (StringUtils.isNotBlank(revision)) {
+		if (!StringUtils.isEmpty(revision)) {
 			resolvedRevision = revision;
 			return;
 		}
-		if (StringUtils.isNotBlank(commit)) {
+		if (!StringUtils.isEmpty(commit)) {
 			resolvedCommit = commit;
 			return;
 		}

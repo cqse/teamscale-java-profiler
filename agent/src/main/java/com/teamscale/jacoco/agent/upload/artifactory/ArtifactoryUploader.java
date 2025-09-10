@@ -1,6 +1,5 @@
 package com.teamscale.jacoco.agent.upload.artifactory;
 
-import com.google.common.base.Strings;
 import com.teamscale.client.CommitDescriptor;
 import com.teamscale.client.EReportFormat;
 import com.teamscale.client.FileSystemUtils;
@@ -79,7 +78,7 @@ public class ArtifactoryUploader extends HttpZipUploaderBase<IArtifactoryUploadA
 		String commitString = reuploadProperties.getProperty(COMMIT.name());
 		config.commitInfo = new CommitInfo(revision, CommitDescriptor.parse(commitString));
 		config.apiKey = artifactoryConfig.apiKey;
-		config.partition = Strings.emptyToNull(reuploadProperties.getProperty(PARTITION.name()));
+		config.partition = StringUtils.emptyToNull(reuploadProperties.getProperty(PARTITION.name()));
 		setUploadPath(coverageFile, config);
 		super.upload(coverageFile);
 	}
@@ -89,7 +88,7 @@ public class ArtifactoryUploader extends HttpZipUploaderBase<IArtifactoryUploadA
 		Properties properties = new Properties();
 		properties.setProperty(REVISION.name(), artifactoryConfig.commitInfo.revision);
 		properties.setProperty(COMMIT.name(), artifactoryConfig.commitInfo.commit.toString());
-		properties.setProperty(PARTITION.name(), Strings.nullToEmpty(artifactoryConfig.partition));
+		properties.setProperty(PARTITION.name(), StringUtils.nullToEmpty(artifactoryConfig.partition));
 		return properties;
 	}
 

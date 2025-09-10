@@ -1,11 +1,11 @@
 package com.teamscale.jacoco.agent.upload.teamscale;
 
-import com.google.common.base.Strings;
 import com.teamscale.client.CommitDescriptor;
 import com.teamscale.client.EReportFormat;
 import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.ITeamscaleService;
 import com.teamscale.client.ITeamscaleServiceKt;
+import com.teamscale.client.StringUtils;
 import com.teamscale.client.TeamscaleServer;
 import com.teamscale.client.TeamscaleServiceGenerator;
 import com.teamscale.jacoco.agent.logging.LoggingUtils;
@@ -63,8 +63,8 @@ public class TeamscaleUploader implements IUploader, IUploadRetry {
 		server.project = reuploadProperties.getProperty(PROJECT.name());
 		server.commit = CommitDescriptor.parse(reuploadProperties.getProperty(COMMIT.name()));
 		server.partition = reuploadProperties.getProperty(PARTITION.name());
-		server.revision = Strings.emptyToNull(reuploadProperties.getProperty(REVISION.name()));
-		server.repository = Strings.emptyToNull(reuploadProperties.getProperty(REPOSITORY.name()));
+		server.revision = StringUtils.emptyToNull(reuploadProperties.getProperty(REVISION.name()));
+		server.repository = StringUtils.emptyToNull(reuploadProperties.getProperty(REPOSITORY.name()));
 		server.userAccessToken = teamscaleServer.userAccessToken;
 		server.userName = teamscaleServer.userName;
 		server.url = teamscaleServer.url;
@@ -112,8 +112,8 @@ public class TeamscaleUploader implements IUploader, IUploadRetry {
 		if (teamscaleServer.commit != null) {
 			serverProperties.setProperty(COMMIT.name(), teamscaleServer.commit.toString());
 		}
-		serverProperties.setProperty(REVISION.name(), Strings.nullToEmpty(teamscaleServer.revision));
-		serverProperties.setProperty(REPOSITORY.name(), Strings.nullToEmpty(teamscaleServer.repository));
+		serverProperties.setProperty(REVISION.name(), StringUtils.nullToEmpty(teamscaleServer.revision));
+		serverProperties.setProperty(REPOSITORY.name(), StringUtils.nullToEmpty(teamscaleServer.repository));
 		serverProperties.setProperty(MESSAGE.name(), teamscaleServer.getMessage());
 		return serverProperties;
 	}

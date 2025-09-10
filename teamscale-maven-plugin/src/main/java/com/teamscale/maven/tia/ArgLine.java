@@ -1,7 +1,6 @@
 package com.teamscale.maven.tia;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.teamscale.client.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -24,7 +23,7 @@ public class ArgLine {
 	private final Path logFilePath;
 
 	public ArgLine(String[] additionalAgentOptions, String agentLogLevel, Path agentJarFile,
-				   Path agentConfigFile, Path logFilePath) {
+			Path agentConfigFile, Path logFilePath) {
 		this.additionalAgentOptions = additionalAgentOptions;
 		this.agentLogLevel = agentLogLevel;
 		this.agentJarFile = agentJarFile;
@@ -34,7 +33,7 @@ public class ArgLine {
 
 	/** Applies the given {@link ArgLine} to the given {@link MavenSession}. */
 	public static void applyToMavenProject(ArgLine argLine, MavenSession session, Log log,
-										   String userDefinedPropertyName, boolean isIntegrationTest) {
+			String userDefinedPropertyName, boolean isIntegrationTest) {
 		MavenProject mavenProject = session.getCurrentProject();
 		ArgLineProperty effectiveProperty = ArgLine.getEffectiveProperty(userDefinedPropertyName, mavenProject,
 				isIntegrationTest);
@@ -52,7 +51,7 @@ public class ArgLine {
 	public static void cleanOldArgLines(MavenSession session, Log log) {
 		for (ArgLineProperty property : ArgLineProperty.STANDARD_PROPERTIES) {
 			String oldArgLine = property.getValue(session);
-			if (StringUtils.isBlank(oldArgLine)) {
+			if (StringUtils.isEmpty(oldArgLine)) {
 				continue;
 			}
 
@@ -70,7 +69,7 @@ public class ArgLine {
 	 */
 	/*package*/ String prependTo(String oldArgLine) {
 		String jvmOptions = createJvmOptions();
-		if (StringUtils.isBlank(oldArgLine)) {
+		if (StringUtils.isEmpty(oldArgLine)) {
 			return jvmOptions;
 		}
 
@@ -89,7 +88,7 @@ public class ArgLine {
 	}
 
 	private static String quoteCommandLineOptionIfNecessary(String option) {
-		if (StringUtils.containsWhitespace(option)) {
+		if (option.matches(".*\\s+.*")) {
 			return "'" + option + "'";
 		} else {
 			return option;
@@ -99,7 +98,9 @@ public class ArgLine {
 	private String createJavaAgentArgument() {
 		List<String> agentOptions = new ArrayList<>();
 		agentOptions.add("config-file=" + agentConfigFile.toAbsolutePath());
-		agentOptions.addAll(Arrays.asList(ArrayUtils.nullToEmpty(additionalAgentOptions)));
+		if (additionalAgentOptions != null) {
+			agentOptions.addAll(Arrays.asList(additionalAgentOptions));
+		}
 		return "-javaagent:" + agentJarFile.toAbsolutePath() + "=" + String.join(",", agentOptions);
 	}
 
@@ -108,8 +109,8 @@ public class ArgLine {
 	 * framework of the current project's packaging. The user may override this by providing their own property name.
 	 */
 	private static ArgLineProperty getEffectiveProperty(String userDefinedPropertyName, MavenProject mavenProject,
-														boolean isIntegrationTest) {
-		if (StringUtils.isNotBlank(userDefinedPropertyName)) {
+			boolean isIntegrationTest) {
+		if (!StringUtils.isEmpty(userDefinedPropertyName)) {
 			return ArgLineProperty.projectProperty(userDefinedPropertyName);
 		}
 

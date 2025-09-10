@@ -1,12 +1,12 @@
 package com.teamscale.test.commons
 
-import org.apache.commons.lang3.SystemUtils
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import com.teamscale.client.SystemUtils
 import java.io.*
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
+import java.util.logging.Level
+import java.util.logging.Logger
 import java.util.regex.Pattern
 
 /**
@@ -80,9 +80,7 @@ object ProcessUtils {
 		 * Executes the process and returns the result.
 		 */
 		fun execute(): ProcessResult {
-			val builder = ProcessBuilder(commands).apply {
-				workingDirectory?.let { directory(it) }
-			}
+			val builder = build()
 
 			val stdoutConsumer = DefaultStreamConsumer(consoleCharset, true)
 			val stderrConsumer = DefaultStreamConsumer(consoleCharset, true)
@@ -101,15 +99,28 @@ object ProcessUtils {
 				throw ProcessExecutionException("Failed to execute: ${commands.joinToString(" ")}", e)
 			}
 		}
+
+		/**
+		 * Builds the ProcessBuilder with the configured settings.
+		 * 
+		 * @return ProcessBuilder configured with commands and working directory
+		 */
+		fun build(): ProcessBuilder = ProcessBuilder(commands).apply {
+			workingDirectory?.let { directory(it) }
+		}
 	}
 
 	/**
 	 * Immutable result of process execution.
 	 */
 	data class ProcessResult(
+		/** The standard output of the process */
 		val stdout: String,
+		/** The standard error output of the process */
 		val stderr: String,
+		/** The exit code returned by the process */
 		val exitCode: Int,
+		/** Whether the process was terminated due to timeout */
 		val timedOut: Boolean
 	) {
 		/**
@@ -117,12 +128,22 @@ object ProcessUtils {
 		 */
 		val isSuccess: Boolean get() = exitCode == 0 && !timedOut
 
+		/**
+		 * Returns whether the process was terminated by a timeout or a process interruption.
+		 */
+		val wasTerminatedByTimeoutOrInterruption: Boolean get() = exitCode == -1
+
 	}
 
 	/**
 	 * Exception thrown when process execution fails.
 	 */
-	class ProcessExecutionException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+	class ProcessExecutionException(
+		/** The error message describing the process execution failure */
+		message: String, 
+		/** The underlying cause of the failure, if any */
+		cause: Throwable? = null
+	) : RuntimeException(message, cause)
 
 
 	@Throws(IOException::class)
@@ -210,12 +231,12 @@ object ProcessUtils {
 			try {
 				streamConsumer.consume(inputStream)
 			} catch (e: IOException) {
-				LOGGER.warn("Encountered IOException during stream consumption", e)
+				LOGGER.log(Level.WARNING, "Encountered IOException during stream consumption", e)
 			}
 		}
 
 		companion object {
-			private val LOGGER: Logger = LogManager.getLogger()
+			private val LOGGER: Logger = Logger.getLogger(ProcessExecutor::class.java.canonicalName)
 		}
 	}
 

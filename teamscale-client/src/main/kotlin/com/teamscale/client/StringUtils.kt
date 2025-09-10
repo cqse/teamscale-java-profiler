@@ -159,4 +159,27 @@ object StringUtils {
 	fun removeDoubleQuotes(string: String): String {
 		return string.removeSuffix("\"").removePrefix("\"")
 	}
+
+	/**
+	 * Converts an empty string to null. If the input string is not empty, it returns the string unmodified.
+	 *
+	 * @param string the string to be converted. Must not be null.
+	 * @return `null` if the input string is empty after trimming; the original string otherwise.
+	 */
+	@JvmStatic
+	fun emptyToNull(string: String): String? {
+		return if (isEmpty(string)) null else string
+	}
+
+	/**
+	 * Converts a nullable string to a non-null, empty string.
+	 * If the input string is null, it returns an empty string. Otherwise, it returns the original string.
+	 *
+	 * @param stringOrNull the nullable string which may be null
+	 * @return a non-null string; either the original string or an empty string if the input was null
+	 */
+	@JvmStatic
+	fun nullToEmpty(stringOrNull: String?): String {
+		return stringOrNull ?: EMPTY_STRING
+	}
 }

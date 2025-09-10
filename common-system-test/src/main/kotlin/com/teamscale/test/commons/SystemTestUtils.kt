@@ -1,10 +1,10 @@
 package com.teamscale.test.commons
 
+import com.teamscale.client.SystemUtils
 import com.teamscale.report.testwise.model.TestInfo
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.apache.commons.lang3.SystemUtils
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.create
@@ -75,7 +75,7 @@ object SystemTestUtils {
 		println("Maven stdout: ${result.stdout}")
 		println("Maven stderr: ${result.stderr}")
 
-		if (!result.isSuccess) {
+		if (result.wasTerminatedByTimeoutOrInterruption) {
 			throw IOException("Running Maven failed: ${result.stdout}\n${result.stderr}")
 		}
 	}
@@ -95,7 +95,7 @@ object SystemTestUtils {
 		println("Gradle stdout: ${result.stdout}")
 		println("Gradle stderr: ${result.stderr}")
 
-		if (!result.isSuccess) {
+		if (result.wasTerminatedByTimeoutOrInterruption) {
 			throw IOException("Running Gradle failed: ${result.stdout}\n${result.stderr}")
 		}
 		return result

@@ -9,7 +9,7 @@ import com.teamscale.client.ITeamscaleService;
 import com.teamscale.client.ProfilerLogEntry;
 import com.teamscale.client.TeamscaleClient;
 import com.teamscale.jacoco.agent.options.AgentOptions;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 import retrofit2.Call;
 
 import java.net.ConnectException;

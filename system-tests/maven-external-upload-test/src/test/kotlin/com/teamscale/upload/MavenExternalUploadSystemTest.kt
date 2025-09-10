@@ -2,11 +2,11 @@ package com.teamscale.upload
 
 import com.teamscale.client.EReportFormat
 import com.teamscale.client.FileSystemUtils
+import com.teamscale.client.SystemUtils
 import com.teamscale.test.commons.ProcessUtils
 import com.teamscale.test.commons.SystemTestUtils
 import com.teamscale.test.commons.SystemTestUtils.runMavenTests
 import com.teamscale.test.commons.TeamscaleMockServer
-import org.apache.commons.lang3.SystemUtils
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll

@@ -24,7 +24,6 @@ dependencies {
 	compileOnly(libs.maven.pluginAnnotations)
 
 	implementation(libs.jgit)
-	implementation(libs.teamscaleLibCommons)
 
 	testImplementation(libs.assertj)
 }

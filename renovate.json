@@ -41,15 +41,6 @@
     },
     {
       "matchPackageNames": [
-        "com.teamscale:teamscale-lib-commons"
-      ],
-      "matchUpdateTypes": [
-        "patch"
-      ],
-      "enabled": false
-    },
-    {
-      "matchPackageNames": [
         "com.teamscale:teamscale-jacoco-agent",
         "com.teamscale:teamscale-client"
       ],
