@@ -1,8 +1,8 @@
 package com.teamscale.jacoco.agent.options;
 
+import com.teamscale.client.AntPatternUtils;
 import com.teamscale.client.FileSystemUtils;
 import com.teamscale.report.util.ILogger;
-import org.conqat.lib.commons.filesystem.AntPatternUtils;
 
 import java.io.File;
 import java.io.IOException;
