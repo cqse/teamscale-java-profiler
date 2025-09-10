@@ -19,8 +19,8 @@ import com.teamscale.jacoco.agent.testimpact.TestwiseCoverageAgent;
 import com.teamscale.jacoco.agent.upload.UploaderException;
 import com.teamscale.jacoco.agent.util.AgentUtils;
 import com.teamscale.report.util.ILogger;
+import kotlin.Pair;
 import org.conqat.lib.commons.collections.CollectionUtils;
-import org.conqat.lib.commons.collections.Pair;
 import org.slf4j.Logger;
 
 import java.io.File;

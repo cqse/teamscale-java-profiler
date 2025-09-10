@@ -37,8 +37,8 @@ import com.teamscale.jacoco.agent.util.Assertions;
 import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
 import com.teamscale.report.util.ILogger;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.conqat.lib.commons.collections.PairList;
 import org.jacoco.core.runtime.WildcardMatcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -172,7 +172,7 @@ public class AgentOptions {
 	/**
 	 * Additional user-provided options to pass to JaCoCo.
 	 */
-	/* package */ PairList<String, String> additionalJacocoOptions = new PairList<>();
+	/* package */ List<Pair<String, String>> additionalJacocoOptions = new ArrayList<>();
 
 	/**
 	 * The teamscale server to which coverage should be uploaded.

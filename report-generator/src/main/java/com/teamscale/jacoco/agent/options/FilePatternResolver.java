@@ -3,7 +3,6 @@ package com.teamscale.jacoco.agent.options;
 import com.teamscale.client.FileSystemUtils;
 import com.teamscale.report.util.ILogger;
 import org.conqat.lib.commons.collections.CollectionUtils;
-import org.conqat.lib.commons.collections.Pair;
 import org.conqat.lib.commons.filesystem.AntPatternUtils;
 
 import java.io.File;
@@ -167,11 +166,9 @@ public class FilePatternResolver {
 					return;
 				}
 			}
-			String pattern = baseDir.relativize(pathWithPattern).toString().replace(QUESTION_REPLACEMENT, "?")
-					.replace(ASTERISK_REPLACEMENT, "*");
-			Pair<String, String> baseDirAndPattern = new Pair<>(baseDir.toString(), pattern);
 
-			suffixPattern = baseDirAndPattern.getSecond();
+			suffixPattern = baseDir.relativize(pathWithPattern).toString().replace(QUESTION_REPLACEMENT, "?")
+					.replace(ASTERISK_REPLACEMENT, "*");
 			basePath = workingDirectory.toPath().resolve(baseDir).normalize().toAbsolutePath();
 		}
 
