@@ -4,11 +4,11 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.JCommander.Builder;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+import com.teamscale.client.StringUtils;
 import com.teamscale.jacoco.agent.commandline.Validator;
 import com.teamscale.jacoco.agent.convert.ConvertCommand;
 import com.teamscale.jacoco.agent.logging.LoggingUtils;
 import com.teamscale.jacoco.agent.util.AgentUtils;
-import org.conqat.lib.commons.string.StringUtils;
 import org.jacoco.core.JaCoCo;
 import org.slf4j.Logger;
 
@@ -30,8 +30,8 @@ public class Main {
 	}
 
 	/**
-	 * Parses the given command line arguments. Exits the program or throws an
-	 * exception if the arguments are not valid. Then runs the specified command.
+	 * Parses the given command line arguments. Exits the program or throws an exception if the arguments are not valid.
+	 * Then runs the specified command.
 	 */
 	private void parseCommandLineAndRun(String[] args) throws Exception {
 		Builder builder = createJCommanderBuilder();

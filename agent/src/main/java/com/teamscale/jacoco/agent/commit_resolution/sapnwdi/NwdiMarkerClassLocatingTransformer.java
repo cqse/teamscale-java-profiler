@@ -1,11 +1,11 @@
 package com.teamscale.jacoco.agent.commit_resolution.sapnwdi;
 
 import com.teamscale.client.CommitDescriptor;
+import com.teamscale.client.StringUtils;
+import com.teamscale.jacoco.agent.logging.LoggingUtils;
 import com.teamscale.jacoco.agent.options.sapnwdi.DelayedSapNwdiMultiUploader;
 import com.teamscale.jacoco.agent.options.sapnwdi.SapNwdiApplication;
-import com.teamscale.jacoco.agent.logging.LoggingUtils;
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
-import org.conqat.lib.commons.string.StringUtils;
 import org.slf4j.Logger;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -46,7 +46,7 @@ public class NwdiMarkerClassLocatingTransformer implements ClassFileTransformer 
 
 	@Override
 	public byte[] transform(ClassLoader classLoader, String className, Class<?> aClass,
-							ProtectionDomain protectionDomain, byte[] classFileContent) {
+			ProtectionDomain protectionDomain, byte[] classFileContent) {
 		if (protectionDomain == null) {
 			// happens for e.g. java.lang. We can ignore these classes
 			return null;

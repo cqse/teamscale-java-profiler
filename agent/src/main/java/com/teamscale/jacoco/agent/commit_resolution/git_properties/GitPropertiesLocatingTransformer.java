@@ -1,9 +1,9 @@
 package com.teamscale.jacoco.agent.commit_resolution.git_properties;
 
+import com.teamscale.client.StringUtils;
 import com.teamscale.jacoco.agent.logging.LoggingUtils;
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
 import org.conqat.lib.commons.collections.Pair;
-import org.conqat.lib.commons.string.StringUtils;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -26,14 +26,14 @@ public class GitPropertiesLocatingTransformer implements ClassFileTransformer {
 	private final ClasspathWildcardIncludeFilter locationIncludeFilter;
 
 	public GitPropertiesLocatingTransformer(IGitPropertiesLocator locator,
-											ClasspathWildcardIncludeFilter locationIncludeFilter) {
+			ClasspathWildcardIncludeFilter locationIncludeFilter) {
 		this.locator = locator;
 		this.locationIncludeFilter = locationIncludeFilter;
 	}
 
 	@Override
 	public byte[] transform(ClassLoader classLoader, String className, Class<?> aClass,
-							ProtectionDomain protectionDomain, byte[] classFileContent) {
+			ProtectionDomain protectionDomain, byte[] classFileContent) {
 		if (protectionDomain == null) {
 			// happens for e.g. java.lang. We can ignore these classes
 			return null;
@@ -56,7 +56,8 @@ public class GitPropertiesLocatingTransformer implements ClassFileTransformer {
 			}
 
 			URL jarOrClassFolderUrl = codeSource.getLocation();
-			Pair<File, Boolean> searchRoot = GitPropertiesLocatorUtils.extractGitPropertiesSearchRoot(jarOrClassFolderUrl);
+			Pair<File, Boolean> searchRoot = GitPropertiesLocatorUtils.extractGitPropertiesSearchRoot(
+					jarOrClassFolderUrl);
 			if (searchRoot == null || searchRoot.getFirst() == null) {
 				logger.warn("Not searching location for git.properties with unknown protocol or extension {}." +
 								" If this location contains your git.properties, please report this warning as a" +

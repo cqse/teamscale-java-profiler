@@ -474,8 +474,7 @@ public class AgentOptionsParser {
 	}
 
 	private void readConfigFromString(AgentOptions options, String content) {
-		List<String> configFileKeyValues = org.conqat.lib.commons.string.StringUtils.splitLinesAsList(
-				content);
+		List<String> configFileKeyValues = StringUtils.splitLinesAsList(content);
 		for (String optionKeyValue : configFileKeyValues) {
 			try {
 				String trimmedOption = optionKeyValue.trim();

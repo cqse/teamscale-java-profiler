@@ -2,6 +2,7 @@ package com.teamscale.jacoco.agent;
 
 import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.HttpUtils;
+import com.teamscale.client.StringUtils;
 import com.teamscale.jacoco.agent.configuration.AgentOptionReceiveException;
 import com.teamscale.jacoco.agent.logging.DebugLogDirectoryPropertyDefiner;
 import com.teamscale.jacoco.agent.logging.LogDirectoryPropertyDefiner;
@@ -20,7 +21,6 @@ import com.teamscale.jacoco.agent.util.AgentUtils;
 import com.teamscale.report.util.ILogger;
 import org.conqat.lib.commons.collections.CollectionUtils;
 import org.conqat.lib.commons.collections.Pair;
-import org.conqat.lib.commons.string.StringUtils;
 import org.slf4j.Logger;
 
 import java.io.File;
