@@ -85,7 +85,6 @@ jlink {
 dependencies {
 	implementation(libs.okhttp.core)
 	implementation(libs.commonsLang)
-	implementation(libs.commonsIo)
 	implementation(libs.picocli.core)
 	annotationProcessor(libs.picocli.codegen)
 	implementation(libs.jna.platform)

@@ -1,9 +1,10 @@
 package com.teamscale.profiler.installer.steps
 
-import com.teamscale.profiler.installer.*
+import com.teamscale.profiler.installer.FatalInstallerError
+import com.teamscale.profiler.installer.PermissionError
+import com.teamscale.profiler.installer.TeamscaleCredentials
 import com.teamscale.profiler.installer.steps.IStep.IUninstallErrorReporter
 import com.teamscale.profiler.installer.utils.InstallFileUtils
-import org.apache.commons.io.file.PathUtils
 import org.apache.commons.lang3.SystemUtils
 import java.io.IOException
 import java.nio.file.Files
@@ -49,7 +50,7 @@ class InstallAgentFilesStep(private val sourceDirectory: Path, private val insta
 		}
 
 		try {
-			PathUtils.deleteDirectory(installDirectory)
+			installDirectory.toFile().deleteRecursively()
 		} catch (e: IOException) {
 			errorReporter.report(FatalInstallerError("Failed to fully delete directory $installDirectory", e))
 		}
@@ -95,7 +96,7 @@ class InstallAgentFilesStep(private val sourceDirectory: Path, private val insta
 	@Throws(FatalInstallerError::class)
 	private fun copyAgentFiles() {
 		try {
-			PathUtils.copyDirectory(sourceDirectory, installDirectory)
+			sourceDirectory.toFile().copyRecursively(installDirectory.toFile())
 		} catch (e: IOException) {
 			throw PermissionError(
 				("Failed to copy some files to " + installDirectory + "."

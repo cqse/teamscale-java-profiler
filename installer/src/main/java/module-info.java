@@ -3,7 +3,6 @@ module com.teamscale.profiler.installer {
 	requires info.picocli;
 	requires com.sun.jna.platform;
 	requires org.apache.commons.lang3;
-	requires org.apache.commons.io;
 	// adds support for elliptic curve SSL ciphers
 	// used e.g. by teamscale.io
 	requires jdk.crypto.ec;
