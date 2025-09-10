@@ -23,7 +23,6 @@ import com.teamscale.report.util.ILogger;
 import kotlin.Pair;
 import okhttp3.HttpUrl;
 import org.apache.commons.compress.utils.Lists;
-import org.conqat.lib.commons.collections.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -35,6 +34,7 @@ import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.teamscale.jacoco.agent.upload.artifactory.ArtifactoryConfig.ARTIFACTORY_GIT_PROPERTIES_COMMIT_DATE_FORMAT_OPTION;
 import static com.teamscale.jacoco.agent.upload.artifactory.ArtifactoryConfig.ARTIFACTORY_GIT_PROPERTIES_JAR_OPTION;
@@ -334,7 +334,8 @@ public class AgentOptionsParser {
 				return true;
 			case "upload-metadata":
 				try {
-					options.additionalMetaDataFiles = CollectionUtils.map(splitMultiOptionValue(value), Paths::get);
+					options.additionalMetaDataFiles = splitMultiOptionValue(value).stream().map(Paths::get).collect(
+							Collectors.toList());
 				} catch (InvalidPathException e) {
 					throw new AgentOptionParseException("Invalid path given for option 'upload-metadata'", e);
 				}
