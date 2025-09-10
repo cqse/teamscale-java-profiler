@@ -3,7 +3,7 @@ package com.teamscale.jacoco.agent.commit_resolution.git_properties;
 import com.teamscale.client.StringUtils;
 import com.teamscale.jacoco.agent.logging.LoggingUtils;
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
-import org.conqat.lib.commons.collections.Pair;
+import kotlin.Pair;
 import org.slf4j.Logger;
 
 import java.io.File;

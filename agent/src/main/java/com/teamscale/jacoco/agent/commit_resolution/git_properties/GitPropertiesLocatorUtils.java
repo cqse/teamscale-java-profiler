@@ -5,7 +5,7 @@ import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.StringUtils;
 import com.teamscale.jacoco.agent.options.ProjectAndCommit;
 import com.teamscale.report.util.BashFileSkippingInputStream;
-import org.conqat.lib.commons.collections.Pair;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -127,14 +127,14 @@ public class GitPropertiesLocatorUtils {
 			case "file":
 				File jarOrClassFolderFile = new File(jarOrClassFolderUrl.toURI());
 				if (jarOrClassFolderFile.isDirectory() || isJarLikeFile(jarOrClassFolderUrl.getPath())) {
-					return Pair.createPair(new File(jarOrClassFolderUrl.toURI()), !jarOrClassFolderFile.isDirectory());
+					return new Pair<>(new File(jarOrClassFolderUrl.toURI()), !jarOrClassFolderFile.isDirectory());
 				}
 				break;
 			case "jar":
 				// Used e.g. by Spring Boot. Example: jar:file:/home/k/demo.jar!/BOOT-INF/classes!/
 				Matcher jarMatcher = JAR_URL_REGEX.matcher(jarOrClassFolderUrl.toString());
 				if (jarMatcher.matches()) {
-					return Pair.createPair(new File(jarMatcher.group(1)), true);
+					return new Pair<>(new File(jarMatcher.group(1)), true);
 				}
 				// Intentionally no break to handle ear and war files
 			case "war":
@@ -143,7 +143,7 @@ public class GitPropertiesLocatorUtils {
 				// Example: war:file:/Users/example/apache-tomcat/webapps/demo.war*/WEB-INF/lib/demoLib-1.0-SNAPSHOT.jar
 				Matcher nestedMatcher = NESTED_JAR_REGEX.matcher(jarOrClassFolderUrl.toString());
 				if (nestedMatcher.matches()) {
-					return Pair.createPair(new File(nestedMatcher.group(1)), true);
+					return new Pair<>(new File(nestedMatcher.group(1)), true);
 				}
 				break;
 			case "vfs":
@@ -170,7 +170,7 @@ public class GitPropertiesLocatorUtils {
 		// obtain the physical location of the class file. It is created on demand in <jboss-installation-dir>/standalone/tmp/vfs
 		Method getPhysicalFileMethod = virtualFileClass.getMethod("getPhysicalFile");
 		File file = (File) getPhysicalFileMethod.invoke(virtualFile);
-		return Pair.createPair(file, !file.isDirectory());
+		return new Pair<>(file, !file.isDirectory());
 	}
 
 	/**
@@ -224,7 +224,6 @@ public class GitPropertiesLocatorUtils {
 						"No entry or empty value for both '" + GIT_PROPERTIES_GIT_COMMIT_ID + "'/'" + GIT_PROPERTIES_GIT_COMMIT_ID_FULL +
 								"' and '" + GIT_PROPERTIES_TEAMSCALE_PROJECT + "' in " + file + "." +
 								"\nContents of " + GIT_PROPERTIES_FILE_NAME + ": " + entryWithProperties.getSecond()
-								.toString()
 				);
 			}
 			result.add(new ProjectAndCommit(project, commitInfo));
@@ -304,7 +303,7 @@ public class GitPropertiesLocatorUtils {
 				gitProperties.load(is);
 				String relativeFilePath = directoryFile.getName() + File.separator + directoryFile.toPath()
 						.relativize(gitPropertiesFile.toPath());
-				result.add(Pair.createPair(relativeFilePath, gitProperties));
+				result.add(new Pair<>(relativeFilePath, gitProperties));
 			} catch (IOException e) {
 				throw new IOException(
 						"Reading directory " + gitPropertiesFile.getAbsolutePath() + " for obtaining commit " +
@@ -330,7 +329,7 @@ public class GitPropertiesLocatorUtils {
 			if (Paths.get(entry.getName()).getFileName().toString().equalsIgnoreCase(GIT_PROPERTIES_FILE_NAME)) {
 				Properties gitProperties = new Properties();
 				gitProperties.load(in);
-				result.add(Pair.createPair(fullEntryName, gitProperties));
+				result.add(new Pair<>(fullEntryName, gitProperties));
 			} else if (isJarLikeFile(entry.getName()) && recursiveSearch) {
 				result.addAll(findGitPropertiesInArchive(new JarInputStream(in), fullEntryName, true));
 			}

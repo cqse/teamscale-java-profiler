@@ -20,10 +20,10 @@ import com.teamscale.jacoco.agent.upload.azure.AzureFileStorageConfig;
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleConfig;
 import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.ILogger;
+import kotlin.Pair;
 import okhttp3.HttpUrl;
 import org.apache.commons.compress.utils.Lists;
 import org.conqat.lib.commons.collections.CollectionUtils;
-import org.conqat.lib.commons.collections.Pair;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -83,7 +83,7 @@ public class AgentOptionsParser {
 		AgentOptionsParser parser = new AgentOptionsParser(logger, environmentConfigId, environmentConfigFile,
 				credentials, environmentAccessToken);
 		AgentOptions options = parser.parse(optionsString);
-		return Pair.createPair(options, parser.getCollectedErrors());
+		return new Pair<>(options, parser.getCollectedErrors());
 	}
 
 	@VisibleForTesting
@@ -223,7 +223,7 @@ public class AgentOptionsParser {
 			return;
 		}
 		if (key.startsWith("jacoco-")) {
-			options.additionalJacocoOptions.add(key.substring(7), value);
+			options.additionalJacocoOptions.add(new kotlin.Pair<>(key.substring(7), value));
 			return;
 		}
 		if (key.startsWith("teamscale-") && teamscaleConfig.handleTeamscaleOptions(options.teamscaleServer, key,
