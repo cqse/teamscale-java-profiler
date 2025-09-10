@@ -6,7 +6,6 @@ import java.nio.file.Paths
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
-import java.util.regex.Pattern
 
 /**
  * File system utilities.
@@ -54,12 +53,7 @@ object FileSystemUtils {
 	 */
 	@JvmStatic
 	fun getFileExtension(file: File): String? {
-		val name = file.name
-		val posLastDot = name.lastIndexOf('.')
-		if (posLastDot < 0) {
-			return null
-		}
-		return name.substring(posLastDot + 1)
+		return file.extension.takeIf { it.isNotEmpty() }
 	}
 
 	/**
@@ -114,14 +108,7 @@ object FileSystemUtils {
 	@JvmStatic
 	@Throws(IOException::class)
 	fun copy(input: InputStream, output: OutputStream): Int {
-		val buffer = ByteArray(1024)
-		var size = 0
-		var len: Int
-		while ((input.read(buffer).also { len = it }) > 0) {
-			output.write(buffer, 0, len)
-			size += len
-		}
-		return size
+		return input.copyTo(output).toInt()
 	}
 
 	/**
@@ -135,7 +122,7 @@ object FileSystemUtils {
 	@Throws(IOException::class)
 	fun ensureDirectoryExists(directory: File) {
 		if (!directory.exists() && !directory.mkdirs()) {
-			throw IOException("Couldn't create directory: " + directory)
+			throw IOException("Couldn't create directory: $directory")
 		}
 		if (directory.exists() && directory.canWrite()) {
 			return
@@ -148,15 +135,15 @@ object FileSystemUtils {
 		while ((!directory.exists() || !directory.canWrite()) && start.until(Instant.now(), ChronoUnit.MILLIS) < 100) {
 			try {
 				Thread.sleep(10)
-			} catch (e: InterruptedException) {
+			} catch (_: InterruptedException) {
 				// just continue
 			}
 		}
 		if (!directory.exists()) {
-			throw IOException("Temp directory " + directory + " could not be created.")
+			throw IOException("Temp directory $directory could not be created.")
 		}
 		if (!directory.canWrite()) {
-			throw IOException("Temp directory " + directory + " exists, but is not writable.")
+			throw IOException("Temp directory $directory exists, but is not writable.")
 		}
 	}
 
@@ -184,10 +171,7 @@ object FileSystemUtils {
 	 */
 	@JvmStatic
 	fun toSafeFilename(name: String): String {
-		var name = name
-		name = name.replace("\\W+".toRegex(), "-")
-		name = name.replace("[-_]+".toRegex(), "-")
-		return name
+		return name.replace("\\W+".toRegex(), "-").replace("[-_]+".toRegex(), "-")
 	}
 
 	/**
@@ -211,14 +195,11 @@ object FileSystemUtils {
 	 */
 	@JvmStatic
 	fun replaceFilePathFilenameWith(uniformPath: String, newFileName: String): String {
-		val folderSepIndex = uniformPath.lastIndexOf('/')
-
-		if (uniformPath.endsWith("/")) {
-			return uniformPath + newFileName
-		} else if (folderSepIndex == -1) {
-			return newFileName
+		return when {
+			uniformPath.endsWith("/") -> uniformPath + newFileName
+			!uniformPath.contains('/') -> newFileName
+			else -> uniformPath.substringBeforeLast('/') + "/" + newFileName
 		}
-		return uniformPath.take(folderSepIndex) + "/" + newFileName
 	}
 
 	/**
@@ -240,18 +221,14 @@ object FileSystemUtils {
 	fun isValidPath(path: String): Boolean {
 		try {
 			Paths.get(path)
-		} catch (ex: InvalidPathException) {
+		} catch (_: InvalidPathException) {
 			return false
 		}
 
 		// Split at the default platform separators and check whether there remain any
 		// separator characters in the path segments
-		return Arrays.stream(path.split(Pattern.quote(File.separator).toRegex()).dropLastWhile { it.isEmpty() }
-			.toTypedArray())
-			.noneMatch { pathSegment: String? ->
-				pathSegment!!.contains(WINDOWS_SEPARATOR.toString())
-						|| pathSegment.contains(UNIX_SEPARATOR.toString())
-			}
+		return path.split(File.separator)
+			.none { pathSegment -> pathSegment.contains(WINDOWS_SEPARATOR) || pathSegment.contains(UNIX_SEPARATOR) }
 	}
 
 	/** Reads properties from a properties file.  */
@@ -279,8 +256,7 @@ object FileSystemUtils {
 	 * automatically creates all necessary directories.
 	 *
 	 * @param fileFilter
-	 * filter to specify file types. If all files should be copied, use
-	 * [FileOnlyFilter].
+	 * filter to specify file types.
 	 * @return number of files copied
 	 */
 	@JvmStatic
@@ -308,27 +284,8 @@ object FileSystemUtils {
 	 */
 	@JvmStatic
 	fun deleteRecursively(directory: File) {
-		requireNotNull(directory) { "Directory may not be null." }
-
-		val filesInDirectory = directory.listFiles()
-		if (filesInDirectory == null) {
-			if (!directory.exists()) {
-				// If filesInDirectory is null, that could have two reasons: Either
-				// directory.isInvalid() is true, or there is a low-level IO error that is not
-				// wrapped in an exception. We can't precisely distinguish the cases. But
-				// directory.exists() checks directory.isInvalid(), and if the directory does
-				// not exist, our job is actually done.
-				return
-			}
-			throw IllegalArgumentException(directory.getAbsolutePath() + " is not a valid directory.")
-		}
-
-		for (entry in filesInDirectory) {
-			if (entry.isDirectory()) {
-				deleteRecursively(entry)
-			}
-			entry.delete()
-		}
-		directory.delete()
+		if (!directory.exists()) return
+		
+		directory.walkBottomUp().forEach { it.delete() }
 	}
 }
