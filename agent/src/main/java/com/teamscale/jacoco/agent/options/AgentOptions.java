@@ -643,7 +643,7 @@ public class AgentOptions {
 	 * actually exists.
 	 */
 	public File createNewFileInOutputDirectory(String prefix, String extension) throws IOException {
-		org.conqat.lib.commons.filesystem.FileSystemUtils.ensureDirectoryExists(outputDirectory.toFile());
+		FileSystemUtils.ensureDirectoryExists(outputDirectory.toFile());
 		return outputDirectory.resolve(prefix + "-" + LocalDateTime.now().format(DATE_TIME_FORMATTER) + "." + extension)
 				.toFile();
 	}
@@ -654,7 +654,7 @@ public class AgentOptions {
 	 */
 	public File createNewFileInPartitionOutputDirectory(String prefix, String extension) throws IOException {
 		Path partitionOutputDir = outputDirectory.resolve(safeFolderName(getTeamscaleServerOptions().partition));
-		org.conqat.lib.commons.filesystem.FileSystemUtils.ensureDirectoryExists(partitionOutputDir.toFile());
+		FileSystemUtils.ensureDirectoryExists(partitionOutputDir.toFile());
 		return partitionOutputDir.resolve(
 				prefix + "-" + LocalDateTime.now().format(DATE_TIME_FORMATTER) + "." + extension).toFile();
 	}

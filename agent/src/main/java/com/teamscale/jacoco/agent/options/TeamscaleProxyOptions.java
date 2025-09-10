@@ -1,10 +1,10 @@
 package com.teamscale.jacoco.agent.options;
 
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.ProxySystemProperties;
 import com.teamscale.client.StringUtils;
 import com.teamscale.client.TeamscaleProxySystemProperties;
 import com.teamscale.report.util.ILogger;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,7 +16,7 @@ public class TeamscaleProxyOptions {
 
 	private final ILogger logger;
 
-	/** The host of the proxy server.  */
+	/** The host of the proxy server. */
 	/* package */ String proxyHost;
 
 	/** The port of the proxy server. */
@@ -59,29 +59,29 @@ public class TeamscaleProxyOptions {
 	 * @return true if it has successfully processed the given option.
 	 */
 	public boolean handleTeamscaleProxyOptions(String key, String value) throws AgentOptionParseException {
-			if ("host".equals(key)){
-				proxyHost = value;
-				return true;
-			}
+		if ("host".equals(key)) {
+			proxyHost = value;
+			return true;
+		}
 		String proxyPortOption = "port";
 		if (proxyPortOption.equals(key)) {
-				try {
-					proxyPort = Integer.parseInt(value);
-				} catch (NumberFormatException e) {
-					throw new AgentOptionParseException("Could not parse proxy port \"" + value +
-							"\" set via \"" + proxyPortOption + "\"", e);
-				}
-				return true;
+			try {
+				proxyPort = Integer.parseInt(value);
+			} catch (NumberFormatException e) {
+				throw new AgentOptionParseException("Could not parse proxy port \"" + value +
+						"\" set via \"" + proxyPortOption + "\"", e);
 			}
-			if ("user".equals(key)) {
-				proxyUser = value;
-				return true;
-			}
-			if ("password".equals(key)) {
-				proxyPassword = value;
-				return true;
-			}
-			return false;
+			return true;
+		}
+		if ("user".equals(key)) {
+			proxyUser = value;
+			return true;
+		}
+		if ("password".equals(key)) {
+			proxyPassword = value;
+			return true;
+		}
+		return false;
 	}
 
 	/** Stores the teamscale-specific proxy settings as system properties to make them always available. */
@@ -93,17 +93,20 @@ public class TeamscaleProxyOptions {
 		if (proxyPort > 0) {
 			teamscaleProxySystemProperties.setProxyPort(proxyPort);
 		}
-		if(!StringUtils.isEmpty(proxyUser)) {
+		if (!StringUtils.isEmpty(proxyUser)) {
 			teamscaleProxySystemProperties.setProxyUser(proxyUser);
 		}
-		if(!StringUtils.isEmpty(proxyPassword)) {
+		if (!StringUtils.isEmpty(proxyPassword)) {
 			teamscaleProxySystemProperties.setProxyPassword(proxyPassword);
 		}
 
 		setProxyPasswordFromFile(proxyPasswordPath);
 	}
 
-	/** Sets the proxy password JVM property from a file for the protocol in this instance of {@link TeamscaleProxyOptions}. */
+	/**
+	 * Sets the proxy password JVM property from a file for the protocol in this instance of
+	 * {@link TeamscaleProxyOptions}.
+	 */
 	private void setProxyPasswordFromFile(Path proxyPasswordFilePath) {
 		if (proxyPasswordFilePath == null) {
 			return;

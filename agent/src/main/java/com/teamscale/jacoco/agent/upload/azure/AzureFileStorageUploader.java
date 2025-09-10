@@ -1,15 +1,15 @@
 package com.teamscale.jacoco.agent.upload.azure;
 
-import static com.teamscale.jacoco.agent.upload.azure.AzureFileStorageHttpUtils.EHttpMethod.HEAD;
-import static com.teamscale.jacoco.agent.upload.azure.AzureFileStorageHttpUtils.EHttpMethod.PUT;
-import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.AUTHORIZATION;
-import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.CONTENT_LENGTH;
-import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.CONTENT_TYPE;
-import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_CONTENT_LENGTH;
-import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_RANGE;
-import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_TYPE;
-import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_WRITE;
-import static com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader.RETRY_UPLOAD_FILE_SUFFIX;
+import com.teamscale.client.EReportFormat;
+import com.teamscale.client.FileSystemUtils;
+import com.teamscale.jacoco.agent.upload.HttpZipUploaderBase;
+import com.teamscale.jacoco.agent.upload.IUploadRetry;
+import com.teamscale.jacoco.agent.upload.UploaderException;
+import com.teamscale.report.jacoco.CoverageFile;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Response;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,18 +21,16 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
-
-import com.teamscale.client.EReportFormat;
-import com.teamscale.jacoco.agent.upload.HttpZipUploaderBase;
-import com.teamscale.jacoco.agent.upload.IUploadRetry;
-import com.teamscale.jacoco.agent.upload.UploaderException;
-import com.teamscale.report.jacoco.CoverageFile;
-
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Response;
+import static com.teamscale.jacoco.agent.upload.azure.AzureFileStorageHttpUtils.EHttpMethod.HEAD;
+import static com.teamscale.jacoco.agent.upload.azure.AzureFileStorageHttpUtils.EHttpMethod.PUT;
+import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.AUTHORIZATION;
+import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.CONTENT_LENGTH;
+import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.CONTENT_TYPE;
+import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_CONTENT_LENGTH;
+import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_RANGE;
+import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_TYPE;
+import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_WRITE;
+import static com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader.RETRY_UPLOAD_FILE_SUFFIX;
 
 /** Uploads the coverage archive to a provided azure file storage. */
 public class AzureFileStorageUploader extends HttpZipUploaderBase<IAzureUploadApi> implements IUploadRetry {
@@ -60,7 +58,7 @@ public class AzureFileStorageUploader extends HttpZipUploaderBase<IAzureUploadAp
 	@Override
 	public void markFileForUploadRetry(CoverageFile coverageFile) {
 		File uploadMetadataFile = new File(FileSystemUtils.replaceFilePathFilenameWith(
-				com.teamscale.client.FileSystemUtils.normalizeSeparators(coverageFile.toString()),
+				FileSystemUtils.normalizeSeparators(coverageFile.toString()),
 				coverageFile.getName() + RETRY_UPLOAD_FILE_SUFFIX));
 		try {
 			uploadMetadataFile.createNewFile();
@@ -80,8 +78,7 @@ public class AzureFileStorageUploader extends HttpZipUploaderBase<IAzureUploadAp
 	}
 
 	/**
-	 * Extracts and returns the account of the provided azure file storage from the
-	 * URL.
+	 * Extracts and returns the account of the provided azure file storage from the URL.
 	 */
 	private String getAccount() throws UploaderException {
 		Matcher matcher = AZURE_FILE_STORAGE_HOST_PATTERN.matcher(this.uploadUrl.host());
@@ -109,8 +106,8 @@ public class AzureFileStorageUploader extends HttpZipUploaderBase<IAzureUploadAp
 	}
 
 	/**
-	 * Makes sure that the upload url is valid and that it exists on the file
-	 * storage. If some directories do not exists, they will be created.
+	 * Makes sure that the upload url is valid and that it exists on the file storage. If some directories do not
+	 * exists, they will be created.
 	 */
 	private void validateUploadUrl() throws UploaderException {
 		List<String> pathParts = this.uploadUrl.pathSegments();
@@ -182,8 +179,8 @@ public class AzureFileStorageUploader extends HttpZipUploaderBase<IAzureUploadAp
 	}
 
 	/**
-	 * Creates the directory specified by the given path. The path must contain the
-	 * share where it should be created on.
+	 * Creates the directory specified by the given path. The path must contain the share where it should be created
+	 * on.
 	 */
 	private Response<ResponseBody> createDirectory(String directoryPath) throws IOException, UploaderException {
 		Map<String, String> headers = AzureFileStorageHttpUtils.getBaseHeaders();
@@ -210,8 +207,7 @@ public class AzureFileStorageUploader extends HttpZipUploaderBase<IAzureUploadAp
 	}
 
 	/**
-	 * Creates an empty file with the given name. The size is defined by the length
-	 * of the given byte array.
+	 * Creates an empty file with the given name. The size is defined by the length of the given byte array.
 	 */
 	private Response<ResponseBody> createFile(File zipFile, String fileName) throws IOException, UploaderException {
 		String filePath = uploadUrl.url().getPath() + fileName;
@@ -230,9 +226,8 @@ public class AzureFileStorageUploader extends HttpZipUploaderBase<IAzureUploadAp
 	}
 
 	/**
-	 * Fills the file defined by the name with the given data. Should be used with
-	 * {@link #createFile(File, String)}, because the request only writes exactly
-	 * the length of the given data, so the file should be exactly as big as the
+	 * Fills the file defined by the name with the given data. Should be used with {@link #createFile(File, String)},
+	 * because the request only writes exactly the length of the given data, so the file should be exactly as big as the
 	 * data, otherwise it will be partially filled or is not big enough.
 	 */
 	private Response<ResponseBody> fillFile(File zipFile, String fileName) throws IOException, UploaderException {

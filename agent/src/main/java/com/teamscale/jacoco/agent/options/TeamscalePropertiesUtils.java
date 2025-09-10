@@ -1,8 +1,8 @@
 package com.teamscale.jacoco.agent.options;
 
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.jacoco.agent.util.AgentUtils;
 import okhttp3.HttpUrl;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;

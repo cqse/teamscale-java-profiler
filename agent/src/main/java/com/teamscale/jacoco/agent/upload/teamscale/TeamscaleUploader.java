@@ -3,16 +3,16 @@ package com.teamscale.jacoco.agent.upload.teamscale;
 import com.google.common.base.Strings;
 import com.teamscale.client.CommitDescriptor;
 import com.teamscale.client.EReportFormat;
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.ITeamscaleService;
 import com.teamscale.client.ITeamscaleServiceKt;
 import com.teamscale.client.TeamscaleServer;
 import com.teamscale.client.TeamscaleServiceGenerator;
+import com.teamscale.jacoco.agent.logging.LoggingUtils;
 import com.teamscale.jacoco.agent.upload.IUploadRetry;
 import com.teamscale.jacoco.agent.upload.IUploader;
 import com.teamscale.jacoco.agent.util.Benchmark;
-import com.teamscale.jacoco.agent.logging.LoggingUtils;
 import com.teamscale.report.jacoco.CoverageFile;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -88,7 +88,7 @@ public class TeamscaleUploader implements IUploader, IUploadRetry {
 	@Override
 	public void markFileForUploadRetry(CoverageFile coverageFile) {
 		File uploadMetadataFile = new File(FileSystemUtils.replaceFilePathFilenameWith(
-				com.teamscale.client.FileSystemUtils.normalizeSeparators(coverageFile.toString()),
+				FileSystemUtils.normalizeSeparators(coverageFile.toString()),
 				coverageFile.getName() + RETRY_UPLOAD_FILE_SUFFIX));
 		Properties serverProperties = this.createServerProperties();
 		try (OutputStreamWriter writer = new OutputStreamWriter(Files.newOutputStream(uploadMetadataFile.toPath()),
@@ -136,7 +136,8 @@ public class TeamscaleUploader implements IUploader, IUploadRetry {
 			// (See #100)
 			ITeamscaleService api = TeamscaleServiceGenerator.createService(ITeamscaleService.class,
 					teamscaleServer.url, teamscaleServer.userName, teamscaleServer.userAccessToken);
-			ITeamscaleServiceKt.uploadReport(api, teamscaleServer.project, teamscaleServer.commit, teamscaleServer.revision,
+			ITeamscaleServiceKt.uploadReport(api, teamscaleServer.project, teamscaleServer.commit,
+					teamscaleServer.revision,
 					teamscaleServer.repository, teamscaleServer.partition, EReportFormat.JACOCO,
 					teamscaleServer.getMessage(), coverageFile.createFormRequestBody());
 			return true;
