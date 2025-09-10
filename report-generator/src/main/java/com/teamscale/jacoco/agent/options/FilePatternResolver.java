@@ -2,7 +2,6 @@ package com.teamscale.jacoco.agent.options;
 
 import com.teamscale.client.FileSystemUtils;
 import com.teamscale.report.util.ILogger;
-import org.conqat.lib.commons.collections.CollectionUtils;
 import org.conqat.lib.commons.filesystem.AntPatternUtils;
 
 import java.io.File;
@@ -62,9 +61,8 @@ public class FilePatternResolver {
 	/* package */ List<File> resolveToMultipleFiles(String optionName, String pattern,
 			File workingDirectory) throws IOException {
 		if (isPathWithPattern(pattern)) {
-			return CollectionUtils
-					.map(parseFileFromPattern(optionName, pattern, workingDirectory).getAllMatchingPaths(),
-							Path::toFile);
+			return parseFileFromPattern(optionName, pattern, workingDirectory).getAllMatchingPaths().stream()
+					.map(Path::toFile).collect(toList());
 		}
 		try {
 			return Collections.singletonList(workingDirectory.toPath().resolve(Paths.get(pattern)).toFile());
