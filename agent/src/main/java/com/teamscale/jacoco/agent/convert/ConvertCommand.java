@@ -14,9 +14,9 @@ import com.teamscale.jacoco.agent.commandline.ICommand;
 import com.teamscale.jacoco.agent.commandline.Validator;
 import com.teamscale.jacoco.agent.options.ClasspathUtils;
 import com.teamscale.jacoco.agent.options.FilePatternResolver;
+import com.teamscale.jacoco.agent.util.Assertions;
 import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.CommandLineLogger;
-import org.conqat.lib.commons.assertion.CCSMAssert;
 
 import java.io.File;
 import java.io.IOException;
@@ -149,10 +149,10 @@ public class ConvertCommand implements ICommand {
 		}
 
 		validator.ensure(() -> {
-			CCSMAssert.isFalse(StringUtils.isEmpty(outputFile), "You must specify an output file");
+			Assertions.isFalse(StringUtils.isEmpty(outputFile), "You must specify an output file");
 			File outputDir = getOutputFile().getAbsoluteFile().getParentFile();
 			FileSystemUtils.ensureDirectoryExists(outputDir);
-			CCSMAssert.isTrue(outputDir.canWrite(), "Path '" + outputDir + "' is not writable");
+			Assertions.isTrue(outputDir.canWrite(), "Path '" + outputDir + "' is not writable");
 		});
 
 		return validator;

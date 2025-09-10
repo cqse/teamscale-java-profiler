@@ -33,11 +33,11 @@ import com.teamscale.jacoco.agent.upload.teamscale.DelayedTeamscaleMultiProjectU
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleConfig;
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader;
 import com.teamscale.jacoco.agent.util.AgentUtils;
+import com.teamscale.jacoco.agent.util.Assertions;
 import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
 import com.teamscale.report.util.ILogger;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.conqat.lib.commons.assertion.CCSMAssert;
 import org.conqat.lib.commons.collections.PairList;
 import org.jacoco.core.runtime.WildcardMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -306,13 +306,13 @@ public class AgentOptions {
 
 	private void validateLoggingConfig(Validator validator) {
 		validator.ensure(() -> {
-			CCSMAssert.isTrue(Files.exists(loggingConfig),
+			Assertions.isTrue(Files.exists(loggingConfig),
 					"The path provided for the logging configuration does not exist: " + loggingConfig);
-			CCSMAssert.isTrue(Files.isRegularFile(loggingConfig),
+			Assertions.isTrue(Files.isRegularFile(loggingConfig),
 					"The path provided for the logging configuration is not a file: " + loggingConfig);
-			CCSMAssert.isTrue(Files.isReadable(loggingConfig),
+			Assertions.isTrue(Files.isReadable(loggingConfig),
 					"The file provided for the logging configuration is not readable: " + loggingConfig);
-			CCSMAssert.isTrue("xml".equalsIgnoreCase(FileSystemUtils.getFileExtension(loggingConfig.toFile())),
+			Assertions.isTrue("xml".equalsIgnoreCase(FileSystemUtils.getFileExtension(loggingConfig.toFile())),
 					"The logging configuration file must have the file extension .xml and be a valid XML file");
 		});
 	}
