@@ -76,8 +76,7 @@ public class TeamscaleProxyOptions {
 		if ("user".equals(key)) {
 			proxyUser = value;
 			return true;
-		}
-		if ("password".equals(key)) {
+		} else if ("password".equals(key)) {
 			proxyPassword = value;
 			return true;
 		}

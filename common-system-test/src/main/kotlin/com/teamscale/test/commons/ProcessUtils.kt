@@ -26,11 +26,11 @@ object ProcessUtils {
 	private fun determineConsoleCharset(): Charset {
 		if (SystemUtils.IS_OS_WINDOWS) {
 			try {
-				val temporaryCharset = StandardCharsets.UTF_8
-				val stdoutConsumer = DefaultStreamConsumer(temporaryCharset, true)
+				val defaultConsoleCharset = StandardCharsets.UTF_8
+				val stdoutConsumer = DefaultStreamConsumer(defaultConsoleCharset, true)
 				executeWithoutConcurrencyLimit(
-					ProcessBuilder("chcp.com"), null, -1, temporaryCharset,
-					stdoutConsumer, DefaultStreamConsumer(temporaryCharset, false)
+					ProcessBuilder("chcp.com"), null, -1, defaultConsoleCharset,
+					stdoutConsumer, DefaultStreamConsumer(defaultConsoleCharset, false)
 				)
 				val matcher = Pattern.compile("\\d+").matcher(stdoutConsumer.content)
 				if (matcher.find()) {
@@ -102,7 +102,7 @@ object ProcessUtils {
 
 		/**
 		 * Builds the ProcessBuilder with the configured settings.
-		 * 
+		 *
 		 * @return ProcessBuilder configured with commands and working directory
 		 */
 		fun build(): ProcessBuilder = ProcessBuilder(commands).apply {
@@ -116,10 +116,13 @@ object ProcessUtils {
 	data class ProcessResult(
 		/** The standard output of the process */
 		val stdout: String,
+
 		/** The standard error output of the process */
 		val stderr: String,
+
 		/** The exit code returned by the process */
 		val exitCode: Int,
+
 		/** Whether the process was terminated due to timeout */
 		val timedOut: Boolean
 	) {
@@ -140,7 +143,7 @@ object ProcessUtils {
 	 */
 	class ProcessExecutionException(
 		/** The error message describing the process execution failure */
-		message: String, 
+		message: String,
 		/** The underlying cause of the failure, if any */
 		cause: Throwable? = null
 	) : RuntimeException(message, cause)

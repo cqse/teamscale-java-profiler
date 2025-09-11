@@ -3,7 +3,7 @@ package com.teamscale.jacoco.agent.util;
 import org.jetbrains.annotations.Contract;
 
 /**
- * This class provides simple methods to implement assertions.
+ * Simple methods to implement assertions.
  */
 public class Assertions {
 
