@@ -1,7 +1,7 @@
 package com.teamscale.jacoco.agent.options;
 
-import com.teamscale.jacoco.agent.util.AgentUtils;
 import com.teamscale.jacoco.agent.logging.LoggingUtils;
+import com.teamscale.jacoco.agent.util.AgentUtils;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class JacocoAgentOptionsBuilder {
 		}
 
 		agentOptions.additionalJacocoOptions
-				.forEach((key, value) -> builder.append(",").append(key).append("=").append(value));
+				.forEach(pair -> builder.append(",").append(pair.getFirst()).append("=").append(pair.getSecond()));
 
 		return builder.toString();
 	}

@@ -1,6 +1,6 @@
 package com.teamscale.jacoco.agent.commit_resolution.git_properties;
 
-import org.conqat.lib.commons.collections.Pair;
+import kotlin.Pair;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

@@ -33,14 +33,14 @@ import com.teamscale.jacoco.agent.upload.teamscale.DelayedTeamscaleMultiProjectU
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleConfig;
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader;
 import com.teamscale.jacoco.agent.util.AgentUtils;
+import com.teamscale.jacoco.agent.util.Assertions;
 import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
 import com.teamscale.report.util.ILogger;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.conqat.lib.commons.assertion.CCSMAssert;
-import org.conqat.lib.commons.collections.PairList;
+import kotlin.Pair;
 import org.jacoco.core.runtime.WildcardMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -172,7 +172,7 @@ public class AgentOptions {
 	/**
 	 * Additional user-provided options to pass to JaCoCo.
 	 */
-	/* package */ PairList<String, String> additionalJacocoOptions = new PairList<>();
+	/* package */ List<Pair<String, String>> additionalJacocoOptions = new ArrayList<>();
 
 	/**
 	 * The teamscale server to which coverage should be uploaded.
@@ -306,13 +306,13 @@ public class AgentOptions {
 
 	private void validateLoggingConfig(Validator validator) {
 		validator.ensure(() -> {
-			CCSMAssert.isTrue(Files.exists(loggingConfig),
+			Assertions.isTrue(Files.exists(loggingConfig),
 					"The path provided for the logging configuration does not exist: " + loggingConfig);
-			CCSMAssert.isTrue(Files.isRegularFile(loggingConfig),
+			Assertions.isTrue(Files.isRegularFile(loggingConfig),
 					"The path provided for the logging configuration is not a file: " + loggingConfig);
-			CCSMAssert.isTrue(Files.isReadable(loggingConfig),
+			Assertions.isTrue(Files.isReadable(loggingConfig),
 					"The file provided for the logging configuration is not readable: " + loggingConfig);
-			CCSMAssert.isTrue("xml".equalsIgnoreCase(FileSystemUtils.getFileExtension(loggingConfig.toFile())),
+			Assertions.isTrue("xml".equalsIgnoreCase(FileSystemUtils.getFileExtension(loggingConfig.toFile())),
 					"The logging configuration file must have the file extension .xml and be a valid XML file");
 		});
 	}
@@ -643,7 +643,7 @@ public class AgentOptions {
 	 * actually exists.
 	 */
 	public File createNewFileInOutputDirectory(String prefix, String extension) throws IOException {
-		org.conqat.lib.commons.filesystem.FileSystemUtils.ensureDirectoryExists(outputDirectory.toFile());
+		FileSystemUtils.ensureDirectoryExists(outputDirectory.toFile());
 		return outputDirectory.resolve(prefix + "-" + LocalDateTime.now().format(DATE_TIME_FORMATTER) + "." + extension)
 				.toFile();
 	}
@@ -654,7 +654,7 @@ public class AgentOptions {
 	 */
 	public File createNewFileInPartitionOutputDirectory(String prefix, String extension) throws IOException {
 		Path partitionOutputDir = outputDirectory.resolve(safeFolderName(getTeamscaleServerOptions().partition));
-		org.conqat.lib.commons.filesystem.FileSystemUtils.ensureDirectoryExists(partitionOutputDir.toFile());
+		FileSystemUtils.ensureDirectoryExists(partitionOutputDir.toFile());
 		return partitionOutputDir.resolve(
 				prefix + "-" + LocalDateTime.now().format(DATE_TIME_FORMATTER) + "." + extension).toFile();
 	}

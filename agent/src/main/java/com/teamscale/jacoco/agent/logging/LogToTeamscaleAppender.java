@@ -9,13 +9,14 @@ import com.teamscale.client.ITeamscaleService;
 import com.teamscale.client.ProfilerLogEntry;
 import com.teamscale.client.TeamscaleClient;
 import com.teamscale.jacoco.agent.options.AgentOptions;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.conqat.lib.commons.collections.IdentityHashSet;
+import org.jetbrains.annotations.Nullable;
 import retrofit2.Call;
 
 import java.net.ConnectException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,8 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.teamscale.jacoco.agent.logging.LoggingUtils.getStackTraceFromEvent;
 
 /**
- * Custom log appender that sends logs to Teamscale; it buffers log that were not sent due to connection
- * issues and sends them later.
+ * Custom log appender that sends logs to Teamscale; it buffers log that were not sent due to connection issues and
+ * sends them later.
  */
 public class LogToTeamscaleAppender extends AppenderBase<ILoggingEvent> {
 
@@ -45,15 +46,17 @@ public class LogToTeamscaleAppender extends AppenderBase<ILoggingEvent> {
 	/** The service client for sending logs to Teamscale */
 	private static ITeamscaleService teamscaleClient;
 
-	/** Buffer for unsent logs. We use a set here to allow for removing
-	 * entries fast after sending them to Teamscale was successful. */
+	/**
+	 * Buffer for unsent logs. We use a set here to allow for removing entries fast after sending them to Teamscale was
+	 * successful.
+	 */
 	private final LinkedHashSet<ProfilerLogEntry> logBuffer = new LinkedHashSet<>();
 
 	/** Scheduler for sending logs after the configured time interval */
 	private final ScheduledExecutorService scheduler;
 
 	/** Active log flushing threads */
-	private final Set<CompletableFuture<Void>> activeLogFlushes = new IdentityHashSet<>();
+	private final Set<CompletableFuture<Void>> activeLogFlushes = Collections.newSetFromMap(new IdentityHashMap<>());
 
 	/** Is there a flush going on right now? */
 	private final AtomicBoolean isFlusing = new AtomicBoolean(false);
@@ -178,8 +181,8 @@ public class LogToTeamscaleAppender extends AppenderBase<ILoggingEvent> {
 	}
 
 	/**
-	 * Add the {@link com.teamscale.jacoco.agent.logging.LogToTeamscaleAppender} to the logging configuration
-	 * and enable/start it.
+	 * Add the {@link com.teamscale.jacoco.agent.logging.LogToTeamscaleAppender} to the logging configuration and
+	 * enable/start it.
 	 */
 	public static boolean addTeamscaleAppenderTo(LoggerContext context, AgentOptions agentOptions) {
 		@Nullable TeamscaleClient client = agentOptions.createTeamscaleClient(

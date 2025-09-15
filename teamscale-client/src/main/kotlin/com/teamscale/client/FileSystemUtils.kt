@@ -1,6 +1,11 @@
 package com.teamscale.client
 
 import java.io.*
+import java.nio.file.InvalidPathException
+import java.nio.file.Paths
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.*
 
 /**
  * File system utilities.
@@ -8,6 +13,9 @@ import java.io.*
 object FileSystemUtils {
 	/** Unix file path separator  */
 	private const val UNIX_SEPARATOR = '/'
+
+	/** Windows file path separator  */
+	private const val WINDOWS_SEPARATOR = '\\'
 
 	/**
 	 * Returns a list of all files and directories contained in the given directory and all subdirectories matching the
@@ -45,12 +53,7 @@ object FileSystemUtils {
 	 */
 	@JvmStatic
 	fun getFileExtension(file: File): String? {
-		val name = file.name
-		val posLastDot = name.lastIndexOf('.')
-		if (posLastDot < 0) {
-			return null
-		}
-		return name.substring(posLastDot + 1)
+		return file.extension.takeIf { it.isNotEmpty() }
 	}
 
 	/**
@@ -102,15 +105,187 @@ object FileSystemUtils {
 	 * @throws IOException
 	 * if an IO exception occurs.
 	 */
+	@JvmStatic
 	@Throws(IOException::class)
 	fun copy(input: InputStream, output: OutputStream): Int {
-		val buffer = ByteArray(1024)
-		var size = 0
-		var len: Int
-		while ((input.read(buffer).also { len = it }) > 0) {
-			output.write(buffer, 0, len)
-			size += len
+		return input.copyTo(output).toInt()
+	}
+
+	/**
+	 * Checks if a directory exists and is writable. If not it creates the directory
+	 * and all necessary parent directories.
+	 *
+	 * @throws IOException
+	 * if directories couldn't be created.
+	 */
+	@JvmStatic
+	@Throws(IOException::class)
+	fun ensureDirectoryExists(directory: File) {
+		if (!directory.exists() && !directory.mkdirs()) {
+			throw IOException("Couldn't create directory: $directory")
 		}
-		return size
+		if (directory.exists() && directory.canWrite()) {
+			return
+		}
+		// Something is wrong. Either the directory does not exist yet, or it is not
+		// writable (yet?). We had a case on a Windows OS where the directory was not
+		// writable in a very small fraction of the calls. We assume this was because
+		// the directory was not "ready" yet although mkdirs returned.
+		val start = Instant.now()
+		while ((!directory.exists() || !directory.canWrite()) && start.until(Instant.now(), ChronoUnit.MILLIS) < 100) {
+			try {
+				Thread.sleep(10)
+			} catch (_: InterruptedException) {
+				// just continue
+			}
+		}
+		if (!directory.exists()) {
+			throw IOException("Temp directory $directory could not be created.")
+		}
+		if (!directory.canWrite()) {
+			throw IOException("Temp directory $directory exists, but is not writable.")
+		}
+	}
+
+	/** Read file content into a string using UTF-8 encoding. */
+	@JvmStatic
+	@Throws(IOException::class)
+	fun readFileUTF8(file: File): String {
+		return file.readText()
+	}
+
+	/** Read file content into a byte array.  */
+	@JvmStatic
+	@Throws(IOException::class)
+	fun readFileBinary(file: File): ByteArray {
+		return file.readBytes()
+	}
+
+	/**
+	 * Returns a safe filename that can be used for downloads. Replaces everything
+	 * that is not a letter or number with "-".
+	 *
+	 *
+	 * Attention: This replaces dots, including the file-end-separator.
+	 * `toSafeFilename("a.c")=="a-c"`
+	 */
+	@JvmStatic
+	fun toSafeFilename(name: String): String {
+		return name.replace("\\W+".toRegex(), "-").replace("[-_]+".toRegex(), "-")
+	}
+
+	/**
+	 * Replaces the file name of the given path with the given new extension.
+	 * Returns the newFileName if the file denoted by the uniform path does not
+	 * contain a '/'. This method assumes that folders are separated by '/' (uniform
+	 * paths).
+	 *
+	 *
+	 * Examples:
+	 *
+	 *  * `replaceFilePathFilenameWith("xx", "yy")` returns
+	 * `"yy"`
+	 *  * `replaceFilePathFilenameWith("xx/zz", "yy")` returns *
+	 * `"xx/yy"`
+	 *  * `replaceFilePathFilenameWith("xx/zz/", "yy")` returns *
+	 * `"xx/zz/yy"`
+	 *  * `replaceFilePathFilenameWith("", "yy")` returns *
+	 * `"yy"`
+	 *
+	 */
+	@JvmStatic
+	fun replaceFilePathFilenameWith(uniformPath: String, newFileName: String): String {
+		return when {
+			uniformPath.endsWith("/") -> uniformPath + newFileName
+			!uniformPath.contains('/') -> newFileName
+			else -> uniformPath.substringBeforeLast('/') + "/" + newFileName
+		}
+	}
+
+	/**
+	 * Write string to a file with UTF8 encoding. This ensures all directories
+	 * exist.
+	 */
+	@JvmStatic
+	@Throws(IOException::class)
+	fun writeFileUTF8(file: File, content: String) {
+		file.writeText(content)
+	}
+
+	/**
+	 * Checks if a string is a valid path. It will return false when the path is
+	 * invalid on the current platform e.g. because of any non-allowed characters or
+	 * because the path schema is for Windows (D:\test) but runs under Linux.
+	 */
+	@JvmStatic
+	fun isValidPath(path: String): Boolean {
+		try {
+			Paths.get(path)
+		} catch (_: InvalidPathException) {
+			return false
+		}
+
+		// Split at the default platform separators and check whether there remain any
+		// separator characters in the path segments
+		return path.split(File.separator)
+			.none { pathSegment -> pathSegment.contains(WINDOWS_SEPARATOR) || pathSegment.contains(UNIX_SEPARATOR) }
+	}
+
+	/** Reads properties from a properties file.  */
+	@JvmStatic
+	@Throws(IOException::class)
+	fun readProperties(propertiesFile: File): Properties {
+		propertiesFile.inputStream().use { stream ->
+			val props = Properties()
+			props.load(stream)
+			return props
+		}
+	}
+
+	/**
+	 * Read file content into a list of lines (strings) using UTF-8 encoding.
+	 */
+	@JvmStatic
+	@Throws(IOException::class)
+	fun readLinesUTF8(file: File): List<String> {
+		return file.readLines()
+	}
+
+	/**
+	 * Copy all files specified by a file filter from one directory to another. This
+	 * automatically creates all necessary directories.
+	 *
+	 * @param fileFilter
+	 * filter to specify file types.
+	 * @return number of files copied
+	 */
+	@JvmStatic
+	@Throws(IOException::class)
+	fun copyFiles(sourceDirectory: File, targetDirectory: File?, fileFilter: FileFilter?): Int {
+		val files: List<File> = listFilesRecursively(sourceDirectory, fileFilter)
+
+		var fileCount = 0
+		for (sourceFile in files) {
+			if (sourceFile.isFile()) {
+				val path = sourceFile.absolutePath
+				val index = sourceDirectory.absolutePath.length
+				val newPath = path.substring(index)
+				val targetFile = File(targetDirectory, newPath)
+				sourceFile.copyTo(targetFile, overwrite = true)
+				fileCount++
+			}
+		}
+		return fileCount
+	}
+
+	/**
+	 * Recursively delete directories and files. This method ignores the return
+	 * value of delete(), i.e. if anything fails, some files might still exist.
+	 */
+	@JvmStatic
+	fun deleteRecursively(directory: File) {
+		if (!directory.exists()) return
+		
+		directory.walkBottomUp().forEach { it.delete() }
 	}
 }

@@ -1,12 +1,12 @@
 package com.teamscale.client
 
-import org.conqat.lib.commons.collections.PairList
-import spark.*
+import spark.Request
+import spark.Response
+import spark.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.util.function.BiConsumer
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import javax.servlet.http.HttpServletResponse
@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse
  */
 class ArtifactoryMockServer(port: Int) {
 	/** All reports uploaded to this Teamscale instance.  */
-	val uploadedReports = PairList<String, String>()
+	val uploadedReports = mutableListOf<Pair<String, String>>()
 	private val service = Service.ignite()
 
 	init {
@@ -37,7 +37,7 @@ class ArtifactoryMockServer(port: Int) {
 	private fun handleReport(request: Request, response: Response): String {
 		processZipEntries(ByteArrayInputStream(request.bodyAsBytes())) { entry, content ->
 			if (!entry.isDirectory) {
-				uploadedReports.add("${request.params("path")} -> ${entry.getName()}", content.toString())
+				uploadedReports.add(Pair("${request.params("path")} -> ${entry.getName()}", content.toString()))
 			}
 		}
 		return "success"

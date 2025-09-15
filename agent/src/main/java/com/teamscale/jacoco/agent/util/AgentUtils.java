@@ -1,8 +1,8 @@
 package com.teamscale.jacoco.agent.util;
 
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.jacoco.agent.PreMain;
 import com.teamscale.jacoco.agent.configuration.ProcessInformationRetriever;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
 
 import java.io.IOException;
 import java.net.URI;

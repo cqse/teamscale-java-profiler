@@ -5,27 +5,25 @@
 +-------------------------------------------------------------------------*/
 package com.teamscale.jacoco.agent;
 
+import com.teamscale.client.FileSystemUtils;
+import com.teamscale.client.StringUtils;
 import com.teamscale.jacoco.agent.options.AgentOptions;
 import com.teamscale.jacoco.agent.upload.IUploadRetry;
 import com.teamscale.jacoco.agent.upload.IUploader;
 import com.teamscale.jacoco.agent.upload.UploaderException;
 import com.teamscale.jacoco.agent.util.AgentUtils;
 import com.teamscale.jacoco.agent.util.Benchmark;
-import com.teamscale.jacoco.agent.util.FileSystemUtilsClone;
 import com.teamscale.jacoco.agent.util.Timer;
 import com.teamscale.report.jacoco.CoverageFile;
 import com.teamscale.report.jacoco.EmptyReportException;
 import com.teamscale.report.jacoco.JaCoCoXmlReportGenerator;
 import com.teamscale.report.jacoco.dump.Dump;
-import org.conqat.lib.commons.string.StringUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.instrument.Instrumentation;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -91,7 +89,7 @@ public class Agent extends AgentBase {
 			return;
 		}
 
-		List<File> reuploadCandidates = FileSystemUtilsClone.listFilesRecursively(parentPath.toFile(),
+		List<File> reuploadCandidates = FileSystemUtils.listFilesRecursively(parentPath.toFile(),
 				filepath -> filepath.getName().endsWith(RETRY_UPLOAD_FILE_SUFFIX));
 		for (File file : reuploadCandidates) {
 			reuploadCoverageFromPropertiesFile(file, uploader);
@@ -100,10 +98,8 @@ public class Agent extends AgentBase {
 
 	private void reuploadCoverageFromPropertiesFile(File file, IUploader uploader) {
 		logger.info("Retrying previously unsuccessful coverage upload for file {}.", file);
-		try (InputStreamReader reader = new InputStreamReader(Files.newInputStream(file.toPath()),
-				StandardCharsets.UTF_8)) {
-			Properties properties = new Properties();
-			properties.load(reader);
+		try {
+			Properties properties = FileSystemUtils.readProperties(file);
 			CoverageFile coverageFile = new CoverageFile(
 					new File(StringUtils.stripSuffix(file.getAbsolutePath(), RETRY_UPLOAD_FILE_SUFFIX)));
 

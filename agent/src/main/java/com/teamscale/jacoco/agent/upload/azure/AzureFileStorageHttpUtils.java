@@ -1,7 +1,7 @@
 package com.teamscale.jacoco.agent.upload.azure;
 
 import com.teamscale.jacoco.agent.upload.UploaderException;
-import org.conqat.lib.commons.assertion.CCSMAssert;
+import com.teamscale.jacoco.agent.util.Assertions;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -47,8 +47,8 @@ import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_VERSI
 
 	/** Creates the string that must be signed as the authorization for the request. */
 	private static String createSignString(EHttpMethod httpMethod, Map<String, String> headers, String account,
-										   String path, Map<String, String> queryParameters) {
-		CCSMAssert.isTrue(headers.keySet().containsAll(Arrays.asList(X_MS_DATE, X_MS_VERSION)),
+			String path, Map<String, String> queryParameters) {
+		Assertions.isTrue(headers.keySet().containsAll(Arrays.asList(X_MS_DATE, X_MS_VERSION)),
 				"Headers for the azure request cannot be empty! At least 'x-ms-version' and 'x-ms-date' must be set");
 
 		Map<String, String> xmsHeader = headers.entrySet().stream().filter(x -> x.getKey().startsWith("x-ms"))
@@ -99,7 +99,7 @@ import static com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.X_MS_VERSI
 	/** Creates the string which is needed for the authorization of an azure file storage request. */
 	/* package */
 	static String getAuthorizationString(EHttpMethod method, String account, String key, String path,
-										 Map<String, String> headers, Map<String, String> queryParameters)
+			Map<String, String> headers, Map<String, String> queryParameters)
 			throws UploaderException {
 		String stringToSign = createSignString(method, headers, account, path, queryParameters);
 

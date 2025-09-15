@@ -1,10 +1,8 @@
 package com.teamscale.jacoco.agent.options;
 
+import com.teamscale.client.AntPatternUtils;
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.report.util.ILogger;
-import org.conqat.lib.commons.collections.CollectionUtils;
-import org.conqat.lib.commons.collections.Pair;
-import org.conqat.lib.commons.filesystem.AntPatternUtils;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,11 +59,10 @@ public class FilePatternResolver {
 	 * Visible for testing only.
 	 */
 	/* package */ List<File> resolveToMultipleFiles(String optionName, String pattern,
-													File workingDirectory) throws IOException {
+			File workingDirectory) throws IOException {
 		if (isPathWithPattern(pattern)) {
-			return CollectionUtils
-					.map(parseFileFromPattern(optionName, pattern, workingDirectory).getAllMatchingPaths(),
-							Path::toFile);
+			return parseFileFromPattern(optionName, pattern, workingDirectory).getAllMatchingPaths().stream()
+					.map(Path::toFile).collect(toList());
 		}
 		try {
 			return Collections.singletonList(workingDirectory.toPath().resolve(Paths.get(pattern)).toFile());
@@ -82,7 +79,7 @@ public class FilePatternResolver {
 	 * time.
 	 */
 	/* package */ Path parsePath(String optionName, String pattern,
-								 File workingDirectory) throws IOException {
+			File workingDirectory) throws IOException {
 		if (isPathWithPattern(pattern)) {
 			return parseFileFromPattern(optionName, pattern, workingDirectory).getSinglePath();
 		}
@@ -95,8 +92,8 @@ public class FilePatternResolver {
 
 	/** Parses the pattern as a Ant pattern to one or multiple files or directories. */
 	private FilePatternResolverRun parseFileFromPattern(String optionName,
-														String pattern,
-														File workingDirectory) throws IOException {
+			String pattern,
+			File workingDirectory) throws IOException {
 		return new FilePatternResolverRun(logger, optionName, pattern, workingDirectory).resolve();
 	}
 
@@ -106,8 +103,8 @@ public class FilePatternResolver {
 	}
 
 	/**
-	 * Returns whether the given path contains artificial pattern characters ({@link #QUESTION_REPLACEMENT}, {@link
-	 * #ASTERISK_REPLACEMENT}).
+	 * Returns whether the given path contains artificial pattern characters ({@link #QUESTION_REPLACEMENT},
+	 * {@link #ASTERISK_REPLACEMENT}).
 	 */
 	private static boolean isPathWithArtificialPattern(String path) {
 		return path.contains(QUESTION_REPLACEMENT) || path.contains(ASTERISK_REPLACEMENT);
@@ -131,8 +128,8 @@ public class FilePatternResolver {
 		}
 
 		/**
-		 * Resolves the pattern. The results can be retrieved via {@link #getSinglePath()} or {@link
-		 * #getAllMatchingPaths()}.
+		 * Resolves the pattern. The results can be retrieved via {@link #getSinglePath()} or
+		 * {@link #getAllMatchingPaths()}.
 		 */
 		private FilePatternResolverRun resolve() throws IOException {
 			Pattern pathRegex = AntPatternUtils.convertPattern(suffixPattern, false);
@@ -167,11 +164,9 @@ public class FilePatternResolver {
 					return;
 				}
 			}
-			String pattern = baseDir.relativize(pathWithPattern).toString().replace(QUESTION_REPLACEMENT, "?")
-					.replace(ASTERISK_REPLACEMENT, "*");
-			Pair<String, String> baseDirAndPattern = new Pair<>(baseDir.toString(), pattern);
 
-			suffixPattern = baseDirAndPattern.getSecond();
+			suffixPattern = baseDir.relativize(pathWithPattern).toString().replace(QUESTION_REPLACEMENT, "?")
+					.replace(ASTERISK_REPLACEMENT, "*");
 			basePath = workingDirectory.toPath().resolve(baseDir).normalize().toAbsolutePath();
 		}
 

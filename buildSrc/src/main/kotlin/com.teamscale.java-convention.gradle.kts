@@ -43,10 +43,6 @@ dependencies {
 	testImplementation(lib("mockito-kotlin"))
 
 	testRuntimeOnly(lib("junit-platform-launcher"))
-
-	constraints {
-		implementation("org.apache.commons:commons-compress:1.28.0")
-	}
 }
 
 tasks.processResources {

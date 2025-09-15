@@ -5,7 +5,7 @@
 +-------------------------------------------------------------------------*/
 package com.teamscale.jacoco.agent.options;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.HttpUtils;
 import com.teamscale.client.ProxySystemProperties;
 import com.teamscale.client.StringUtils;
@@ -19,13 +19,11 @@ import com.teamscale.jacoco.agent.upload.azure.AzureFileStorageConfig;
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleConfig;
 import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.util.ILogger;
+import kotlin.Pair;
 import okhttp3.HttpUrl;
-import org.apache.commons.compress.utils.Lists;
-import org.conqat.lib.commons.collections.CollectionUtils;
-import org.conqat.lib.commons.collections.Pair;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,8 +31,10 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.teamscale.jacoco.agent.upload.artifactory.ArtifactoryConfig.ARTIFACTORY_GIT_PROPERTIES_COMMIT_DATE_FORMAT_OPTION;
 import static com.teamscale.jacoco.agent.upload.artifactory.ArtifactoryConfig.ARTIFACTORY_GIT_PROPERTIES_JAR_OPTION;
@@ -83,7 +83,7 @@ public class AgentOptionsParser {
 		AgentOptionsParser parser = new AgentOptionsParser(logger, environmentConfigId, environmentConfigFile,
 				credentials, environmentAccessToken);
 		AgentOptions options = parser.parse(optionsString);
-		return Pair.createPair(options, parser.getCollectedErrors());
+		return new Pair<>(options, parser.getCollectedErrors());
 	}
 
 	@VisibleForTesting
@@ -96,7 +96,7 @@ public class AgentOptionsParser {
 		this.environmentConfigFile = environmentConfigFile;
 		this.credentials = credentials;
 		this.environmentAccessToken = environmentAccessToken;
-		this.collectedErrors = Lists.newArrayList();
+		this.collectedErrors = new ArrayList<>();
 	}
 
 	private List<Exception> getCollectedErrors() {
@@ -223,7 +223,7 @@ public class AgentOptionsParser {
 			return;
 		}
 		if (key.startsWith("jacoco-")) {
-			options.additionalJacocoOptions.add(key.substring(7), value);
+			options.additionalJacocoOptions.add(new kotlin.Pair<>(key.substring(7), value));
 			return;
 		}
 		if (key.startsWith("teamscale-") && teamscaleConfig.handleTeamscaleOptions(options.teamscaleServer, key,
@@ -334,7 +334,8 @@ public class AgentOptionsParser {
 				return true;
 			case "upload-metadata":
 				try {
-					options.additionalMetaDataFiles = CollectionUtils.map(splitMultiOptionValue(value), Paths::get);
+					options.additionalMetaDataFiles = splitMultiOptionValue(value).stream().map(Paths::get).collect(
+							Collectors.toList());
 				} catch (InvalidPathException e) {
 					throw new AgentOptionParseException("Invalid path given for option 'upload-metadata'", e);
 				}
@@ -474,8 +475,7 @@ public class AgentOptionsParser {
 	}
 
 	private void readConfigFromString(AgentOptions options, String content) {
-		List<String> configFileKeyValues = org.conqat.lib.commons.string.StringUtils.splitLinesAsList(
-				content);
+		List<String> configFileKeyValues = StringUtils.splitLinesAsList(content);
 		for (String optionKeyValue : configFileKeyValues) {
 			try {
 				String trimmedOption = optionKeyValue.trim();

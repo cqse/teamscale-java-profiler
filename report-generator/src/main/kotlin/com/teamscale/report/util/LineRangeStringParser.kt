@@ -1,7 +1,5 @@
 package com.teamscale.report.util
 
-import org.conqat.lib.commons.assertion.CCSMAssert
-
 /**
  * Parses a list of line numbers in the format like 1,3-5,8-10.
  *
@@ -33,20 +31,15 @@ class LineRangeStringParser {
 			if (Character.isDigit(currentChar)) {
 				currentLine = currentLine * 10 + currentChar.digitToInt()
 			} else if (currentChar == '-') {
-				if (isParsingEndLine) {
-					CCSMAssert.fail<Any>(
-						("Line number pattern at character " + characterIndex + " is invalid in: "
-								+ lineNumbersString)
-					)
-				}
+				check(!isParsingEndLine) { "Line number pattern at character $characterIndex is invalid in: $lineNumbersString" }
 				startLine = currentLine
 				currentLine = 0
 				isParsingEndLine = true
 			} else if (currentChar == ',') {
 				appendLines(lineNumbers)
 				reset()
-			} else if (!Character.isWhitespace(currentChar)) {
-				CCSMAssert.fail<Any>("Unexpected character $currentChar in $lineNumbersString")
+			} else {
+				check(Character.isWhitespace(currentChar)) { "Unexpected character $currentChar in $lineNumbersString" }
 			}
 		}
 		appendLines(lineNumbers)

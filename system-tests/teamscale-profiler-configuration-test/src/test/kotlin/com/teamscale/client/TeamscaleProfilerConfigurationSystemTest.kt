@@ -1,9 +1,8 @@
 package com.teamscale.client
 
+import com.teamscale.test.commons.ProcessUtils
 import com.teamscale.test.commons.TeamscaleMockServer
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.conqat.lib.commons.io.ProcessUtils
 import org.junit.jupiter.api.Test
 
 /**
@@ -23,12 +22,10 @@ class TeamscaleProfilerConfigurationSystemTest {
 
 		val agentJar = System.getenv("AGENT_JAR")
 		val sampleJar = System.getenv("SYSTEM_UNDER_TEST_JAR")
-		val result = ProcessUtils.execute(
-			ProcessBuilder("java", "-javaagent:$agentJar=config-id=my-config", "-jar", sampleJar)
-		)
+		val result = ProcessUtils.execute("java", "-javaagent:$agentJar=config-id=my-config", "-jar", sampleJar)
 		println(result.stderr)
 		println(result.stdout)
-		assertThat(result.returnCode).isEqualTo(0)
+		assertThat(result.exitCode).isEqualTo(0)
 		assertThat(teamscaleMockServer.onlySession.partition).isEqualTo("foo")
 
 		teamscaleMockServer.shutdown()
@@ -52,12 +49,10 @@ class TeamscaleProfilerConfigurationSystemTest {
 	fun systemTestLenientFailure() {
 		val agentJar = System.getenv("AGENT_JAR")
 		val sampleJar = System.getenv("SYSTEM_UNDER_TEST_JAR")
-		val result = ProcessUtils.execute(
-			ProcessBuilder("java", "-javaagent:$agentJar=config-id=some-config", "-jar", sampleJar)
-		)
+		val result = ProcessUtils.execute("java", "-javaagent:$agentJar=config-id=some-config", "-jar", sampleJar)
 		println(result.stderr)
 		println(result.stdout)
-		assertThat(result.returnCode).isEqualTo(0)
+		assertThat(result.exitCode).isEqualTo(0)
 		assertThat(result.stdout).contains("Production code")
 	}
 

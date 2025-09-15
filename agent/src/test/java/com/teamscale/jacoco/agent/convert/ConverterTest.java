@@ -1,6 +1,6 @@
 package com.teamscale.jacoco.agent.convert;
 
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
+import com.teamscale.client.FileSystemUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -32,7 +32,8 @@ public class ConverterTest {
 		new Converter(arguments).runJaCoCoReportGeneration();
 
 		String xml = FileSystemUtils.readFileUTF8(outputFile);
-		assertThat(xml).isNotEmpty().contains("<package").contains("<sourcefile").contains("<counter").contains("TestClass");
+		assertThat(xml).isNotEmpty().contains("<package").contains("<sourcefile").contains("<counter")
+				.contains("TestClass");
 	}
 
 	@Test
@@ -49,7 +50,8 @@ public class ConverterTest {
 		new Converter(arguments).runJaCoCoReportGeneration();
 
 		String xml = FileSystemUtils.readFileUTF8(outputFile);
-		assertThat(xml).isNotEmpty().contains("<package").contains("<sourcefile").contains("<counter").contains("TestClass");
+		assertThat(xml).isNotEmpty().contains("<package").contains("<sourcefile").contains("<counter")
+				.contains("TestClass");
 	}
 
 	/**
@@ -78,9 +80,12 @@ public class ConverterTest {
 						"\"uniformPath\" : \"[engine:junit-vintage]/[runner:org.conqat.lib.cqddl.CQDDLTest]/[test:testFunctions(org.conqat.lib.cqddl.CQDDLTest)]\"")
 				.contains(
 						"\"uniformPath\" : \"[engine:junit-vintage]/[runner:org.conqat.lib.cqddl.CQDDLTest]/[test:testDirectObjectInsertion(org.conqat.lib.cqddl.CQDDLTest)]\"")
-				.contains("\"uniformPath\" : \"[engine:junit-vintage]/[runner:org.conqat.lib.cqddl.CQDDLTest]/[test:testKeyAbbreviations(org.conqat.lib.cqddl.CQDDLTest)]\"")
-				.contains("\"uniformPath\" : \"[engine:junit-vintage]/[runner:org.conqat.lib.cqddl.CQDDLTest]/[test:testKeyAbbreviations(org.conqat.lib.cqddl.CQDDLTest)]\"")
-				.contains("\"result\" : \"PASSED\"").contains("\"duration\" : 1234").contains("\"coveredLines\" : \"33,46-47");
+				.contains(
+						"\"uniformPath\" : \"[engine:junit-vintage]/[runner:org.conqat.lib.cqddl.CQDDLTest]/[test:testKeyAbbreviations(org.conqat.lib.cqddl.CQDDLTest)]\"")
+				.contains(
+						"\"uniformPath\" : \"[engine:junit-vintage]/[runner:org.conqat.lib.cqddl.CQDDLTest]/[test:testKeyAbbreviations(org.conqat.lib.cqddl.CQDDLTest)]\"")
+				.contains("\"result\" : \"PASSED\"").contains("\"duration\" : 1234")
+				.contains("\"coveredLines\" : \"33,46-47");
 	}
 
 	private void copyResourceTo(String name, File targetDir) throws URISyntaxException, IOException {

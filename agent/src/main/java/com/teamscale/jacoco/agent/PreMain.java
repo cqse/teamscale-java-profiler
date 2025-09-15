@@ -1,6 +1,8 @@
 package com.teamscale.jacoco.agent;
 
+import com.teamscale.client.FileSystemUtils;
 import com.teamscale.client.HttpUtils;
+import com.teamscale.client.StringUtils;
 import com.teamscale.jacoco.agent.configuration.AgentOptionReceiveException;
 import com.teamscale.jacoco.agent.logging.DebugLogDirectoryPropertyDefiner;
 import com.teamscale.jacoco.agent.logging.LogDirectoryPropertyDefiner;
@@ -17,10 +19,7 @@ import com.teamscale.jacoco.agent.testimpact.TestwiseCoverageAgent;
 import com.teamscale.jacoco.agent.upload.UploaderException;
 import com.teamscale.jacoco.agent.util.AgentUtils;
 import com.teamscale.report.util.ILogger;
-import org.conqat.lib.commons.collections.CollectionUtils;
-import org.conqat.lib.commons.collections.Pair;
-import org.conqat.lib.commons.filesystem.FileSystemUtils;
-import org.conqat.lib.commons.string.StringUtils;
+import kotlin.Pair;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -32,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.teamscale.jacoco.agent.logging.LoggingUtils.getLoggerContext;
 
@@ -123,8 +123,8 @@ public class PreMain {
 			String environmentConfigFile) throws AgentOptionParseException, IOException, AgentOptionReceiveException {
 
 		DelayedLogger delayedLogger = new DelayedLogger();
-		List<String> javaAgents = CollectionUtils.filter(ManagementFactory.getRuntimeMXBean().getInputArguments(),
-				s -> s.contains("-javaagent"));
+		List<String> javaAgents = ManagementFactory.getRuntimeMXBean().getInputArguments().stream().filter(
+				s -> s.contains("-javaagent")).collect(Collectors.toList());
 		// We allow multiple instances of the teamscale-jacoco-agent as we ensure with the #LOCKING_SYSTEM_PROPERTY to only use it once
 		if (!javaAgents.stream().allMatch(javaAgent -> javaAgent.contains("teamscale-jacoco-agent.jar"))) {
 			delayedLogger.warn("Using multiple java agents could interfere with coverage recording.");

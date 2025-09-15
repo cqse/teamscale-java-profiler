@@ -1,6 +1,8 @@
 package com.teamscale.profiler.installer.steps
 
-import com.teamscale.profiler.installer.*
+import com.teamscale.profiler.installer.FatalInstallerError
+import com.teamscale.profiler.installer.PermissionError
+import com.teamscale.profiler.installer.TeamscaleCredentials
 import com.teamscale.profiler.installer.steps.IStep.IUninstallErrorReporter
 import com.teamscale.profiler.installer.utils.InstallFileUtils
 import org.apache.commons.io.file.PathUtils
