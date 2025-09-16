@@ -21,6 +21,17 @@ tasks.jar {
 	}
 }
 
+// Workaround for https://youtrack.jetbrains.com/issue/KT-55389
+tasks.compileJava {
+	val mainSourceSetOutput = sourceSets.main.get().output
+	options.compilerArgumentProviders.add(CommandLineArgumentProvider {
+		listOf(
+			"--patch-module",
+			"com.teamscale.profiler.installer=${mainSourceSetOutput.asPath}"
+		)
+	})
+}
+
 tasks.withType<JavaCompile> {
 	options.release = 21
 }

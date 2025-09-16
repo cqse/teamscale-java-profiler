@@ -8,5 +8,8 @@ module com.teamscale.profiler.installer {
 	// used e.g. by teamscale.io
 	requires jdk.crypto.ec;
 	requires kotlin.stdlib;
+
+	exports com.teamscale.profiler.installer to info.picocli;
+	opens com.teamscale.profiler.installer to info.picocli;
 }
 
