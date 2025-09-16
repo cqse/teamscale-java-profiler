@@ -14,16 +14,16 @@ class InstallCommand : Callable<Int> {
 		converter = [HttpUrlTypeConverter::class],
 		description = ["The URL of your Teamscale instance."]
 	)
-	private val teamscaleUrl: HttpUrl? = null
+	private var teamscaleUrl: HttpUrl? = null
 
 	@CommandLine.Parameters(
 		index = "1",
 		description = ["The user used to access your Teamscale instance and upload coverage to your projects."]
 	)
-	private val userName: String? = null
+	private var userName: String? = null
 
 	@CommandLine.Parameters(index = "2", description = ["The access key of the given user. NOT the password!"])
-	private val accessKey: String? = null
+	private var accessKey: String? = null
 
 	override fun call(): Int {
 		try {
