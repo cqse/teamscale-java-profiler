@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 36.0.0
 - [breaking fix] _teamscale-gradle-plugin_: Adjusted to breaking API changes in Gradle 9.0
 - [feature] Reduced dependencies and hence the size of all artifacts
 - [fix] _installer_: `InaccessibleObjectException` at startup
