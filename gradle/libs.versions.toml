@@ -56,7 +56,7 @@ picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version = "5.17.0" }
 
-log4j-core = { module = "org.apache.logging.log4j:log4j-core", version = "2.25.1" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version = "2.25.2" }
 
 junit-bom = { module = "org.junit:junit-bom", version = "5.13.4" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
