@@ -54,7 +54,7 @@ okio = { module = "com.squareup.okio:okio", version = "3.16.0" }
 
 picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
-jna-platform = { module = "net.java.dev.jna:jna-platform", version = "5.17.0" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version = "5.18.0" }
 
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version = "2.25.2" }
 
