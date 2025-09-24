@@ -85,7 +85,7 @@ asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version = "26.0.2-1" }
 
 [plugins]
-versions = { id = "com.github.ben-manes.versions", version = "0.52.0" }
+versions = { id = "com.github.ben-manes.versions", version = "0.53.0" }
 nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 pluginPublish = { id = "com.gradle.plugin-publish", version = "2.0.0" }
 gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.3" }
