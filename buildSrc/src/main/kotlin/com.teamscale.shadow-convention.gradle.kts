@@ -1,13 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.DependencyFilter
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import com.xpdustry.ksr.kotlinRelocate
 
 plugins {
 	java
 	// https://github.com/GradleUp/shadow
 	id("com.gradleup.shadow")
-	// https://github.com/xpdustry/kotlin-shadow-relocator
-	id("com.xpdustry.kotlin-shadow-relocator")
 }
 
 tasks.named<ShadowJar>("shadowJar") {
@@ -15,10 +12,10 @@ tasks.named<ShadowJar>("shadowJar") {
 	archiveClassifier = null as String?
 	mergeServiceFiles()
 	// Relocates the .kotlin_metadata files to ensure reflection in Kotlin does not break
-	kotlinRelocate("kotlin", "shadow.kotlin")
-	kotlinRelocate("okhttp3", "shadow.okhttp3")
-	kotlinRelocate("okio", "shadow.okio")
-	kotlinRelocate("retrofit", "shadow.retrofit")
+	relocate("kotlin", "shadow.kotlin")
+	relocate("okhttp3", "shadow.okhttp3")
+	relocate("okio", "shadow.okio")
+	relocate("retrofit", "shadow.retrofit")
 	val archiveFile = this.archiveFile
 	doLast("revertKotlinPackageChanges") { revertKotlinPackageChanges(archiveFile) }
 }
