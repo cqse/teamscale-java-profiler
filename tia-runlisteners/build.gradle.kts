@@ -1,8 +1,21 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
 	`java-library`
 	com.teamscale.`kotlin-convention`
 	com.teamscale.coverage
 	com.teamscale.publish
+}
+
+tasks.compileJava {
+	options.release = 17
+}
+
+tasks.withType<KotlinCompile> {
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_17
+	}
 }
 
 publishAs {

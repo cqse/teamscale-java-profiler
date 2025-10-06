@@ -39,7 +39,7 @@ class TestRootProject(projectDir: File) : TestProject(projectDir) {
 		withJunitDependencies()
 	}
 
-	private fun withDependencyResolutionManagement() {
+	fun withDependencyResolutionManagement() {
 		settingsFile.writeText(
 			"""
 	dependencyResolutionManagement {

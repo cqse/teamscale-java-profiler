@@ -11,7 +11,7 @@ plugins {
 	alias(libs.plugins.pluginPublish)
 }
 
-tasks.withType<JavaCompile> {
+tasks.compileJava {
 	options.release = 11
 }
 

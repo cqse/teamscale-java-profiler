@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [feature] _impacted-test-engine_: Added support for JUnit 6.0
 
 # 36.0.0
 - [breaking fix] _teamscale-gradle-plugin_: Adjusted to breaking API changes in Gradle 9.0

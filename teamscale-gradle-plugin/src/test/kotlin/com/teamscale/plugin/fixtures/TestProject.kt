@@ -58,13 +58,13 @@ teamscale {
 	}
 
 	/** Adds the Junit 4 and 5 dependencies. */
-	fun withJunitDependencies() {
+	fun withJunitDependencies(version: String = "5.12.0") {
 		buildFile.appendText(
 			"""
 				
 dependencies {
 	// JUnit Jupiter
-	testImplementation(platform("org.junit:junit-bom:5.12.0"))
+	testImplementation(platform("org.junit:junit-bom:$version"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
 
 	// If you also want to support JUnit 3 and JUnit 4 tests
