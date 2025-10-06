@@ -41,6 +41,15 @@
     },
     {
       "matchPackageNames": [
+        "org.junit:junit-bom"
+      ],
+      "matchFileNames": [
+        "impacted-test-engine/build.gradle.kts"
+      ],
+      "allowedVersions": "< 6"
+    },
+    {
+      "matchPackageNames": [
         "com.teamscale:teamscale-jacoco-agent",
         "com.teamscale:teamscale-client"
       ],
