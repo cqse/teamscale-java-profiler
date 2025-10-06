@@ -8,17 +8,27 @@ import com.teamscale.report.testwise.model.TestwiseCoverageReport
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.Parameter
+import org.junit.jupiter.params.ParameterizedClass
+import org.junit.jupiter.params.provider.ValueSource
 
 
 /**
  * Integration tests for the Teamscale Gradle plugin focusing on the testwise coverage generation.
  */
+@ParameterizedClass
+@ValueSource(strings = ["5.12.0", "6.0.0"])
 class TeamscalePluginTestwiseCoverageTest : TeamscalePluginTestBase() {
+
+	@Parameter
+	var junitVersion: String? = null
 
 	@BeforeEach
 	fun init() {
 		rootProject.withSingleProject()
-		rootProject.defaultProjectSetup()
+		rootProject.withDependencyResolutionManagement()
+		rootProject.withTeamscalePlugin()
+		rootProject.withJunitDependencies(junitVersion!!)
 	}
 
 	@Test

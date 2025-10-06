@@ -36,7 +36,7 @@ internal class InternalImpactedTestEngine(
 	 * Performs test discovery by aggregating the result of all [TestEngine]s from the [TestEngineRegistry]
 	 * in a single engine [TestDescriptor].
 	 */
-	fun discover(discoveryRequest: EngineDiscoveryRequest?, uniqueId: UniqueId?): TestDescriptor {
+	fun discover(discoveryRequest: EngineDiscoveryRequest, uniqueId: UniqueId): TestDescriptor {
 		val engineDescriptor = EngineDescriptor(uniqueId, ENGINE_NAME)
 
 		LOG.fine { "Starting test discovery for engine " + ImpactedTestEngine.ENGINE_ID }
@@ -107,14 +107,68 @@ internal class InternalImpactedTestEngine(
 				)
 
 			testEngine.execute(
-				ExecutionRequest(
-					engineTestDescriptor, executionListener,
-					request.configurationParameters
+				createExecutionRequest(
+					request,
+					engineTestDescriptor,
+					executionListener
 				)
 			)
 
 			executionListener.testExecutions
 		}
+
+	/**
+	 * Creates an ExecutionRequest, attempting to use the newer 6-parameter overload via reflection
+	 * if available (JUnit 6.0+), falling back to the 3-parameter constructor version for older versions.
+	 */
+	private fun createExecutionRequest(
+		request: ExecutionRequest,
+		engineTestDescriptor: TestDescriptor,
+		executionListener: TestwiseCoverageCollectingExecutionListener
+	): ExecutionRequest {
+		return try {
+			// Load parameter types dynamically to support both old and new JUnit versions
+			val outputDirectoryCreatorClass = Class.forName("org.junit.platform.engine.OutputDirectoryCreator")
+			val namespacedStoreClass =
+				Class.forName("org.junit.platform.engine.support.store.NamespacedHierarchicalStore")
+			val cancellationTokenClass = Class.forName("org.junit.platform.engine.CancellationToken")
+
+			// Try to use the newer 6-parameter overload via reflection
+			val createMethod = ExecutionRequest::class.java.getMethod(
+				"create",
+				TestDescriptor::class.java,
+				org.junit.platform.engine.EngineExecutionListener::class.java,
+				org.junit.platform.engine.ConfigurationParameters::class.java,
+				outputDirectoryCreatorClass,
+				namespacedStoreClass,
+				cancellationTokenClass
+			)
+
+			// Access the additional parameters from the request via reflection
+			val outputDirectoryCreator = request.javaClass.getMethod("getOutputDirectoryCreator").invoke(request)
+			val requestLevelStore = request.javaClass.getMethod("getStore").invoke(request)
+			val cancellationToken = request.javaClass.getMethod("getCancellationToken").invoke(request)
+
+			createMethod.invoke(
+				null,
+				engineTestDescriptor,
+				executionListener,
+				request.configurationParameters,
+				outputDirectoryCreator,
+				requestLevelStore,
+				cancellationToken
+			) as ExecutionRequest
+		} catch (e: Exception) {
+			// Fall back to the 3-parameter constructor version for older JUnit versions or any other error
+			LOG.fine { "Using legacy 3-parameter ExecutionRequest(): ${e.javaClass.simpleName}" }
+			@Suppress("DEPRECATION")
+			ExecutionRequest(
+				engineTestDescriptor,
+				executionListener,
+				request.configurationParameters
+			)
+		}
+	}
 
 	companion object {
 		private val LOG = createLogger()
