@@ -13,7 +13,7 @@ publishAs {
 
 dependencies {
 	// Fixed to 5.x because 6.x requires Java 17
-	implementation(platform("org.junit:junit-bom:5.13.4"))
+	implementation(platform("org.junit:junit-bom:6.0.0"))
 	implementation(project(":teamscale-client"))
 	implementation(project(":report-generator"))
 	implementation(project(":tia-client"))
