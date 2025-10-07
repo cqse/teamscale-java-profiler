@@ -49,7 +49,7 @@ commonsCodec = { module = "commons-codec:commons-codec", version = "1.19.0" }
 commonsLang = { module = "org.apache.commons:commons-lang3", version = "3.19.0" }
 commonsIo = { module = "commons-io:commons-io", version = "2.20.0" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.17" }
-jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version = "7.3.0.202506031305-r" }
+jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version = "7.4.0.202509020913-r" }
 okio = { module = "com.squareup.okio:okio", version = "3.16.0" }
 
 picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
