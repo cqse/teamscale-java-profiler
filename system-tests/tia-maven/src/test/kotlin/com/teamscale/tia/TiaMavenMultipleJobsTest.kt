@@ -23,13 +23,22 @@ class TiaMavenMultipleJobsTest {
 		// process is finished before testing.
 		runMaven(workingDirectory, "clean")
 
-		// run three verify processes in parallel without waiting
-		repeat(3) {
-			buildMavenProcess(workingDirectory, "verify").build().start()
+		// run three verify processes in parallel and collect them
+		val processes = List(3) {
+			buildMavenProcess(workingDirectory, "verify")
+			.build()
+			.apply {
+				redirectOutput(ProcessBuilder.Redirect.DISCARD)
+				redirectError(ProcessBuilder.Redirect.DISCARD)
+			}
+			.start()
 		}
 
 		// and one more that we wait for to terminate
 		runMaven(workingDirectory, "verify")
+
+		// wait for all parallel processes to complete
+		processes.forEach { it.waitFor() }
 
 		val configFile = Paths.get(workingDirectory, "target", "tia", "agent.log")
 		val configContent = configFile.toFile().readText()
