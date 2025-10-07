@@ -6,7 +6,7 @@ jacoco = "0.8.13"
 # We need to stay on the 1.3.x release line as 1.4.x requires Java 11
 logback = "1.3.15"
 retrofit = "3.0.0"
-okhttp = "5.1.0"
+okhttp = "5.2.0"
 mockito = "5.20.0"
 mockitoKotlin = "6.1.0"
 picocli = "4.7.7"
