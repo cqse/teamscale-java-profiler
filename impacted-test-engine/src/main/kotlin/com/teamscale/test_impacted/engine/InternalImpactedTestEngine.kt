@@ -118,22 +118,38 @@ internal class InternalImpactedTestEngine(
 		}
 
 	/**
-	 * Creates an ExecutionRequest, attempting to use the newer 6-parameter overload via reflection
-	 * if available (JUnit 6.0+), falling back to the 3-parameter constructor version for older versions.
+	 * Creates an ExecutionRequest, attempting to use the newer overloads via reflection
+	 * if available (JUnit 5.13+), falling back to the 3-parameter constructor version for older versions.
 	 */
 	private fun createExecutionRequest(
 		request: ExecutionRequest,
 		engineTestDescriptor: TestDescriptor,
 		executionListener: TestwiseCoverageCollectingExecutionListener
 	): ExecutionRequest {
+		// Try JUnit 6.0+ with 6 parameters (OutputDirectoryCreator + CancellationToken)
+		tryCreateExecutionRequestJUnit60Plus(request, engineTestDescriptor, executionListener)?.let { return it }
+
+		// Try JUnit 5.13-6.0 with 5 parameters (OutputDirectoryProvider)
+		tryCreateExecutionRequestJUnit513To60(request, engineTestDescriptor, executionListener)?.let { return it }
+
+		// Fall back to the 3-parameter constructor version for older JUnit versions
+		return createLegacyExecutionRequest(engineTestDescriptor, executionListener, request)
+	}
+
+	/**
+	 * Attempts to create an ExecutionRequest using the JUnit 6.0+ API with 6 parameters.
+	 */
+	private fun tryCreateExecutionRequestJUnit60Plus(
+		request: ExecutionRequest,
+		engineTestDescriptor: TestDescriptor,
+		executionListener: TestwiseCoverageCollectingExecutionListener
+	): ExecutionRequest? {
 		return try {
-			// Load parameter types dynamically to support both old and new JUnit versions
 			val outputDirectoryCreatorClass = Class.forName("org.junit.platform.engine.OutputDirectoryCreator")
 			val namespacedStoreClass =
 				Class.forName("org.junit.platform.engine.support.store.NamespacedHierarchicalStore")
 			val cancellationTokenClass = Class.forName("org.junit.platform.engine.CancellationToken")
 
-			// Try to use the newer 6-parameter overload via reflection
 			val createMethod = ExecutionRequest::class.java.getMethod(
 				"create",
 				TestDescriptor::class.java,
@@ -144,7 +160,6 @@ internal class InternalImpactedTestEngine(
 				cancellationTokenClass
 			)
 
-			// Access the additional parameters from the request via reflection
 			val outputDirectoryCreator = request.javaClass.getMethod("getOutputDirectoryCreator").invoke(request)
 			val requestLevelStore = request.javaClass.getMethod("getStore").invoke(request)
 			val cancellationToken = request.javaClass.getMethod("getCancellationToken").invoke(request)
@@ -159,15 +174,65 @@ internal class InternalImpactedTestEngine(
 				cancellationToken
 			) as ExecutionRequest
 		} catch (e: Exception) {
-			// Fall back to the 3-parameter constructor version for older JUnit versions or any other error
-			LOG.fine { "Using legacy 3-parameter ExecutionRequest(): ${e.javaClass.simpleName}" }
-			@Suppress("DEPRECATION")
-			ExecutionRequest(
+			LOG.fine { "6-parameter create method not available: ${e.javaClass.simpleName}" }
+			null
+		}
+	}
+
+	/**
+	 * Attempts to create an ExecutionRequest using the JUnit 5.13-6.0 API with 5 parameters.
+	 */
+	private fun tryCreateExecutionRequestJUnit513To60(
+		request: ExecutionRequest,
+		engineTestDescriptor: TestDescriptor,
+		executionListener: TestwiseCoverageCollectingExecutionListener
+	): ExecutionRequest? {
+		return try {
+			val outputDirectoryProviderClass = Class.forName("org.junit.platform.engine.reporting.OutputDirectoryProvider")
+			val namespacedStoreClass =
+				Class.forName("org.junit.platform.engine.support.store.NamespacedHierarchicalStore")
+
+			val createMethod = ExecutionRequest::class.java.getMethod(
+				"create",
+				TestDescriptor::class.java,
+				org.junit.platform.engine.EngineExecutionListener::class.java,
+				org.junit.platform.engine.ConfigurationParameters::class.java,
+				outputDirectoryProviderClass,
+				namespacedStoreClass
+			)
+
+			val outputDirectoryProvider = request.javaClass.getMethod("getOutputDirectoryProvider").invoke(request)
+			val requestLevelStore = request.javaClass.getMethod("getStore").invoke(request)
+
+			createMethod.invoke(
+				null,
 				engineTestDescriptor,
 				executionListener,
-				request.configurationParameters
-			)
+				request.configurationParameters,
+				outputDirectoryProvider,
+				requestLevelStore
+			) as ExecutionRequest
+		} catch (e: Exception) {
+			LOG.fine { "5-parameter create method not available: ${e.javaClass.simpleName}" }
+			null
 		}
+	}
+
+	/**
+	 * Creates an ExecutionRequest using the legacy 3-parameter constructor for older JUnit versions.
+	 */
+	private fun createLegacyExecutionRequest(
+		engineTestDescriptor: TestDescriptor,
+		executionListener: TestwiseCoverageCollectingExecutionListener,
+		request: ExecutionRequest
+	): ExecutionRequest {
+		LOG.fine { "Using legacy 3-parameter ExecutionRequest()" }
+		@Suppress("DEPRECATION")
+		return ExecutionRequest(
+			engineTestDescriptor,
+			executionListener,
+			request.configurationParameters
+		)
 	}
 
 	companion object {
