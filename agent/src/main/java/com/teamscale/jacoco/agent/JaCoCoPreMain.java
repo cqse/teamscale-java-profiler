@@ -13,15 +13,15 @@
 
 package com.teamscale.jacoco.agent;
 
-import org.jacoco.agent.rt.internal_0e20598.Agent;
-import org.jacoco.agent.rt.internal_0e20598.AgentModule;
-import org.jacoco.agent.rt.internal_0e20598.CoverageTransformer;
-import org.jacoco.agent.rt.internal_0e20598.IExceptionLogger;
-import org.jacoco.agent.rt.internal_0e20598.PreMain;
-import org.jacoco.agent.rt.internal_0e20598.core.runtime.AgentOptions;
-import org.jacoco.agent.rt.internal_0e20598.core.runtime.IRuntime;
-import org.jacoco.agent.rt.internal_0e20598.core.runtime.InjectedClassRuntime;
-import org.jacoco.agent.rt.internal_0e20598.core.runtime.ModifiedSystemClassRuntime;
+import org.jacoco.agent.rt.internal_29a6edd.Agent;
+import org.jacoco.agent.rt.internal_29a6edd.AgentModule;
+import org.jacoco.agent.rt.internal_29a6edd.CoverageTransformer;
+import org.jacoco.agent.rt.internal_29a6edd.IExceptionLogger;
+import org.jacoco.agent.rt.internal_29a6edd.PreMain;
+import org.jacoco.agent.rt.internal_29a6edd.core.runtime.AgentOptions;
+import org.jacoco.agent.rt.internal_29a6edd.core.runtime.IRuntime;
+import org.jacoco.agent.rt.internal_29a6edd.core.runtime.InjectedClassRuntime;
+import org.jacoco.agent.rt.internal_29a6edd.core.runtime.ModifiedSystemClassRuntime;
 import org.slf4j.Logger;
 
 import java.lang.instrument.Instrumentation;
