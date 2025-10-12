@@ -6,6 +6,7 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [feature] _impacted-test-engine_: Added support for JUnit 6.0
+- [feature] _agent_: Added support for Java 25 and experimental support for Java 26
 
 # 36.0.0
 - [breaking fix] _teamscale-gradle-plugin_: Adjusted to breaking API changes in Gradle 9.0
