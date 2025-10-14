@@ -17,7 +17,7 @@ import org.junit.jupiter.params.provider.ValueSource
  * Integration tests for the Teamscale Gradle plugin focusing on the testwise coverage generation.
  */
 @ParameterizedClass
-@ValueSource(strings = ["5.12.0", "6.0.0"])
+@ValueSource(strings = ["5.12.0", "5.13.4", "6.0.0"])
 class TeamscalePluginTestwiseCoverageTest : TeamscalePluginTestBase() {
 
 	@Parameter
