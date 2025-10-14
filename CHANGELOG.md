@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 36.1.0
 - [feature] _impacted-test-engine_: Added support for JUnit 5.13 and 6.0
 - [feature] _agent_: Added support for Java 25 and experimental support for Java 26
 
