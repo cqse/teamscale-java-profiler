@@ -77,7 +77,7 @@ springboot-loader = { module = "org.springframework.boot:spring-boot-loader", ve
 
 maven-core = { module = "org.apache.maven:maven-core", version.ref = "maven" }
 maven-pluginApi = { module = "org.apache.maven:maven-plugin-api", version.ref = "maven" }
-maven-pluginAnnotations = { module = "org.apache.maven.plugin-tools:maven-plugin-annotations", version = "3.15.1" }
+maven-pluginAnnotations = { module = "org.apache.maven.plugin-tools:maven-plugin-annotations", version = "3.15.2" }
 
 asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
 asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
