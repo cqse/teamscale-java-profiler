@@ -13,7 +13,7 @@ class MultipleAgentsTest {
 		assertThat(LOG_DIRECTORY).exists()
 		val lines = LOG_DIRECTORY.resolve("teamscale-jacoco-agent.log").readLines()
 		assertThat(lines)
-			.anyMatch { it.contains("Using multiple java agents could interfere with coverage recording.") }
+			.anyMatch { it.contains("Using multiple java agents could interfere with coverage recording") }
 		assertThat(lines)
 			.anyMatch { it.contains("For best results consider registering the Teamscale Java Profiler first.") }
 	}

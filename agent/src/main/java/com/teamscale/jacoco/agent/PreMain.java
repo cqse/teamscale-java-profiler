@@ -126,8 +126,14 @@ public class PreMain {
 		List<String> javaAgents = ManagementFactory.getRuntimeMXBean().getInputArguments().stream().filter(
 				s -> s.contains("-javaagent")).collect(Collectors.toList());
 		// We allow multiple instances of the teamscale-jacoco-agent as we ensure with the #LOCKING_SYSTEM_PROPERTY to only use it once
-		if (!javaAgents.stream().allMatch(javaAgent -> javaAgent.contains("teamscale-jacoco-agent.jar"))) {
-			delayedLogger.warn("Using multiple java agents could interfere with coverage recording.");
+		List<String> differentAgents = javaAgents.stream()
+				.filter(javaAgent -> !javaAgent.contains("teamscale-jacoco-agent.jar")).collect(
+						Collectors.toList());
+
+		if (!differentAgents.isEmpty()) {
+			delayedLogger.warn(
+					"Using multiple java agents could interfere with coverage recording: " +
+							String.join(", ", differentAgents));
 		}
 		if (!javaAgents.get(0).contains("teamscale-jacoco-agent.jar")) {
 			delayedLogger.warn("For best results consider registering the Teamscale Java Profiler first.");
