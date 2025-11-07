@@ -1,13 +1,11 @@
 # --- build image ---
 
-FROM openjdk:21 AS build
+FROM eclipse-temurin:21 AS build
 
 # We need to manually pass this enviroment variable through to make Gradle determine the correct version number (TS-42362)
 ARG GITHUB_REF
 ENV GITHUB_REF=${GITHUB_REF}
 
-# install xargs which is needed during the build
-RUN microdnf install findutils
 ADD . /src
 WORKDIR /src
 RUN ./gradlew :agent:shadowJar
