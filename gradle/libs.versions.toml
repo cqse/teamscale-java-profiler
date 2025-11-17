@@ -50,7 +50,7 @@ commonsLang = { module = "org.apache.commons:commons-lang3", version = "3.20.0" 
 commonsIo = { module = "commons-io:commons-io", version = "2.21.0" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.17" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version = "7.4.0.202509020913-r" }
-okio = { module = "com.squareup.okio:okio", version = "3.16.3" }
+okio = { module = "com.squareup.okio:okio", version = "3.16.4" }
 
 picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
