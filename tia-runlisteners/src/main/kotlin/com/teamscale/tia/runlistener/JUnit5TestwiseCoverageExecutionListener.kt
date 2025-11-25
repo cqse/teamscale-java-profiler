@@ -34,6 +34,7 @@ class JUnit5TestwiseCoverageExecutionListener : TestExecutionListener {
 			is MethodSource -> Optional.of(
 				"${className.replace('.', '/')}/$methodName($methodParameterTypes)"
 			)
+
 			else -> Optional.empty()
 		}
 
@@ -46,7 +47,6 @@ class JUnit5TestwiseCoverageExecutionListener : TestExecutionListener {
 			TestExecutionResult.Status.SUCCESSFUL -> ETestExecutionResult.PASSED
 			TestExecutionResult.Status.ABORTED -> ETestExecutionResult.ERROR
 			TestExecutionResult.Status.FAILED -> ETestExecutionResult.FAILURE
-			else -> ETestExecutionResult.FAILURE
 		}
 
 		bridge.testFinished(uniformPath, result)
