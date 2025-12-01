@@ -21,11 +21,9 @@ import org.junit.platform.engine.support.descriptor.EngineDescriptor
  * @constructor Initializes the test engine with the given configuration and partition.
  * @param configuration The configuration object that provides dependencies such as test engine registry,
  * test sorter, and test data writer.
- * @param partition The partition identifier used to divide tests and manage their execution.
  */
 internal class InternalImpactedTestEngine(
 	configuration: ImpactedTestEngineConfiguration,
-	private val partition: String?
 ) {
 	private val testEngineRegistry = configuration.testEngineRegistry
 	private val testSorter = configuration.testSorter

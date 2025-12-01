@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.io.File
 
 /**
  * Runs tests in all submodules and expects the results of both in the upload.
@@ -64,7 +65,8 @@ class TestwiseCoverageGradleSystemTest {
 	@Test
 	@Throws(Exception::class)
 	fun testGradleAggregatedCompactCoverageUploadWithoutJVMTestSuite() {
-		runGradle("gradle-project", "clean", "unitTest", "teamscaleUnitTestReportUpload")
+		val result = runGradle("gradle-project", "clean", "unitTest", "teamscaleUnitTestReportUpload")
+		assertThat(result.isSuccess).isTrue()
 
 		val session = teamscaleMockServer.getOnlySession("Unit Tests")
 		assertThat(session.getReports()).hasSize(3)
@@ -83,7 +85,8 @@ class TestwiseCoverageGradleSystemTest {
 	@Test
 	@Throws(Exception::class)
 	fun testGradleAggregatedCompactCoverageUploadWithJVMTestSuite() {
-		runGradle("gradle-project", "clean", "teamscaleTestReportUpload")
+		val result = runGradle("gradle-project", "clean", "teamscaleTestReportUpload")
+		assertThat(result.isSuccess).isTrue()
 
 		val session = teamscaleMockServer.getOnlySession("Default Tests")
 		assertThat(session.getReports()).hasSize(3)
@@ -94,5 +97,17 @@ class TestwiseCoverageGradleSystemTest {
 		assertThat(compactReport.coverage.last().filePath).isEqualTo("com/example/lib/Calculator.java")
 		assertThat(compactReport.coverage.first().fullyCoveredLines).containsExactly(7, 8, 9)
 		assertThat(compactReport.coverage.last().fullyCoveredLines).containsExactly(3, 6, 16)
+	}
+
+	@Test
+	@Throws(Exception::class)
+	fun testDebugLogging() {
+		val result = runGradle("gradle-project", "clean", "systemTest", "-DdebugLogging=true", "-Dimpacted")
+		assertThat(result.isSuccess).isTrue()
+
+		assertThat(File("gradle-project/app/build/jacoco/systemTest/agent.log/logs/teamscale-jacoco-agent.log")).content()
+			.contains("DEBUG com.teamscale.jacoco.agent.Agent - No explicit teamscale.properties file given.")
+		assertThat(File("gradle-project/app/build/jacoco/systemTest/engine.log")).content()
+			.contains("[FINE] com.teamscale.test_impacted.engine.TestEngineRegistry: Found test engines: [junit-jupiter]")
 	}
 }

@@ -24,10 +24,12 @@ open class TeamscaleAgentNotifier(
 
 	/** Reports the start of a test to the Teamscale JaCoCo agent.  */
 	open fun startTest(testUniformPath: String) {
+		LOG.fine { "Starting test notification for: $testUniformPath" }
 		try {
 			testwiseCoverageAgentApis.forEach { apiService ->
 				apiService.testStarted(testUniformPath.encodeUrl()).execute()
 			}
+			LOG.fine { "Successfully notified test start for: $testUniformPath" }
 		} catch (e: IOException) {
 			LOG.log(
 				Level.SEVERE, e
@@ -37,6 +39,7 @@ open class TeamscaleAgentNotifier(
 
 	/** Reports the end of a test to the Teamscale JaCoCo agent.  */
 	open fun endTest(testUniformPath: String, testExecution: TestExecution?) {
+		LOG.fine { "Ending test notification for: $testUniformPath (execution: ${testExecution != null})" }
 		try {
 			testwiseCoverageAgentApis.forEach { apiService ->
 				val url = testUniformPath.encodeUrl()
@@ -46,6 +49,7 @@ open class TeamscaleAgentNotifier(
 					apiService.testFinished(url, testExecution).execute()
 				}
 			}
+			LOG.fine { "Successfully notified test end for: $testUniformPath" }
 		} catch (e: IOException) {
 			LOG.log(
 				Level.SEVERE, e
@@ -55,10 +59,12 @@ open class TeamscaleAgentNotifier(
 
 	/** Reports the end of the test run to the Teamscale JaCoCo agent.  */
 	open fun testRunEnded() {
+		LOG.fine { "Notifying test run ended (partial: $partial)" }
 		try {
 			testwiseCoverageAgentApis.forEach { apiService ->
 				apiService.testRunFinished(partial).execute()
 			}
+			LOG.fine { "Successfully notified test run ended" }
 		} catch (e: IOException) {
 			LOG.log(
 				Level.SEVERE, e

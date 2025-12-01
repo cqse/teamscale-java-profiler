@@ -12,6 +12,7 @@ import com.teamscale.test_impacted.engine.executor.TeamscaleAgentNotifier
 import com.teamscale.tia.client.ITestwiseCoverageAgentApi
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.File
+import java.util.logging.Level
 import kotlin.io.path.createDirectories
 
 /**
@@ -37,6 +38,9 @@ import kotlin.io.path.createDirectories
  * @property excludedTestEngineIds A set of test engine IDs to explicitly exclude from the test run.
  * @param reportDirectoryPath The filesystem path where test reports will be saved. Must be writable during initialization.
  * @param testCoverageAgentUrls A list of URLs pointing to test-wise coverage agents used during test execution.
+ * @property logLevel The log level for the impacted test engine. Defaults to INFO.
+ * @property logFilePath The filesystem path where the impacted test engine log file will be written.
+ *                       If null, no file logging is configured.
  */
 class TestEngineOptions(
 	val enabled: Boolean,
@@ -54,7 +58,9 @@ class TestEngineOptions(
 	private val includedTestEngineIds: Set<String> = emptySet(),
 	private val excludedTestEngineIds: Set<String> = emptySet(),
 	reportDirectoryPath: String? = null,
-	testCoverageAgentUrls: List<String> = emptyList()
+	testCoverageAgentUrls: List<String> = emptyList(),
+	val logLevel: Level = Level.INFO,
+	val logFilePath: String? = null,
 ) {
 
 	private var reportDirectory = reportDirectoryPath?.let { File(it) }

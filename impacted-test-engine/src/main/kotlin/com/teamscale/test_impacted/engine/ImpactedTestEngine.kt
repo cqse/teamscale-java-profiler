@@ -1,5 +1,6 @@
 package com.teamscale.test_impacted.engine
 
+import com.teamscale.test_impacted.commons.LoggerUtils
 import com.teamscale.test_impacted.commons.LoggerUtils.createLogger
 import com.teamscale.test_impacted.engine.options.TestEngineOptionUtils
 import org.junit.platform.engine.*
@@ -18,11 +19,13 @@ class ImpactedTestEngine : TestEngine {
 	): TestDescriptor {
 		val engineOptions = TestEngineOptionUtils
 			.getEngineOptions(discoveryRequest.configurationParameters)
+		LoggerUtils.configureFileLogging(engineOptions.logLevel, engineOptions.logFilePath)
 		if (!engineOptions.enabled) {
+			LOG.fine { "Impacted test engine is disabled." }
 			return EngineDescriptor(uniqueId, ENGINE_NAME)
 		}
 		val configuration = engineOptions.testEngineConfiguration
-		val engine = InternalImpactedTestEngine(configuration, engineOptions.partition)
+		val engine = InternalImpactedTestEngine(configuration)
 
 		// Re-initialize the configuration for this discovery (and optional following execution).
 		internalImpactedTestEngine = engine

@@ -24,7 +24,40 @@ object LoggerUtils {
 			override fun format(lr: LogRecord) =
 				String.format("[%1\$s] %2\$s%n", lr.level.localizedName, lr.message)
 		}
+		handler.level = Level.WARNING
 		MAIN_LOGGER.addHandler(handler)
+	}
+
+	/**
+	 * Configures file-based logging for the impacted test engine with the specified log level.
+	 *
+	 * @param logLevel The minimum log level that will be written to the log file.
+	 * @param logFilePath The filesystem path where the log file will be written. If null, no file logging is configured.
+	 */
+	fun configureFileLogging(logLevel: Level, logFilePath: String?) {
+		if (logFilePath == null) return
+		try {
+			val fileHandler = FileHandler(logFilePath, true)
+			fileHandler.level = logLevel
+			fileHandler.formatter = object : SimpleFormatter() {
+				@Synchronized
+				override fun format(lr: LogRecord) =
+					String.format(
+						"%1\$tF %1\$tT [%2\$s] %3\$s: %4\$s%n",
+						lr.millis,
+						lr.level.localizedName,
+						lr.loggerName,
+						lr.message
+					)
+			}
+			MAIN_LOGGER.addHandler(fileHandler)
+			MAIN_LOGGER.level = logLevel
+		} catch (e: IOException) {
+			val logger = createLogger()
+			logger.warning(
+				"Cannot create log file at $logFilePath specified via teamscale.test.impacted.logFilePath: ${e.message}"
+			)
+		}
 	}
 
 	/**

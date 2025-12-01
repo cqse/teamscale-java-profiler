@@ -5,8 +5,9 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
-
 - _agent_: improved logging when multiple agents are attached
+- [feature] _teamscale-gradle-plugin_: Added `debugLogging` option to enable debug logging for the java profiler and the impacted test engine
+- [feature] _teamscale-maven-plugin_: Enhanced `debugLogging` option to also enable debug logging for the impacted test engine
 
 # 36.1.0
 - [feature] _impacted-test-engine_: Added support for JUnit 5.13 and 6.0
