@@ -92,6 +92,11 @@ class TestImpactConfigurationAction(
 		writeProperty("runAllTests", extension.runAllTests.get())
 		writeProperty("includeAddedTests", extension.includeAddedTests.get())
 		writeProperty("includeFailedAndSkipped", extension.includeFailedAndSkipped.get())
+
+		if (extension.debugLogging.getOrElse(false)) {
+			writeProperty("logFilePath", extension.agent.destination.asFile.get().resolve("engine.log").absolutePath)
+			writeProperty("logLevel", "DEBUG")
+		}
 	}
 }
 

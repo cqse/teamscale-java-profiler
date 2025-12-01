@@ -68,6 +68,7 @@ val systemTest by tasks.registering(Test::class) {
 	configure<TeamscaleTaskExtension> {
 		collectTestwiseCoverage = true
 		runImpacted = System.getProperty("impacted") != null
+		debugLogging = System.getProperty("debugLogging")?.toBoolean() ?: false
 		partition = "System Tests"
 	}
 	testClassesDirs = files(test.map { it.sources.output.classesDirs })

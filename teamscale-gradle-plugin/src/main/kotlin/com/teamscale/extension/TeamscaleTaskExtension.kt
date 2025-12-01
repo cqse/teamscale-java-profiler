@@ -25,7 +25,7 @@ abstract class TeamscaleTaskExtension @Inject constructor(
 
 	/** Settings regarding the teamscale jacoco agent. */
 	val agent =
-		objectFactory.newInstance<AgentConfiguration>(teamscaleJaCoCoAgentConfiguration, jacocoExtension)
+		objectFactory.newInstance<AgentConfiguration>(teamscaleJaCoCoAgentConfiguration, jacocoExtension, debugLogging)
 
 	/** Configures the jacoco agent options. */
 	fun agent(action: Action<in AgentConfiguration>) {
@@ -56,6 +56,9 @@ abstract class TeamscaleTaskExtension @Inject constructor(
 
 	/** The partition in Teamscale that will be used to look up impacted tests. */
 	abstract val partition: Property<String>
+
+	/** Whether to enable debug logging for the impacted test engine. */
+	abstract val debugLogging: Property<Boolean>
 
 	/**
 	 * Provider lazily determining whether the test will only run the tests partially

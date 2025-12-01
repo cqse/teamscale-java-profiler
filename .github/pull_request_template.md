@@ -1,7 +1,7 @@
 Addresses issue [TS-XXXXX](https://cqse.atlassian.net/browse/TS-XXXXX)
 
 - [ ] Changes are tested adequately
-- [ ] Agent's README.md updated in case of user-visible changes
+- [ ] Teamscale documentation updated in case of user-visible changes
 - [ ] CHANGELOG.md updated
 - [ ] Present new features in [N&N](https://cqse.atlassian.net/l/cp/KHSr81m1)
 - [ ] [TGA Tutorial](https://docs.teamscale.com/tutorial/setting-up-tga-java) updated

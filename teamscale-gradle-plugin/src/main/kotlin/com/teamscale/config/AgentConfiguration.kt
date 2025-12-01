@@ -6,6 +6,7 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Property
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import java.io.Serializable
 import javax.inject.Inject
@@ -19,7 +20,8 @@ import javax.inject.Inject
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 abstract class AgentConfiguration @Inject constructor(
 	private val teamscaleJacocoAgentConfiguration: FileCollection,
-	private val jacocoExtension: JacocoTaskExtension
+	private val jacocoExtension: JacocoTaskExtension,
+	private val debugLogging: Property<Boolean>
 ) : Serializable {
 
 	/** The destination directory to store test artifacts into. */
@@ -73,8 +75,7 @@ abstract class AgentConfiguration @Inject constructor(
 	inner class TeamscaleAgent(val url: HttpUrl) {
 
 		/** Builds the jvm argument to start the impacted test executor. */
-		fun getJvmArgs(
-		): String {
+		fun getJvmArgs(): String {
 			val builder = StringBuilder()
 			val argument = ArgumentAppender(builder)
 			builder.append("-javaagent:")
@@ -100,6 +101,9 @@ abstract class AgentConfiguration @Inject constructor(
 			argument.append("excludes", jacocoExtension.excludes)
 			argument.append("mode", "testwise")
 			argument.append("http-server-port", url.port)
+			if (debugLogging.getOrElse(false)) {
+				argument.append("debug", destination.asFile.get())
+			}
 		}
 	}
 }

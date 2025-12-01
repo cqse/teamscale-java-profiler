@@ -1,5 +1,6 @@
 package com.teamscale.test_impacted.engine
 
+import com.teamscale.test_impacted.commons.LoggerUtils.createLogger
 import org.junit.platform.commons.util.ClassLoaderUtils
 import org.junit.platform.engine.TestEngine
 import java.util.*
@@ -17,18 +18,26 @@ open class TestEngineRegistry(
 	excludedTestEngineIds: Set<String>
 ) : Iterable<TestEngine> {
 	private val testEnginesById: Map<String, TestEngine>
+	private val logger = createLogger()
 
 	init {
 		var otherTestEngines = loadOtherTestEngines(excludedTestEngineIds)
 
+		logger.fine("Loaded ${otherTestEngines.size} test engines after excluding: $excludedTestEngineIds")
+		logger.fine("Found test engines: ${otherTestEngines.map { it.id }}")
+
 		// If there are no test engines set we don't need to filter but simply use all other test engines.
 		if (includedTestEngineIds.isNotEmpty()) {
+			logger.fine("Filtering by included test engine IDs: $includedTestEngineIds")
+			val beforeFilterCount = otherTestEngines.size
 			otherTestEngines = otherTestEngines.filter { testEngine ->
 				includedTestEngineIds.contains(testEngine.id)
 			}
+			logger.fine("Filtered from $beforeFilterCount to ${otherTestEngines.size} test engines")
 		}
 
 		testEnginesById = otherTestEngines.associateBy { it.id }
+		logger.fine("Final test engines to be used: ${testEnginesById.keys}")
 	}
 
 	/**

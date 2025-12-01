@@ -125,9 +125,9 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 
 
 	/**
-	 * Changes the log level of the agent to DEBUG.
+	 * Changes the log level of the agent and impacted test engine to DEBUG.
 	 */
-	@Parameter(defaultValue = "false")
+	@Parameter(defaultValue = "false", property = "debugLogging")
 	public boolean debugLogging;
 
 	/**
@@ -221,6 +221,12 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 		setTiaProperty("agentsUrls", "http://localhost:" + agentPort);
 		setTiaProperty("runImpacted", Boolean.valueOf(runImpacted).toString());
 		setTiaProperty("runAllTests", Boolean.valueOf(runAllTests).toString());
+
+		if (debugLogging) {
+			setTiaProperty("logLevel", "DEBUG");
+			Path engineLogFilePath = targetDirectory.resolve("engine.log");
+			setTiaProperty("logFilePath", engineLogFilePath.toString());
+		}
 	}
 
 	/**

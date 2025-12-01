@@ -3,6 +3,7 @@ package com.teamscale.test_impacted.engine.options
 import com.teamscale.client.CommitDescriptor
 import org.junit.platform.engine.ConfigurationParameters
 import java.util.*
+import java.util.logging.Level
 
 /**
  * Utility object for creating and retrieving `TestEngineOptions` based on
@@ -40,8 +41,20 @@ object TestEngineOptionUtils {
 			testCoverageAgentUrls = propertyReader.getStringList("agentsUrls"),
 			includedTestEngineIds = propertyReader.getStringList("includedEngines").toSet(),
 			excludedTestEngineIds = propertyReader.getStringList("excludedEngines").toSet(),
-			reportDirectoryPath = propertyReader.getString("reportDirectory")
+			reportDirectoryPath = propertyReader.getString("reportDirectory"),
+			logLevel = determineLogLevel(propertyReader.getString("logLevel")),
+			logFilePath = propertyReader.getString("logFilePath"),
 		)
+	}
+
+	private fun determineLogLevel(logLevelString: String?): Level {
+		return when (logLevelString?.uppercase()) {
+			"DEBUG" -> Level.FINE
+			"INFO" -> Level.INFO
+			"WARN" -> Level.WARNING
+			"ERROR" -> Level.SEVERE
+			else -> Level.INFO
+		}
 	}
 
 	private fun PrefixingPropertyReader.createServerOptions() =

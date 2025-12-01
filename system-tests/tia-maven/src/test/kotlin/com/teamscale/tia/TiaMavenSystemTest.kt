@@ -104,6 +104,17 @@ class TiaMavenSystemTest {
 		assertThat(teamscaleMockServer.baselines).containsOnly("null, master:1234")
 	}
 
+	@Test
+	@Throws(IOException::class)
+	fun testDebugLogging() {
+		runMavenTests("maven-project", "-DdebugLogging=true", "-Dtia")
+
+		assertThat(File("maven-project/sub-project-A/target/tia/agent.log")).content()
+			.contains("DEBUG com.teamscale.jacoco.agent.Agent - No explicit teamscale.properties file given.");
+		assertThat(File("maven-project/sub-project-A/target/tia/engine.log")).content()
+			.contains("[FINE] com.teamscale.test_impacted.engine.TestEngineRegistry: Found test engines: [junit-jupiter]")
+	}
+
 	/**
 	 * Starts a maven process with the reuseForks flag set to "false". Checks if the coverage can be converted to a
 	 * testwise coverage report afterward.

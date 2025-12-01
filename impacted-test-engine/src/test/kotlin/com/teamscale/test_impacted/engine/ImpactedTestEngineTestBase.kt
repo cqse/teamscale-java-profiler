@@ -74,8 +74,7 @@ abstract class ImpactedTestEngineTestBase {
 				testDataWriter, testEngineRegistry,
 				ImpactedTestsSorter(impactedTestsProvider),
 				teamscaleAgentNotifier
-			),
-			impactedTestsProvider.partition
+			)
 		)
 	}
 }
