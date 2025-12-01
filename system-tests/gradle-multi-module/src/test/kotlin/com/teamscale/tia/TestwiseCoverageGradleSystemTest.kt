@@ -105,7 +105,7 @@ class TestwiseCoverageGradleSystemTest {
 		val result = runGradle("gradle-project", "clean", "systemTest", "-DdebugLogging=true", "-Dimpacted")
 		assertThat(result.isSuccess).isTrue()
 
-		assertThat(File("gradle-project/app/build/jacoco/systemTest/agent.log/logs/teamscale-jacoco-agent.log")).content()
+		assertThat(File("gradle-project/app/build/jacoco/systemTest/logs/teamscale-jacoco-agent.log")).content()
 			.contains("DEBUG com.teamscale.jacoco.agent.Agent - No explicit teamscale.properties file given.")
 		assertThat(File("gradle-project/app/build/jacoco/systemTest/engine.log")).content()
 			.contains("[FINE] com.teamscale.test_impacted.engine.TestEngineRegistry: Found test engines: [junit-jupiter]")

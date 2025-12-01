@@ -102,7 +102,7 @@ abstract class AgentConfiguration @Inject constructor(
 			argument.append("mode", "testwise")
 			argument.append("http-server-port", url.port)
 			if (debugLogging.getOrElse(false)) {
-				argument.append("debug", destination.file("agent.log").get().asFile)
+				argument.append("debug", destination.asFile.get())
 			}
 		}
 	}
