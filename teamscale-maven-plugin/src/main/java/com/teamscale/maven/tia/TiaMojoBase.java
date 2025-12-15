@@ -133,13 +133,13 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 	/**
 	 * Executes all tests, not only impacted ones if set. Defaults to false.
 	 */
-	@Parameter(defaultValue = "false")
+	@Parameter(defaultValue = "false", property = "runAllTests")
 	public boolean runAllTests;
 
 	/**
 	 * Executes only impacted tests, not all ones if set. Defaults to true.
 	 */
-	@Parameter(defaultValue = "true")
+	@Parameter(defaultValue = "true", property = "runImpacted")
 	public boolean runImpacted;
 
 	/**
