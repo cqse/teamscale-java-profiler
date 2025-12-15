@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- _maven-plugin_: Added maven properties for `runImpacted` and `runAllTests` configuration parameters
 
 # 36.2.0
 - _agent_: improved logging when multiple agents are attached
