@@ -160,7 +160,7 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 	public void execute() throws MojoFailureException, MojoExecutionException {
 		super.execute();
 
-		if (!StringUtils.isEmpty(baselineCommit) && StringUtils.isEmpty(baselineRevision)) {
+		if (!StringUtils.isEmpty(baselineCommit) && !StringUtils.isEmpty(baselineRevision)) {
 			getLog().warn("Both baselineRevision and baselineCommit are set but only one of them is needed. " +
 					"The revision will be preferred in this case. If that's not intended, please do not set the baselineRevision manually.");
 		}
