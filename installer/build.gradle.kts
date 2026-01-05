@@ -64,7 +64,6 @@ val RUNTIME_JDK_VERSION = "21.0.6+7"
 jlink {
 	forceMerge("kotlin")
 	options = listOf(
-		"--compress", "2",
 		"--no-header-files",
 		"--no-man-pages",
 		"--dedup-legal-notices", "error-if-not-same-content"
