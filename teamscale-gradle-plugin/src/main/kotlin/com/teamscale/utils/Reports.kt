@@ -231,7 +231,7 @@ open class Reports<T : Report>(objectFactory: ObjectFactory, clazz: Class<T>) : 
 		return reports.collectionSchema
 	}
 
-	override fun findAll(spec: Closure<*>): Set<T?> {
+	override fun findAll(spec: Closure<Any>): MutableSet<T> {
 		return reports.findAll(spec)
 	}
 
