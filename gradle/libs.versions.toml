@@ -87,6 +87,6 @@ nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0"
 pluginPublish = { id = "com.gradle.plugin-publish", version = "2.0.0" }
 gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.4" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
-shadow = { id = "com.gradleup.shadow", version = "9.3.0" }
+shadow = { id = "com.gradleup.shadow", version = "9.3.1" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.0" }
 jlink = { id = "org.beryx.jlink", version = "3.2.0" }
