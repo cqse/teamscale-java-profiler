@@ -12,3 +12,4 @@ report-generator/test-coverage-*.xml
 **/logTest/**
 **/jacoco.exec
 **/target/**
+.claude/settings.local.json
