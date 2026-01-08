@@ -74,6 +74,24 @@ class MavenExternalUploadSystemTest {
 	}
 
 	/**
+	 * When no commit or revision is provided, the plugin should auto-resolve the Git HEAD
+	 * revision and use it for the upload (TS-44960).
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun testAutoResolveGitRevision() {
+		runMavenTests(AUTO_RESOLVE_REVISION_PROJECT_NAME)
+		val result = runCoverageUploadGoal(AUTO_RESOLVE_REVISION_PROJECT_NAME)
+		assertThat(result).isNotNull()
+		assertThat(result!!.exitCode).isEqualTo(0)
+
+		val session = teamscaleMockServer!!.getSession("Unit Tests")
+		assertThat(session.getReports(EReportFormat.JACOCO)).hasSize(1)
+		// Verify revision is set to a valid Git SHA (40 hex characters)
+		assertThat(session.getRevision()).matches("[a-f0-9]{40}")
+	}
+
+	/**
 	 * When no commit is given and no git repo is available, which is the usual fallback, a helpful error message should
 	 * be shown (TS-40425).
 	 */
@@ -98,6 +116,7 @@ class MavenExternalUploadSystemTest {
 		private const val MAVEN_COVERAGE_UPLOAD_GOAL = "com.teamscale:teamscale-maven-plugin:upload-coverage"
 		private const val NESTED_MAVEN_PROJECT_NAME = "nested-project"
 		private const val FAILING_MAVEN_PROJECT_NAME = "failing-project"
+		private const val AUTO_RESOLVE_REVISION_PROJECT_NAME = "auto-resolve-revision-project"
 
 		@JvmStatic
 		@AfterAll

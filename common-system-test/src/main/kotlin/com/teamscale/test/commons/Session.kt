@@ -25,6 +25,9 @@ class Session(request: Request) {
 
 	private val reports = mutableMapOf<EReportFormat, MutableList<ExternalReport>>()
 
+	/** Returns the revision for which the session was opened. */
+	fun getRevision() = revision
+
 	/**
 	 * Retrieves the commit information for the session. Combines the revision and commit data into a single string
 	 * representation separated by a comma.

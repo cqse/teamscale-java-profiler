@@ -257,7 +257,7 @@ public class CoverageUploadMojo extends TeamscaleMojoBase {
 		getLog().info(
 				String.format("Uploading %d report for project %s to %s", reportsByFormat.values().stream().mapToLong(
 						Collection::size).sum(), projectId, partition));
-		teamscaleClient.uploadReports(reportsByFormat, CommitDescriptor.parse(resolvedCommit), revision, repository,
+		teamscaleClient.uploadReports(reportsByFormat, CommitDescriptor.parse(resolvedCommit), resolvedRevision, repository,
 				partition, COVERAGE_UPLOAD_MESSAGE);
 	}
 

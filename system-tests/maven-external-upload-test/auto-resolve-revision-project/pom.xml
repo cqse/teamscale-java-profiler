@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.example</groupId>
+    <artifactId>auto-resolve-revision-project</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>auto-resolve-revision-project</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <tia.teamscale.fake.port>${env.TEAMSCALE_PORT}</tia.teamscale.fake.port>
+        <tia.agent.version>${env.AGENT_VERSION}</tia.agent.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.9</version>
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <formats>
+                                <format>XML</format>
+                            </formats>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.teamscale</groupId>
+                <artifactId>teamscale-maven-plugin</artifactId>
+                <version>${tia.agent.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>upload-coverage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <teamscaleUrl>http://localhost:${tia.teamscale.fake.port}</teamscaleUrl>
+                    <projectId>m</projectId>
+                    <username>build</username>
+                    <accessToken>6lJKEvNHeTxGPhMAi4D84DWqzoSFL1p4</accessToken>
+                    <!-- NO commit or revision - should auto-resolve from Git (TS-44960) -->
+                    <unitTestPartition>Unit Tests</unitTestPartition>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
