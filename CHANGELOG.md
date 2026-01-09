@@ -7,6 +7,7 @@ We use [semantic versioning](http://semver.org/):
 # Next version
 - _maven-plugin_: Added maven properties for `runImpacted` and `runAllTests` configuration parameters
 - _maven-plugin_: The warning "Both baselineRevision and baselineCommit are set but only one of them is needed" was displayed incorrectly
+- [fix] _maven-plugin_: Coverage upload used "Now" instead of auto-resolved Git revision when no commit/revision was configured
 
 # 36.2.0
 - _agent_: improved logging when multiple agents are attached
