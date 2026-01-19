@@ -25,7 +25,7 @@ jersey-containerServletCore = { module = "org.glassfish.jersey.containers:jersey
 jersey-mediaJsonJackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackson" }
 jersey-hk2 = { module = "org.glassfish.jersey.inject:jersey-hk2" }
 
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.20.1" }
+jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.21.0" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 
 jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version = "1.2.2" }
