@@ -1,6 +1,7 @@
 package com.teamscale.jacoco.agent.util;
 
 import com.teamscale.client.FileSystemUtils;
+import com.teamscale.client.TeamscaleServiceGenerator;
 import com.teamscale.jacoco.agent.PreMain;
 import com.teamscale.jacoco.agent.configuration.ProcessInformationRetriever;
 
@@ -18,11 +19,15 @@ public class AgentUtils {
 	/** Version of this program. */
 	public static final String VERSION;
 
+	/** User-Agent header value for HTTP requests. */
+	public static final String USER_AGENT;
+
 	private static Path mainTempDirectory = null;
 
 	static {
 		ResourceBundle bundle = ResourceBundle.getBundle("com.teamscale.jacoco.agent.app");
 		VERSION = bundle.getString("version");
+		USER_AGENT = TeamscaleServiceGenerator.buildUserAgent("Teamscale Java Profiler", VERSION);
 	}
 
 	/**

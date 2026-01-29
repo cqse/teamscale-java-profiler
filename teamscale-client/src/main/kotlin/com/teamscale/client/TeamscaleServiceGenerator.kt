@@ -1,6 +1,9 @@
 package com.teamscale.client
 
-import okhttp3.*
+import okhttp3.HttpUrl
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import java.io.File
@@ -9,8 +12,9 @@ import java.time.Duration
 
 /** Helper class for generating a teamscale compatible service.  */
 object TeamscaleServiceGenerator {
-	/** Custom user agent of the requests, used to monitor API traffic.  */
-	const val USER_AGENT = "Teamscale Java Profiler"
+	/** Builds the User-Agent string for the given tool name and version. */
+	@JvmStatic
+	fun buildUserAgent(toolName: String, version: String) = "$toolName/$version"
 
 	/**
 	 * Generates a [Retrofit] instance for the given service, which uses basic auth to authenticate against the
@@ -23,11 +27,12 @@ object TeamscaleServiceGenerator {
 		baseUrl: HttpUrl,
 		username: String,
 		accessToken: String,
+		userAgent: String,
 		readTimeout: Duration = HttpUtils.DEFAULT_READ_TIMEOUT,
 		writeTimeout: Duration = HttpUtils.DEFAULT_WRITE_TIMEOUT,
 		vararg interceptors: Interceptor
 	) = createServiceWithRequestLogging(
-		serviceClass, baseUrl, username, accessToken, null, readTimeout, writeTimeout, *interceptors
+		serviceClass, baseUrl, username, accessToken, null, readTimeout, writeTimeout, userAgent, *interceptors
 	)
 
 	/**
@@ -42,6 +47,7 @@ object TeamscaleServiceGenerator {
 		logfile: File?,
 		readTimeout: Duration,
 		writeTimeout: Duration,
+		userAgent: String,
 		vararg interceptors: Interceptor
 	): S = HttpUtils.createRetrofit(
 		{ retrofitBuilder ->
@@ -52,7 +58,7 @@ object TeamscaleServiceGenerator {
 			okHttpBuilder.addInterceptors(*interceptors)
 				.addInterceptor(HttpUtils.getBasicAuthInterceptor(username, accessToken))
 				.addInterceptor(AcceptJsonInterceptor())
-				.addNetworkInterceptor(CustomUserAgentInterceptor())
+				.addNetworkInterceptor(CustomUserAgentInterceptor(userAgent))
 			logfile?.let { okHttpBuilder.addInterceptor(FileLoggingInterceptor(it)) }
 		},
 		readTimeout, writeTimeout
@@ -79,12 +85,12 @@ object TeamscaleServiceGenerator {
 	}
 
 	/**
-	 * Sets the custom user agent [.USER_AGENT] header on all requests.
+	 * Sets the custom user agent header on all requests.
 	 */
-	class CustomUserAgentInterceptor : Interceptor {
+	class CustomUserAgentInterceptor(private val userAgent: String) : Interceptor {
 		@Throws(IOException::class)
 		override fun intercept(chain: Interceptor.Chain): Response {
-			val newRequest = chain.request().newBuilder().header("User-Agent", USER_AGENT).build()
+			val newRequest = chain.request().newBuilder().header("User-Agent", userAgent).build()
 			return chain.proceed(newRequest)
 		}
 	}

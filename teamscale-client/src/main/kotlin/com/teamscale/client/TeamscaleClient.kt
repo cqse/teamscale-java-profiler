@@ -27,13 +27,14 @@ open class TeamscaleClient {
 		user: String,
 		accessToken: String,
 		projectId: String?,
+		userAgent: String,
 		readTimeout: Duration = HttpUtils.DEFAULT_READ_TIMEOUT,
 		writeTimeout: Duration = HttpUtils.DEFAULT_WRITE_TIMEOUT
 	) {
 		val url = baseUrl?.toHttpUrlOrNull() ?: throw IllegalArgumentException("Invalid URL: $baseUrl")
 		this.projectId = projectId
 		service = TeamscaleServiceGenerator.createService(
-			ITeamscaleService::class.java, url, user, accessToken, readTimeout, writeTimeout
+			ITeamscaleService::class.java, url, user, accessToken, userAgent, readTimeout, writeTimeout
 		)
 	}
 
@@ -46,12 +47,13 @@ open class TeamscaleClient {
 		projectId: String?,
 		logfile: File?,
 		readTimeout: Duration = HttpUtils.DEFAULT_READ_TIMEOUT,
-		writeTimeout: Duration = HttpUtils.DEFAULT_WRITE_TIMEOUT
+		writeTimeout: Duration = HttpUtils.DEFAULT_WRITE_TIMEOUT,
+		userAgent: String
 	) {
 		val url = baseUrl?.toHttpUrlOrNull() ?: throw IllegalArgumentException("Invalid URL: $baseUrl")
 		this.projectId = projectId
 		service = TeamscaleServiceGenerator.createServiceWithRequestLogging(
-			ITeamscaleService::class.java, url, user, accessToken, logfile, readTimeout, writeTimeout
+			ITeamscaleService::class.java, url, user, accessToken, logfile, readTimeout, writeTimeout, userAgent
 		)
 	}
 

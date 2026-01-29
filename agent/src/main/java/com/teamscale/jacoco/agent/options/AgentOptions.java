@@ -402,7 +402,8 @@ public class AgentOptions {
 		if (teamscaleServer.isConfiguredForSingleProjectTeamscaleUpload() ||
 				!requireSingleProjectUploadConfig && teamscaleServer.isConfiguredForServerConnection()) {
 			return new TeamscaleClient(teamscaleServer.url.toString(), teamscaleServer.userName,
-					teamscaleServer.userAccessToken, teamscaleServer.project);
+					teamscaleServer.userAccessToken, teamscaleServer.project,
+					AgentUtils.USER_AGENT);
 		}
 		return null;
 	}

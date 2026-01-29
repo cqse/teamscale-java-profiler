@@ -33,7 +33,7 @@ class HttpRedirectSystemTest {
 
 	private fun checkCustomUserAgent(teamscaleMockServer: TeamscaleMockServer) {
 		val collectedUserAgents = teamscaleMockServer.collectedUserAgents
-		assertThat(collectedUserAgents).containsExactly(TeamscaleServiceGenerator.USER_AGENT)
+		assertThat(collectedUserAgents).allMatch { it.matches(Regex("Teamscale Java Profiler/\\d+\\.\\d+.*")) }
 	}
 
 	companion object {

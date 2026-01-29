@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- _teamscale-client_: User-Agent header now includes the specific component performing the request (e.g., "Teamscale Gradle Plugin", "Teamscale Maven Plugin") and version number
 - _maven-plugin_: Added maven properties for `runImpacted` and `runAllTests` configuration parameters
 - _maven-plugin_: The warning "Both baselineRevision and baselineCommit are set but only one of them is needed" was displayed incorrectly
 - [fix] _maven-plugin_: Coverage upload used "Now" instead of auto-resolved Git revision when no commit/revision was configured

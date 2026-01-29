@@ -2,6 +2,8 @@ package com.teamscale.test_impacted.engine.options
 
 import com.teamscale.client.CommitDescriptor
 import com.teamscale.client.TeamscaleClient
+import com.teamscale.client.TeamscaleServiceGenerator
+import com.teamscale.test_impacted.BuildVersion
 import com.teamscale.test_impacted.engine.ImpactedTestEngineConfiguration
 import com.teamscale.test_impacted.engine.TestDataWriter
 import com.teamscale.test_impacted.engine.TestEngineRegistry
@@ -122,7 +124,8 @@ class TestEngineOptions(
 			serverOptions.userName,
 			serverOptions.userAccessToken,
 			serverOptions.project,
-			File(reportDirectory, "server-request.txt")
+			File(reportDirectory, "server-request.txt"),
+			userAgent = TeamscaleServiceGenerator.buildUserAgent("Teamscale Impacted Test Engine", BuildVersion.VERSION)
 		)
 		return ImpactedTestsProvider(
 			client, baseline, baselineRevision, endCommit, endRevision, repository, partition,
