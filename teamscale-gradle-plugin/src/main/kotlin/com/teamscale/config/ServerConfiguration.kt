@@ -1,6 +1,8 @@
 package com.teamscale.config
 
 import com.teamscale.client.TeamscaleClient
+import com.teamscale.client.TeamscaleServiceGenerator
+import com.teamscale.utils.BuildVersion
 import org.gradle.api.GradleException
 import org.gradle.api.provider.Property
 import java.io.Serializable
@@ -33,5 +35,8 @@ abstract class ServerConfiguration : Serializable {
 		}
 	}
 
-	fun toClient() = TeamscaleClient(url.get(), userName.get(), userAccessToken.get(), project.get())
+	fun toClient() = TeamscaleClient(
+		url.get(), userName.get(), userAccessToken.get(), project.get(),
+		userAgent = TeamscaleServiceGenerator.buildUserAgent("Teamscale Gradle Plugin", BuildVersion.pluginVersion)
+	)
 }

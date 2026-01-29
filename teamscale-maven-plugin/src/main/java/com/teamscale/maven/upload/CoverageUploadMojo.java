@@ -3,6 +3,8 @@ package com.teamscale.maven.upload;
 import com.teamscale.client.CommitDescriptor;
 import com.teamscale.client.EReportFormat;
 import com.teamscale.client.TeamscaleClient;
+import com.teamscale.client.TeamscaleServiceGenerator;
+import com.teamscale.maven.BuildVersion;
 import com.teamscale.maven.DependencyUtils;
 import com.teamscale.maven.TeamscaleMojoBase;
 import com.teamscale.maven.tia.TestwiseCoverageReportMojo;
@@ -32,9 +34,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Run this goal after the Jacoco and Testwise Coverage report generation to upload them to a configured Teamscale instance.
- * The configuration can be specified in the root Maven project.
- * The goal should only be run in the aggregator module.
+ * Run this goal after the Jacoco and Testwise Coverage report generation to upload them to a configured Teamscale
+ * instance. The configuration can be specified in the root Maven project. The goal should only be run in the aggregator
+ * module.
  * <p>
  * Offers the following functionality:
  * <ol>
@@ -130,7 +132,8 @@ public class CoverageUploadMojo extends TeamscaleMojoBase {
 			getLog().debug("Skipping since skip is set to true");
 			return;
 		}
-		teamscaleClient = new TeamscaleClient(teamscaleUrl, username, accessToken, projectId);
+		teamscaleClient = new TeamscaleClient(teamscaleUrl, username, accessToken, projectId,
+				TeamscaleServiceGenerator.buildUserAgent("Teamscale Maven Plugin", BuildVersion.VERSION));
 		getLog().debug("Resolving end commit");
 		resolveCommitOrRevision();
 		getLog().debug("Parsing Jacoco plugin configurations");
@@ -257,7 +260,8 @@ public class CoverageUploadMojo extends TeamscaleMojoBase {
 		getLog().info(
 				String.format("Uploading %d report for project %s to %s", reportsByFormat.values().stream().mapToLong(
 						Collection::size).sum(), projectId, partition));
-		teamscaleClient.uploadReports(reportsByFormat, CommitDescriptor.parse(resolvedCommit), resolvedRevision, repository,
+		teamscaleClient.uploadReports(reportsByFormat, CommitDescriptor.parse(resolvedCommit), resolvedRevision,
+				repository,
 				partition, COVERAGE_UPLOAD_MESSAGE);
 	}
 

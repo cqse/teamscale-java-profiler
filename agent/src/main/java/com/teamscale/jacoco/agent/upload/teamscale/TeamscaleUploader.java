@@ -11,6 +11,7 @@ import com.teamscale.client.TeamscaleServiceGenerator;
 import com.teamscale.jacoco.agent.logging.LoggingUtils;
 import com.teamscale.jacoco.agent.upload.IUploadRetry;
 import com.teamscale.jacoco.agent.upload.IUploader;
+import com.teamscale.jacoco.agent.util.AgentUtils;
 import com.teamscale.jacoco.agent.util.Benchmark;
 import com.teamscale.report.jacoco.CoverageFile;
 import org.slf4j.Logger;
@@ -135,7 +136,8 @@ public class TeamscaleUploader implements IUploader, IUploadRetry {
 			// Cannot be executed in the constructor as this causes issues in WildFly server
 			// (See #100)
 			ITeamscaleService api = TeamscaleServiceGenerator.createService(ITeamscaleService.class,
-					teamscaleServer.url, teamscaleServer.userName, teamscaleServer.userAccessToken);
+					teamscaleServer.url, teamscaleServer.userName, teamscaleServer.userAccessToken,
+					AgentUtils.USER_AGENT);
 			ITeamscaleServiceKt.uploadReport(api, teamscaleServer.project, teamscaleServer.commit,
 					teamscaleServer.revision,
 					teamscaleServer.repository, teamscaleServer.partition, EReportFormat.JACOCO,

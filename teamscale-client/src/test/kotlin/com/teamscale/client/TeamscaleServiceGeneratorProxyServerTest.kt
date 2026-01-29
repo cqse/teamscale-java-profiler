@@ -1,6 +1,7 @@
 package com.teamscale.client
 
 import com.teamscale.client.HttpUtils.PROXY_AUTHORIZATION_HTTP_HEADER
+import com.teamscale.client.TeamscaleServiceGenerator.buildUserAgent
 import com.teamscale.client.TeamscaleServiceGenerator.createService
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.mockwebserver.MockResponse
@@ -61,7 +62,8 @@ internal class TeamscaleServiceGeneratorProxyServerTest {
 		val service = createService(
 			ITeamscaleService::class.java,
 			"http://localhost:1337".toHttpUrl(),
-			"someUser", "someAccesstoken"
+			"someUser", "someAccesstoken",
+			userAgent = buildUserAgent("Test Tool", "1.0.0")
 		)
 
 		// First time Retrofit/OkHttp tires without proxy auth.

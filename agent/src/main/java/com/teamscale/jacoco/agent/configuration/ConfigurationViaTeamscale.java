@@ -9,6 +9,7 @@ import com.teamscale.client.ProfilerInfo;
 import com.teamscale.client.ProfilerRegistration;
 import com.teamscale.client.TeamscaleServiceGenerator;
 import com.teamscale.jacoco.agent.logging.LoggingUtils;
+import com.teamscale.jacoco.agent.util.AgentUtils;
 import com.teamscale.report.util.ILogger;
 import okhttp3.HttpUrl;
 import okhttp3.ResponseBody;
@@ -57,7 +58,8 @@ public class ConfigurationViaTeamscale {
 			String userName,
 			String userAccessToken) throws AgentOptionReceiveException {
 		ITeamscaleService teamscaleClient = TeamscaleServiceGenerator
-				.createService(ITeamscaleService.class, url, userName, userAccessToken, LONG_TIMEOUT, LONG_TIMEOUT);
+				.createService(ITeamscaleService.class, url, userName, userAccessToken, AgentUtils.USER_AGENT,
+						LONG_TIMEOUT, LONG_TIMEOUT);
 		try {
 			ProcessInformation processInformation = new ProcessInformationRetriever(logger).getProcessInformation();
 			Response<ResponseBody> response = teamscaleClient.registerProfiler(configurationId,
