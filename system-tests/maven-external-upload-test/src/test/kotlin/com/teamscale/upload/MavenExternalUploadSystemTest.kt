@@ -1,6 +1,7 @@
 package com.teamscale.upload
 
 import com.teamscale.client.EReportFormat
+import com.teamscale.client.EnvironmentVariableChecker
 import com.teamscale.client.FileSystemUtils
 import com.teamscale.client.SystemUtils
 import com.teamscale.test.commons.ProcessUtils
@@ -32,15 +33,23 @@ class MavenExternalUploadSystemTest {
 		teamscaleMockServer?.reset()
 	}
 
-	private fun runCoverageUploadGoal(projectPath: String): ProcessUtils.ProcessResult? {
+	private fun runCoverageUploadGoal(
+		projectPath: String,
+		environment: Map<String, String>? = null,
+		removeEnvironmentVariables: List<String> = emptyList()
+	): ProcessUtils.ProcessResult? {
 		val workingDirectory = File(projectPath)
 		var executable = "./mvnw"
 		if (SystemUtils.IS_OS_WINDOWS) {
 			executable = Paths.get(projectPath, "mvnw.cmd").toUri().getPath()
 		}
 		try {
-			return ProcessUtils.processBuilder(executable, MAVEN_COVERAGE_UPLOAD_GOAL).directory(workingDirectory)
-				.execute()
+			val builder = ProcessUtils.processBuilder(executable, MAVEN_COVERAGE_UPLOAD_GOAL).directory(workingDirectory)
+			if (environment != null) {
+				builder.setEnvironmentVariables(environment)
+			}
+			builder.removeEnvironmentVariables(removeEnvironmentVariables)
+			return builder.execute()
 		} catch (e: IOException) {
 			Assertions.fail(e.toString())
 		}
@@ -92,6 +101,30 @@ class MavenExternalUploadSystemTest {
 	}
 
 	/**
+	 * When no commit or revision is configured and no git repo is available, but a CI environment variable
+	 * is set, the plugin should use the commit from that variable for the upload (TS-45104).
+	 */
+	@Test
+	@Throws(IOException::class)
+	fun testCiEnvironmentVariableCommitResolution(@TempDir tmpDir: Path) {
+		val fakeCommit = "abc123def456abc123def456abc123def456abc1"
+		FileSystemUtils.copyFiles(File("missing-commit-project"), tmpDir.toFile()) { true }
+		tmpDir.resolve("mvnw").toFile().setExecutable(true)
+		val projectPath = tmpDir.toAbsolutePath().toString()
+		runMavenTests(projectPath)
+		val result = runCoverageUploadGoal(
+			projectPath,
+			environment = mapOf("GITHUB_SHA" to fakeCommit)
+		)
+		assertThat(result).isNotNull()
+		assertThat(result!!.exitCode).isEqualTo(0)
+
+		val session = teamscaleMockServer!!.getSession("My Custom Unit Tests Partition")
+		assertThat(session.getReports(EReportFormat.JACOCO)).hasSize(1)
+		assertThat(session.getRevision()).isEqualTo(fakeCommit)
+	}
+
+	/**
 	 * When no commit is given and no git repo is available, which is the usual fallback, a helpful error message should
 	 * be shown (TS-40425).
 	 */
@@ -102,12 +135,12 @@ class MavenExternalUploadSystemTest {
 		tmpDir.resolve("mvnw").toFile().setExecutable(true)
 		val projectPath = tmpDir.toAbsolutePath().toString()
 		runMavenTests(projectPath)
-		val result = runCoverageUploadGoal(projectPath)
+		val result = runCoverageUploadGoal(projectPath, removeEnvironmentVariables = EnvironmentVariableChecker.COMMIT_ENVIRONMENT_VARIABLES)
 		assertThat(result).isNotNull()
 		assertThat(result!!.exitCode).isNotEqualTo(0)
 		assertThat(teamscaleMockServer!!.getSessions()).isEmpty()
 		assertThat(result.stdout)
-			.contains("There is no <revision> or <commit> configured in the pom.xml and it was not possible to determine the current revision")
+			.contains("There is no <revision> or <commit> configured in the pom.xml, no CI environment variable was found, and it was not possible to determine the current revision")
 	}
 
 	companion object {

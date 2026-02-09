@@ -82,7 +82,7 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 
 	/**
 	 * You can optionally specify which code should be included in the coverage instrumentation. Each pattern is applied
-	 * to the fully qualified class names of the profiled system. Use {@code *} to match any number characters and
+	 * to the fully qualified class names of the profiled system. Use {@code *} to match any number of characters and
 	 * {@code ?} to match any single character.
 	 * <p>
 	 * Classes that match any of the include patterns are included, unless any exclude pattern excludes them.

@@ -61,13 +61,6 @@
                 <groupId>com.teamscale</groupId>
                 <artifactId>teamscale-maven-plugin</artifactId>
                 <version>${tia.agent.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>upload-coverage</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
                     <teamscaleUrl>http://localhost:${tia.teamscale.fake.port}</teamscaleUrl>
                     <projectId>m</projectId>

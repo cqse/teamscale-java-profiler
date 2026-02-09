@@ -16,7 +16,7 @@ tasks.test {
 			"teamscale-project" to "p",
 			"teamscale-partition" to "part",
 			"teamscale-commit" to "master:12345",
-			"includes" to "**"
+			"includes" to "*"
 		)
 	)
 }

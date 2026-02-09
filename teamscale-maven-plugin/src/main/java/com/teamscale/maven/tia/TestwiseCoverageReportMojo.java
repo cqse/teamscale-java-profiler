@@ -44,7 +44,7 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 	/**
 	 * Wildcard include patterns to apply during JaCoCo's traversal of class files.
 	 */
-	@Parameter(defaultValue = "**")
+	@Parameter(defaultValue = "*")
 	public String[] includes;
 	/**
 	 * Wildcard exclude patterns to apply during JaCoCo's traversal of class files.
