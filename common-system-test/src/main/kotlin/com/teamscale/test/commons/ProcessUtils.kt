@@ -70,11 +70,23 @@ object ProcessUtils {
 	class ProcessExecutor(private val commands: List<String>) {
 		private var workingDirectory: File? = null
 		private var input: String? = null
+		private var environmentVariables: Map<String, String>? = null
+		private var removeEnvironmentVariables: List<String> = emptyList()
 
 		/**
 		 * Sets the working directory for the process.
 		 */
 		fun directory(dir: File): ProcessExecutor = apply { workingDirectory = dir }
+
+		/**
+		 * Merges the given variables into the inherited environment of the subprocess.
+		 */
+		fun setEnvironmentVariables(variables: Map<String, String>): ProcessExecutor = apply { environmentVariables = variables }
+
+		/**
+		 * Removes the given environment variable names from the inherited environment of the subprocess.
+		 */
+		fun removeEnvironmentVariables(names: List<String>): ProcessExecutor = apply { removeEnvironmentVariables = names }
 
 		/**
 		 * Executes the process and returns the result.
@@ -107,6 +119,8 @@ object ProcessUtils {
 		 */
 		fun build(): ProcessBuilder = ProcessBuilder(commands).apply {
 			workingDirectory?.let { directory(it) }
+			environmentVariables?.let { environment().putAll(it) }
+			removeEnvironmentVariables.forEach { environment().remove(it) }
 		}
 	}
 

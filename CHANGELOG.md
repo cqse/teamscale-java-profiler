@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [feature] _maven-plugin_: Auto-detect commit from CI/CD environment variables (Jenkins, GitHub Actions, GitLab CI, Azure DevOps, etc.)
 
 # 36.3.0
 - [feature] _teamscale-client_: User-Agent header now includes the specific component performing the request (e.g., "Teamscale Gradle Plugin", "Teamscale Maven Plugin") and version number

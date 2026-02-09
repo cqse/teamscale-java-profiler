@@ -1,5 +1,6 @@
 package com.teamscale.maven;
 
+import com.teamscale.client.EnvironmentVariableChecker;
 import com.teamscale.client.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
@@ -105,9 +106,8 @@ public abstract class TeamscaleMojoBase extends AbstractMojo {
 
 	/**
 	 * Sets the <code>resolvedRevision</code> or <code>resolvedCommit</code>. If not provided, try to determine the
-	 * revision via the GitCommit class.
-	 *
-	 * @see GitCommitUtils
+	 * revision from CI/CD environment variables via {@link EnvironmentVariableChecker} or from the Git repository via
+	 * {@link GitCommitUtils}.
 	 */
 	protected void resolveCommitOrRevision() throws MojoFailureException {
 		if (!StringUtils.isEmpty(revision)) {
@@ -118,11 +118,21 @@ public abstract class TeamscaleMojoBase extends AbstractMojo {
 			resolvedCommit = commit;
 			return;
 		}
+
+		// Check CI/CD environment variables first
+		String envCommit = EnvironmentVariableChecker.findCommit();
+		if (envCommit != null) {
+			resolvedRevision = envCommit;
+			return;
+		}
+
+		// Fall back to Git repository detection
 		Path basedir = session.getCurrentProject().getBasedir().toPath();
 		try {
 			resolvedRevision = GitCommitUtils.getGitHeadRevision(basedir);
 		} catch (IOException e) {
-			throw new MojoFailureException("There is no <revision> or <commit> configured in the pom.xml" +
+			throw new MojoFailureException("There is no <revision> or <commit> configured in the pom.xml," +
+					" no CI environment variable was found," +
 					" and it was not possible to determine the current revision in " + basedir + " from Git", e);
 		}
 	}
