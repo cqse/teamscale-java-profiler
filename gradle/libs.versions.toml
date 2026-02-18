@@ -80,7 +80,7 @@ maven-pluginAnnotations = { module = "org.apache.maven.plugin-tools:maven-plugin
 asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
 asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
 
-jetbrains-annotations = { module = "org.jetbrains:annotations", version = "26.0.2-1" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version = "26.1.0" }
 
 [plugins]
 nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
