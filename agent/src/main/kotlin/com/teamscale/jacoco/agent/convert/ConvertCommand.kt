@@ -11,7 +11,6 @@ import com.teamscale.client.FileSystemUtils.ensureDirectoryExists
 import com.teamscale.client.StringUtils.isEmpty
 import com.teamscale.jacoco.agent.commandline.ICommand
 import com.teamscale.jacoco.agent.commandline.Validator
-import com.teamscale.jacoco.agent.commandline.Validator.ExceptionBasedValidation
 import com.teamscale.jacoco.agent.options.ClasspathUtils
 import com.teamscale.jacoco.agent.options.FilePatternResolver
 import com.teamscale.jacoco.agent.util.Assertions
@@ -19,7 +18,6 @@ import com.teamscale.report.EDuplicateClassFileBehavior
 import com.teamscale.report.util.CommandLineLogger
 import java.io.File
 import java.io.IOException
-import java.util.stream.Collectors
 
 /**
  * Encapsulates all command line options for the convert command for parsing with [JCommander].
