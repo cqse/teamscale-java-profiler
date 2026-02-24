@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 36.4.0
 - [feature] _maven-plugin_: Auto-detect commit from CI/CD environment variables (Jenkins, GitHub Actions, GitLab CI, Azure DevOps, etc.)
 - [fix] _impacted-test-engine_: Handle nested JUnit 5 tests correctly
 
