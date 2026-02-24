@@ -53,7 +53,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 
 		if (options.shouldDumpInIntervals()) {
 			val period = options.dumpIntervalInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
-			timer = fixedRateTimer("Teamscale-Java-Profiler", true, 0, period) {
+			timer = fixedRateTimer("Teamscale-Java-Profiler", true, period, period) {
 				dumpReport()
 			}
 			logger.info("Dumping every ${options.dumpIntervalInMinutes} minutes.")
