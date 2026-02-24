@@ -6,8 +6,16 @@ import java.util.*
 
 /** Test default test descriptor resolver for the JUnit jupiter [TestEngine].  */
 class JUnitJupiterTestDescriptorResolver : JUnitClassBasedTestDescriptorResolverBase() {
-	override fun TestDescriptor.getClassName() =
-		getUniqueIdSegment(CLASS_SEGMENT_TYPE)
+	override fun TestDescriptor.getClassName(): Optional<String> {
+		val classSegment = getUniqueIdSegment(CLASS_SEGMENT_TYPE)
+		if (!classSegment.isPresent) return classSegment
+
+		val nestedClassNames = uniqueId.segments
+			.filter { it.type == NESTED_CLASS_SEGMENT_TYPE }
+			.joinToString("") { "\$${it.value}" }
+
+		return Optional.of(classSegment.get() + nestedClassNames)
+	}
 
 	override val engineId: String
 		get() = "junit-jupiter"
@@ -15,6 +23,9 @@ class JUnitJupiterTestDescriptorResolver : JUnitClassBasedTestDescriptorResolver
 	companion object {
 		/** The segment type name that the jupiter engine uses for the class descriptor nodes.  */
 		const val CLASS_SEGMENT_TYPE = "class"
+
+		/** The segment type name that the jupiter engine uses for @Nested inner class descriptor nodes.  */
+		const val NESTED_CLASS_SEGMENT_TYPE = "nested-class"
 
 		/** The segment type name that the jupiter engine uses for the method descriptor nodes.  */
 		const val METHOD_SEGMENT_TYPE = "method"

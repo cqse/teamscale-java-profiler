@@ -36,6 +36,7 @@ class TiaMavenSystemTest {
 				"org/example/UnitB1Test/utGoo()",
 				"org/example/UnitB2Test/utBlub()",
 				"org/example/UnitB2Test/utGoo()",
+				$$"org/example/NestedTest$Child2/getDefaultParameter()",
 				"org/example/IntegrationIT/itBla()",
 				"org/example/IntegrationIT/itFoo()",
 				"org/example/IntegrationB1IT/itBlub()",
@@ -70,6 +71,31 @@ class TiaMavenSystemTest {
 		assertThat(unitTestReport.partial).isTrue()
 		checkExpectedUnitTestCoverage(unitTestReport)
 		checkExpectedIntegrationTestCoverage(integrationTestSession.onlyTestwiseCoverageReport)
+	}
+
+	/**
+	 * Tests that nested JUnit test classes are handled correctly (TS-45522).
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun testNestedClassUniformPaths() {
+		runMavenTests("maven-project", "-Dtia")
+
+		val nestedTestNames = teamscaleMockServer.allAvailableTests
+
+		assertThat(nestedTestNames).extracting("testName").contains(
+			$$"org/example/NestedTest$Child1/getDefaultParameter()",
+			$$"org/example/NestedTest$Child2/getDefaultParameter()"
+		)
+
+		val unitTestReport = teamscaleMockServer.getSession("Unit Tests").onlyTestwiseCoverageReport
+		val test2 = unitTestReport.tests
+			.find { it.uniformPath.contains("NestedTest\$Child2") }!!
+		assertThat(test2.result).isEqualTo(ETestExecutionResult.PASSED)
+
+		assertThat(unitTestReport.tests).extracting<String> { it.uniformPath }.doesNotContain(
+			$$"org/example/NestedTest$Child1/getDefaultParameter()"
+		)
 	}
 
 	@Test
@@ -145,19 +171,21 @@ class TiaMavenSystemTest {
 					"org/example/UnitB1Test/utBlub()",
 					"org/example/UnitB1Test/utGoo()",
 					"org/example/UnitB2Test/utBlub()",
-					"org/example/UnitB2Test/utGoo()"
+					"org/example/UnitB2Test/utGoo()",
+					$$"org/example/NestedTest$Child2/getDefaultParameter()"
 				)
 			assertThat(testwiseCoverageReport.tests)
 				.extracting<ETestExecutionResult> { it.result }
 				.allMatch { it == ETestExecutionResult.PASSED }
 			assertThat(testwiseCoverageReport.tests)
-				.extracting<String> { it.coverage }.containsExactly(
+				.extracting<String> { it.coverage }.containsExactlyInAnyOrder(
 					"SUTA.java:7,10-11;UnitTest.java:10-11",
 					"SUTA.java:7,14-15;UnitTest.java:15-16",
 					"SUTB1.java:7,14-15;UnitB1Test.java:10-11",
 					"SUTB1.java:7,10-11;UnitB1Test.java:15-16",  // Ensure that sources from the project itself (SUT2), but also other dependent projects is considered (SUT1)
 					"SUTB1.java:7,14-15;SUTB2.java:7,14-15;UnitB2Test.java:10-12",
-					"SUTB1.java:7,10-11;SUTB2.java:7,10-11;UnitB2Test.java:16-18"
+					"SUTB1.java:7,10-11;SUTB2.java:7,10-11;UnitB2Test.java:16-18",
+					"NestedTest.java:20-21;SUTA.java:7,14-15"
 				)
 		}
 

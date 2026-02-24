@@ -6,6 +6,7 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [feature] _maven-plugin_: Auto-detect commit from CI/CD environment variables (Jenkins, GitHub Actions, GitLab CI, Azure DevOps, etc.)
+- [fix] _impacted-test-engine_: Handle nested JUnit 5 tests correctly
 
 # 36.3.0
 - [feature] _teamscale-client_: User-Agent header now includes the specific component performing the request (e.g., "Teamscale Gradle Plugin", "Teamscale Maven Plugin") and version number
