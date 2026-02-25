@@ -1,4 +1,5 @@
 plugins {
+	com.teamscale.`kotlin-convention`
 	com.teamscale.`java-convention`
 	application
 
