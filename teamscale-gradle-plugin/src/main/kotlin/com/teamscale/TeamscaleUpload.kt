@@ -21,6 +21,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
@@ -28,6 +29,7 @@ import javax.inject.Inject
 private const val MAX_RETRY_COUNT = 3
 
 /** Handles report uploads to Teamscale. */
+@DisableCachingByDefault(because = "Uploads should always be executed")
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 abstract class TeamscaleUpload : DefaultTask() {
 

@@ -12,12 +12,14 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.findByType
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * Task which generates a
  * [Teamscale Compact Coverage](https://docs.teamscale.com/reference/upload-formats-and-samples/teamscale-compact-coverage/)
  * report from binary JaCoCo coverage data.
  */
+@DisableCachingByDefault(because = "Coverage reports depend on runtime execution data")
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 abstract class CompactCoverageReport : JaCoCoBasedReportTaskBase<CompactCoverageTaskReportContainer>() {
 

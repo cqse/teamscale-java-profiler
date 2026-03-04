@@ -12,8 +12,10 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.testing.Test
+import org.gradle.work.DisableCachingByDefault
 
 /** Task which runs the impacted tests. */
+@DisableCachingByDefault(because = "Coverage reports depend on runtime execution data")
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 abstract class TestwiseCoverageReport : JaCoCoBasedReportTaskBase<TestwiseCoverageTaskReportContainer>() {
 
