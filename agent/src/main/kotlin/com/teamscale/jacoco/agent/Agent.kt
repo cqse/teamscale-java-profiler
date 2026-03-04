@@ -71,7 +71,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 		var outputPath = options.outputDirectory
 		if (outputPath == null) {
 			// Default fallback
-			outputPath = AgentUtils.getAgentDirectory().resolve("coverage")
+			outputPath = AgentUtils.agentDirectory.resolve("coverage")
 		}
 
 		val parentPath = outputPath.parent
