@@ -1,3 +1,4 @@
+import org.gradle.plugin.compatibility.compatibility
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -39,6 +40,11 @@ gradlePlugin {
 			implementationClass = "com.teamscale.TeamscalePlugin"
 			description = "Supports collecting Testwise Coverage and uploading reports to Teamscale."
 			tags = listOf("teamscale", "coverage", "tga", "test", "gap", "junit", "upload")
+			compatibility {
+				features {
+					configurationCache = true
+				}
+			}
 		}
 		create("teamscaleAggregationPlugin") {
 			id = "com.teamscale.aggregation"
@@ -46,6 +52,11 @@ gradlePlugin {
 			implementationClass = "com.teamscale.aggregation.TeamscaleAggregationPlugin"
 			description = "Supports aggregating test execution and coverage data."
 			tags = listOf("teamscale", "coverage", "tga", "test", "gap", "junit", "aggregation")
+			compatibility {
+				features {
+					configurationCache = true
+				}
+			}
 		}
 	}
 }
