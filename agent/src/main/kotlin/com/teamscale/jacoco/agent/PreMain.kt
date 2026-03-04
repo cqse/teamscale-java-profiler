@@ -115,7 +115,7 @@ object PreMain {
 		val javaAgents = ManagementFactory.getRuntimeMXBean().inputArguments
 			.filter { it.contains("-javaagent") }
 		// We allow multiple instances of the teamscale-jacoco-agent as we ensure with the #LOCKING_SYSTEM_PROPERTY to only use it once
-		val differentAgents = javaAgents.filter { it.contains("teamscale-jacoco-agent.jar") }
+		val differentAgents = javaAgents.filter { !it.contains("teamscale-jacoco-agent.jar") }
 
 		if (!differentAgents.isEmpty()) {
 			delayedLogger.warn(
