@@ -29,7 +29,7 @@ object AgentUtils {
 			// We add a trailing hyphen here to visually separate the PID from the random number that Java appends
 			// to the name to make it unique
 			Files.createTempDirectory(
-				"teamscale-java-profiler-${FileSystemUtils.toSafeFilename(ProcessInformationRetriever.getPID())}-"
+				"teamscale-java-profiler-${FileSystemUtils.toSafeFilename(ProcessInformationRetriever.pID)}-"
 			)
 		} catch (e: IOException) {
 			throw RuntimeException("Failed to create temporary directory for agent files", e)

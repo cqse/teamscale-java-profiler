@@ -194,7 +194,7 @@ public class LogToTeamscaleAppender extends AppenderBase<ILoggingEvent> {
 		ITeamscaleService serviceClient = client.getService();
 		LogToTeamscaleAppender logToTeamscaleAppender = new LogToTeamscaleAppender();
 		logToTeamscaleAppender.setContext(context);
-		logToTeamscaleAppender.setProfilerId(agentOptions.configurationViaTeamscale.getProfilerId());
+		logToTeamscaleAppender.setProfilerId(agentOptions.configurationViaTeamscale.profilerId);
 		logToTeamscaleAppender.setTeamscaleClient(serviceClient);
 		logToTeamscaleAppender.start();
 
