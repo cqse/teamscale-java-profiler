@@ -79,7 +79,7 @@ object PreMain {
 				throw exception
 			}
 		} catch (e: AgentOptionParseException) {
-			LoggingUtils.getLoggerContext().getLogger(PreMain::class.java).error(e.message, e)
+			LoggingUtils.loggerContext.getLogger(PreMain::class.java).error(e.message, e)
 
 			// Flush logs to Teamscale, if configured.
 			closeLoggingResources()
@@ -187,7 +187,7 @@ object PreMain {
 		}
 
 		if (agentOptions.teamscaleServerOptions.isConfiguredForServerConnection) {
-			if (LogToTeamscaleAppender.addTeamscaleAppenderTo(LoggingUtils.getLoggerContext(), agentOptions)) {
+			if (LogToTeamscaleAppender.addTeamscaleAppenderTo(LoggingUtils.loggerContext, agentOptions)) {
 				logger.info("Logs are being forwarded to Teamscale at ${agentOptions.teamscaleServerOptions.url}")
 			}
 		}
