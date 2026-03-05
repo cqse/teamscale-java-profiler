@@ -93,7 +93,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: cqse/teamscale-jacoco-agent
       - name: Login to DockerHub
