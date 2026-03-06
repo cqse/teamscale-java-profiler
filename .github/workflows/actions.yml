@@ -103,7 +103,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           file: 'agent/src/docker/Dockerfile'
           push: ${{ startsWith(github.ref, 'refs/tags/v') }}
