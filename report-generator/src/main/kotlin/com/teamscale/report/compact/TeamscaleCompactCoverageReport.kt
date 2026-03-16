@@ -3,9 +3,9 @@ package com.teamscale.report.compact
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.teamscale.report.util.CompactLines
 import com.teamscale.report.util.LineRangeDeserializer
 import com.teamscale.report.util.LineRangeSerializer
@@ -26,8 +26,8 @@ data class TeamscaleCompactCoverageReport @JsonCreator constructor(
 ) {
 	/** Serializes the compact coverage into a JSON report and writes it into the given output stream. */
 	fun writeTo(output: OutputStream) {
-		return ObjectMapper()
-			.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+		return JsonMapper.builder()
+			.defaultPropertyInclusion(JsonInclude.Value.ALL_NON_NULL).build()
 			.writeValue(output, this)
 	}
 
