@@ -18,7 +18,7 @@ jetty-bom = { module = "org.eclipse.jetty:jetty-bom", version = "9.4.58.v2025081
 jetty-server = { module = "org.eclipse.jetty:jetty-server" }
 jetty-servlet = { module = "org.eclipse.jetty:jetty-servlet" }
 
-jersey-bom = { module = "org.glassfish.jersey:jersey-bom", version = "2.47" }
+jersey-bom = { module = "org.glassfish.jersey:jersey-bom", version = "2.48" }
 jersey-server = { module = "org.glassfish.jersey.core:jersey-server" }
 jersey-containerJettyHttp = { module = "org.glassfish.jersey.containers:jersey-container-jetty-http" }
 jersey-containerServletCore = { module = "org.glassfish.jersey.containers:jersey-container-servlet-core" }
