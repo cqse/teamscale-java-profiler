@@ -139,7 +139,7 @@ object StringUtils {
 	 * list is returned.
 	 */
 	@JvmStatic
-	fun splitLinesAsList(content: String?): List<String> = content?.lines() ?: emptyList()
+	fun splitLinesAsList(content: String?) = content?.lines() ?: emptyList()
 
 	/**
 	 * Test if a string ends with one of the provided suffixes. Returns
@@ -147,18 +147,14 @@ object StringUtils {
 	 * for short lists of suffixes.
 	 */
 	@JvmStatic
-	fun endsWithOneOf(string: String, vararg suffixes: String): Boolean {
-		return suffixes.any { string.endsWith(it) }
-	}
+	fun endsWithOneOf(string: String, vararg suffixes: String) = suffixes.any { string.endsWith(it) }
 
 	/**
 	 * Removes double quotes from beginning and end (if present) and returns the new
 	 * string.
 	 */
 	@JvmStatic
-	fun removeDoubleQuotes(string: String): String {
-		return string.removeSuffix("\"").removePrefix("\"")
-	}
+	fun removeDoubleQuotes(string: String) = string.removeSuffix("\"").removePrefix("\"")
 
 	/**
 	 * Converts an empty string to null. If the input string is not empty, it returns the string unmodified.
@@ -167,9 +163,7 @@ object StringUtils {
 	 * @return `null` if the input string is empty after trimming; the original string otherwise.
 	 */
 	@JvmStatic
-	fun emptyToNull(string: String): String? {
-		return if (isEmpty(string)) null else string
-	}
+	fun emptyToNull(string: String) = if (isEmpty(string)) null else string
 
 	/**
 	 * Converts a nullable string to a non-null, empty string.
@@ -179,7 +173,5 @@ object StringUtils {
 	 * @return a non-null string; either the original string or an empty string if the input was null
 	 */
 	@JvmStatic
-	fun nullToEmpty(stringOrNull: String?): String {
-		return stringOrNull ?: EMPTY_STRING
-	}
+	fun nullToEmpty(stringOrNull: String?) = stringOrNull ?: EMPTY_STRING
 }

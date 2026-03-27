@@ -159,7 +159,7 @@ interface ITeamscaleService {
 	@POST("api/v2024.7.0/profilers/{profilerId}/logs")
 	fun postProfilerLog(
 		@Path("profilerId") profilerId: String,
-		@Body logEntries: List<ProfilerLogEntry?>?
+		@Body logEntries: List<ProfilerLogEntry>?
 	): Call<Void>
 }
 
