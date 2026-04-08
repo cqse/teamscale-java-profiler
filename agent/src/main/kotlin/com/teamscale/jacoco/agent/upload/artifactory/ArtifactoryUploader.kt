@@ -6,7 +6,6 @@ import com.teamscale.client.FileSystemUtils.normalizeSeparators
 import com.teamscale.client.FileSystemUtils.replaceFilePathFilenameWith
 import com.teamscale.client.HttpUtils.getBasicAuthInterceptor
 import com.teamscale.client.StringUtils.emptyToNull
-import com.teamscale.client.StringUtils.isEmpty
 import com.teamscale.client.StringUtils.nullToEmpty
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.CommitInfo
 import com.teamscale.jacoco.agent.upload.HttpZipUploaderBase
@@ -29,10 +28,11 @@ import kotlin.Throws
  * Uploads XMLs to Artifactory.
  */
 class ArtifactoryUploader(
-	private val artifactoryConfig: ArtifactoryConfig, additionalMetaDataFiles: MutableList<Path>,
+	private val artifactoryConfig: ArtifactoryConfig,
+	additionalMetaDataFiles: MutableList<Path>,
 	reportFormat: EReportFormat
 ) : HttpZipUploaderBase<IArtifactoryUploadApi>(
-	artifactoryConfig.url,
+	artifactoryConfig.url!!,
 	additionalMetaDataFiles,
 	IArtifactoryUploadApi::class.java
 ), IUploadRetry {
@@ -43,7 +43,7 @@ class ArtifactoryUploader(
 		val uploadMetadataFile = File(
 			replaceFilePathFilenameWith(
 				normalizeSeparators(coverageFile.toString()),
-				coverageFile.name + TeamscaleUploader.RETRY_UPLOAD_FILE_SUFFIX
+				"${coverageFile.name}${TeamscaleUploader.RETRY_UPLOAD_FILE_SUFFIX}"
 			)
 		)
 		val properties = createArtifactoryProperties()
@@ -79,8 +79,8 @@ class ArtifactoryUploader(
 
 	/** Creates properties from the artifactory configs.  */
 	private fun createArtifactoryProperties() = Properties().apply {
-		setProperty(ETeamscaleServerProperties.REVISION.name, artifactoryConfig.commitInfo.revision)
-		setProperty(ETeamscaleServerProperties.COMMIT.name, artifactoryConfig.commitInfo.commit.toString())
+		setProperty(ETeamscaleServerProperties.REVISION.name, artifactoryConfig.commitInfo!!.revision)
+		setProperty(ETeamscaleServerProperties.COMMIT.name, artifactoryConfig.commitInfo!!.commit.toString())
 		setProperty(ETeamscaleServerProperties.PARTITION.name, nullToEmpty(artifactoryConfig.partition))
 	}
 
@@ -90,21 +90,20 @@ class ArtifactoryUploader(
 			builder.addInterceptor(this.artifactoryApiHeaderInterceptor)
 		} else {
 			builder.addInterceptor(
-				getBasicAuthInterceptor(artifactoryConfig.user, artifactoryConfig.password)
+				getBasicAuthInterceptor(artifactoryConfig.user!!, artifactoryConfig.password!!)
 			)
 		}
 	}
 
 	private fun setUploadPath(coverageFile: CoverageFile, artifactoryConfig: ArtifactoryConfig) {
-		val commit = artifactoryConfig.commitInfo.commit
-		val timeRev = "${commit.timestamp}-${artifactoryConfig.commitInfo.revision}"
+		val commit = artifactoryConfig.commitInfo!!.commit
+		val timeRev = "${commit.timestamp}-${artifactoryConfig.commitInfo!!.revision}"
 		val fileName = "${coverageFile.nameWithoutExtension}.zip"
 
 		uploadPath = if (artifactoryConfig.legacyPath) {
 			"${commit.branchName}/$timeRev/$fileName"
 		} else {
 			val suffixSegment = artifactoryConfig.pathSuffix?.let { "$it/" } ?: ""
-
 			"uploads/${commit.branchName}/$timeRev/${artifactoryConfig.partition}/$coverageFormat/$suffixSegment$fileName"
 		}
 	}
@@ -116,14 +115,11 @@ class ArtifactoryUploader(
 
 	@Throws(IOException::class)
 	override fun uploadCoverageZip(coverageFile: File): Response<ResponseBody> =
-		api.uploadCoverageZip(uploadPath, coverageFile)
+		api.uploadCoverageZip(uploadPath!!, coverageFile)
 
 	override fun getZipEntryCoverageFileName(coverageFile: CoverageFile): String {
 		var path = coverageFile.name
-		if (!isEmpty(artifactoryConfig.zipPath)) {
-			path = "${artifactoryConfig.zipPath}/$path"
-		}
-
+		artifactoryConfig.zipPath?.let { path = "$it/$path" }
 		return path
 	}
 
@@ -133,7 +129,7 @@ class ArtifactoryUploader(
 	private val artifactoryApiHeaderInterceptor: Interceptor
 		get() = Interceptor { chain ->
 			val newRequest = chain.request().newBuilder()
-				.header(ARTIFACTORY_API_HEADER, artifactoryConfig.apiKey)
+				.header(ARTIFACTORY_API_HEADER, artifactoryConfig.apiKey!!)
 				.build()
 			chain.proceed(newRequest)
 		}
