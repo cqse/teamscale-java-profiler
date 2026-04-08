@@ -39,8 +39,8 @@ abstract class HttpZipUploaderBase<T>
 	/** The API which performs the upload  */
 	protected val api: T by lazy {
 		val retrofit = createRetrofit(
-			{ it.baseUrl(uploadUrl) },
-			{ configureOkHttp(it) }
+			{ baseUrl(uploadUrl) },
+			{ configureOkHttp(this) }
 		)
 		retrofit.create(apiClass)
 	}

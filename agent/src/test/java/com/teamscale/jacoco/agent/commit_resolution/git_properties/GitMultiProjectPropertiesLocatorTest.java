@@ -46,7 +46,7 @@ class GitMultiProjectPropertiesLocatorTest {
 		File jarFile = new File(getClass().getResource("multiple-same-target-git-properties-folder").getFile());
 		locator.searchFile(jarFile, false);
 		List<TeamscaleServer> teamscaleServers = delayedTeamscaleMultiProjectUploader.getTeamscaleUploaders().stream()
-				.map(TeamscaleUploader::getTeamscaleServer).collect(Collectors.toList());
+				.map(t -> t.teamscaleServer).collect(Collectors.toList());
 		assertThat(teamscaleServers).hasSize(2);
 		assertThat(teamscaleServers).anyMatch(server -> server.project.equals("demo2") && server.commit.equals(
 				new CommitDescriptor("master", "1645713803000")));

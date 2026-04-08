@@ -113,7 +113,7 @@ class ConfigurationViaTeamscale(
 			userAccessToken: String
 		): ConfigurationViaTeamscale {
 			val teamscaleClient = TeamscaleServiceGenerator
-				.createService(ITeamscaleService::class.java, url, userName, userAccessToken, AgentUtils.USER_AGENT, LONG_TIMEOUT, LONG_TIMEOUT)
+				.createService<ITeamscaleService>(url, userName, userAccessToken, AgentUtils.USER_AGENT, LONG_TIMEOUT, LONG_TIMEOUT)
 			try {
 				val processInformation = ProcessInformationRetriever(logger).processInformation
 				val response = teamscaleClient.registerProfiler(

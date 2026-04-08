@@ -37,7 +37,7 @@ public class DelayedTeamscaleMultiProjectUploader extends DelayedMultiUploaderBa
 				projectAndCommit.getCommitInfo());
 
 		if (this.teamscaleUploaders.stream().anyMatch(teamscaleUploader ->
-				teamscaleUploader.getTeamscaleServer().hasSameProjectAndCommit(teamscaleServer)
+				teamscaleUploader.teamscaleServer.hasSameProjectAndCommit(teamscaleServer)
 		)) {
 			logger.debug(
 					"Project and commit in git.properties file {} are already registered as upload target. Coverage will not be uploaded multiple times to the same project {} and commit info {}.",
