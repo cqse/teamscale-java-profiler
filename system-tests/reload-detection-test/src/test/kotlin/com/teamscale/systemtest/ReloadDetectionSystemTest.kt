@@ -65,6 +65,7 @@ class ReloadDetectionSystemTest {
 		modifiedBytes[markerIndex + marker.size - 1] = 'x'.code.toByte()
 
 		val classLoader = object : ClassLoader(ClassLoader.getSystemClassLoader()) {
+			/** Defines the modified class bytecode in this class loader, triggering a class reload. */
 			fun defineModifiedClass(): Class<*> {
 				return defineClass("systemundertest.SystemUnderTest", modifiedBytes, 0, modifiedBytes.size)
 			}
