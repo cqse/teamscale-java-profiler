@@ -24,7 +24,6 @@ import java.lang.management.ManagementFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.Optional
 import kotlin.use
 
 /** Container class for the premain entry point for the agent.  */

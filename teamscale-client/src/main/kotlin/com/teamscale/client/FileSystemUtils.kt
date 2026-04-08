@@ -236,9 +236,9 @@ object FileSystemUtils {
 	@Throws(IOException::class)
 	fun readProperties(propertiesFile: File): Properties {
 		propertiesFile.inputStream().use { stream ->
-			val props = Properties()
-			props.load(stream)
-			return props
+			return Properties().apply {
+				load(stream)
+			}
 		}
 	}
 
