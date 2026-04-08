@@ -40,6 +40,7 @@ public class JacocoAgentOptionsBuilder {
 			builder.append(",classdumpdir=").append(tempDir.toAbsolutePath());
 
 			agentOptions.classDirectoriesOrZips = Collections.singletonList(tempDir.toFile());
+			agentOptions.classDumpDirectory = tempDir;
 		}
 
 		agentOptions.additionalJacocoOptions

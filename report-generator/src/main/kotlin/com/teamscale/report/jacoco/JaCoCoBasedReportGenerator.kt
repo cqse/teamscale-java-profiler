@@ -71,13 +71,30 @@ abstract class JaCoCoBasedReportGenerator<Visitor : ICoverageVisitor>(
 	)
 
 	/**
-	 * Analyzes the structure of the class files in [.codeDirectoriesOrArchives] and builds an in-memory coverage
+	 * Analyzes the structure of the class files in [codeDirectoriesOrArchives] and builds an in-memory coverage
 	 * report with the coverage in the given store.
+	 *
+	 * [codeDirectoriesOrArchives] is populated in one of two ways:
+	 * - **Auto-created dump directory**: When the user does not specify `class-dir`, JaCoCo is configured with a
+	 *   `classdumpdir` pointing to a temporary directory (for example,
+	 *   `teamscale-java-profiler-<pid>-<random>/jacoco-class-dump`). JaCoCo writes each instrumented class file there
+	 *   at load time, using the class's internal name as the file path (for example, `com/example/MyClass.class`). If a
+	 *   class is reloaded (for example, after an application server reload), the new version overwrites the old file. This
+	 *   typically results in a single directory entry.
+	 * - **User-specified `class-dir`**: The user points directly at directories or archives (JARs, WARs, EARs)
+	 *   containing their application's class files. This may result in multiple entries, and the same class can appear
+	 *   in several archives, for example, when both an old and a new WAR coexist during an application server reload.
+	 *
+	 * We share a single [EnhancedCoverageVisitor] across all entries so that its duplicate-detection map tracks classes
+	 * globally. Without this, the same class appearing in two different archives (for example, old and new WAR) would
+	 * bypass our duplicate handling and hit `CoverageBuilder` directly, which always throws `IllegalStateException`
+	 * regardless of the configured [duplicateClassFileBehavior].
 	 */
 	@Throws(IOException::class)
 	private fun analyzeStructureAndAnnotateCoverage(store: ExecutionDataStore) {
+		val visitor = EnhancedCoverageVisitor()
 		codeDirectoriesOrArchives.forEach { file ->
-			FilteringAnalyzer(store, EnhancedCoverageVisitor(), locationIncludeFilter, logger)
+			FilteringAnalyzer(store, visitor, locationIncludeFilter, logger)
 				.analyzeAll(file)
 		}
 	}

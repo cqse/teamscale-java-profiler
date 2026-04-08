@@ -21,13 +21,17 @@ import com.teamscale.report.jacoco.dump.Dump;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
+import org.jacoco.core.data.ExecutionData;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -40,14 +44,17 @@ import static com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader.RETR
  */
 public class Agent extends AgentBase {
 
-	/** Converts binary data to XML. */
-	private final JaCoCoXmlReportGenerator generator;
-
 	/** Regular dump task. */
 	private Timer timer;
 
 	/** Stores the XML files. */
 	protected final IUploader uploader;
+
+	/**
+	 * Tracks class IDs (CRC64) by class name across dumps to detect application server reloads. When a known class
+	 * name appears with a different ID, we know the class was reloaded with different bytecode.
+	 */
+	private final Map<String, Long> previousClassIds = new HashMap<>();
 
 	/** Constructor. */
 	public Agent(AgentOptions options, Instrumentation instrumentation)
@@ -57,9 +64,6 @@ public class Agent extends AgentBase {
 		uploader = options.createUploader(instrumentation);
 		logger.info("Upload method: {}", uploader.describe());
 		retryUnsuccessfulUploads(options, uploader);
-		generator = new JaCoCoXmlReportGenerator(options.getClassDirectoriesOrZips(),
-				options.getLocationIncludeFilter(), options.getDuplicateClassFileBehavior(),
-				options.shouldIgnoreUncoveredClasses(), wrap(logger));
 
 		if (options.shouldDumpInIntervals()) {
 			timer = new Timer(this::dumpReport, Duration.ofMinutes(options.getDumpIntervalInMinutes()));
@@ -167,7 +171,7 @@ public class Agent extends AgentBase {
 	 * uploads it if an uploader is configured. Logs any errors, never throws an exception.
 	 */
 	@Override
-	public void dumpReport() {
+	public synchronized void dumpReport() {
 		logger.debug("Starting dump");
 
 		try {
@@ -188,6 +192,12 @@ public class Agent extends AgentBase {
 			return;
 		}
 
+		clearClassDumpDirectoryIfReloadDetected(dump);
+
+		JaCoCoXmlReportGenerator generator = new JaCoCoXmlReportGenerator(
+				options.getClassDirectoriesOrZips(), options.getLocationIncludeFilter(),
+				options.getDuplicateClassFileBehavior(), options.shouldIgnoreUncoveredClasses(), wrap(logger));
+
 		try (Benchmark ignored = new Benchmark("Generating the XML report")) {
 			File outputFile = options.createNewFileInOutputDirectory("jacoco", "xml");
 			CoverageFile coverageFile = generator.convertSingleDumpToReport(dump, outputFile);
@@ -196,6 +206,42 @@ public class Agent extends AgentBase {
 			logger.error("Converting binary dump to XML failed", e);
 		} catch (EmptyReportException e) {
 			logger.error("No coverage was collected. " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Detects application server reloads by comparing class IDs (CRC64) across dumps. When a class that was
+	 * previously seen with one ID now appears with a different ID, it means the class was reloaded with different
+	 * bytecode (for example, an application server reload such as JBoss reload). In that case, the auto-created class
+	 * dump directory is cleared so that stale class files from the old deployment are removed.
+	 *
+	 * <p>This correctly distinguishes reloads from normal multi-classloader setups: in a multi-classloader setup,
+	 * both class IDs are present from the first dump onward, so no ID change is detected on subsequent dumps.
+	 */
+	private void clearClassDumpDirectoryIfReloadDetected(Dump dump) {
+		boolean reloadDetected = false;
+		for (ExecutionData data : dump.getStore().getContents()) {
+			Long previousId = previousClassIds.put(data.getName(), data.getId());
+			if (previousId != null && previousId != data.getId()) {
+				reloadDetected = true;
+			}
+		}
+
+		if (!reloadDetected) {
+			return;
+		}
+
+		logger.info("Detected application server reload: class files were reloaded with different bytecode. "
+				+ "Clearing the class dump directory to remove stale class files from the previous deployment.");
+
+		Path classDumpDir = options.getClassDumpDirectory();
+		if (classDumpDir != null) {
+			FileSystemUtils.deleteRecursively(classDumpDir.toFile());
+			try {
+				Files.createDirectories(classDumpDir);
+			} catch (IOException e) {
+				logger.error("Failed to recreate class dump directory after reload detection", e);
+			}
 		}
 	}
 }
