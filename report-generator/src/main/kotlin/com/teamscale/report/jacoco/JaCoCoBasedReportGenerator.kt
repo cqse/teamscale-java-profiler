@@ -17,7 +17,14 @@ import java.io.OutputStream
 /**
  * Base class for generating reports based on the binary JaCoCo exec dump files.
  *
- * It takes care of ignoring non-identical classes with the same fully qualified name and classes without coverage.
+ * JaCoCo's execution data only contains per-class boolean arrays indicating which probes fired. It does not contain
+ * any structural information (method names, line numbers, branch locations). The class files in
+ * [codeDirectoriesOrArchives] provide that structural information: JaCoCo re-analyzes them to reconstruct which probes
+ * correspond to which lines and branches, then merges this with the execution data to produce a meaningful coverage
+ * report.
+ *
+ * Since the same class can appear in multiple archives (for example, a dependency bundled in two WARs), this class
+ * detects such duplicates via [EnhancedCoverageVisitor] and handles them according to [duplicateClassFileBehavior].
  *
  * @param codeDirectoriesOrArchives Directories and zip files that contain class files.
  * @param locationIncludeFilter Include filter to apply to all locations during class file traversal.
