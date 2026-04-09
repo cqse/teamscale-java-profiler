@@ -9,20 +9,22 @@ import org.junit.jupiter.api.Test
 import systemundertest.SystemUnderTest
 
 /**
- * Tests that the agent handles application server reloads correctly:
- * 1. Multiple sequential dumps work without crashing (fresh CoverageBuilder per dump).
- * 2. When a class is reloaded with different bytecode, the agent detects this and clears the class dump directory.
+ * Tests that the agent handles class reloads (for example, JBoss reload) correctly. When a class is reloaded with
+ * different bytecode, JaCoCo assigns a different class ID (CRC64). With a shared report generator, this would cause
+ * an `IllegalStateException: Can't add different class with same name` because the `CoverageBuilder` still holds the
+ * old class ID from a previous dump. The fix is to create a fresh report generator per dump so the `CoverageBuilder`
+ * never carries state across dumps.
  *
  * The reload is simulated by loading a modified copy of the [SystemUnderTest] class through a custom classloader,
- * which causes JaCoCo to create execution data with a different class ID (CRC64) for the same class name.
+ * which causes JaCoCo to create execution data with a different class ID for the same class name.
  */
 class ReloadDetectionSystemTest {
 
 	@Test
-	fun multipleDumpsAndReloadDetection() {
+	fun dumpAfterClassReloadDoesNotCrash() {
 		val teamscaleMockServer = TeamscaleMockServer(SystemTestUtils.TEAMSCALE_PORT).acceptingReportUploads()
 
-		// First dump: generate coverage and establish baseline class IDs
+		// First dump: generate coverage
 		SystemUnderTest().foo()
 		dumpCoverage(SystemTestUtils.AGENT_PORT)
 
@@ -31,8 +33,8 @@ class ReloadDetectionSystemTest {
 		// entry with a different CRC64 for the same class name.
 		loadModifiedSystemUnderTest()
 
-		// Generate more coverage and dump again. The agent should detect the reload
-		// (different class ID for the same name) and handle it without crashing.
+		// Generate more coverage and dump again. Because the agent creates a fresh report generator
+		// (and thus a fresh CoverageBuilder) per dump, the changed class ID does not cause a crash.
 		SystemUnderTest().bar()
 		dumpCoverage(SystemTestUtils.AGENT_PORT)
 
@@ -65,7 +67,6 @@ class ReloadDetectionSystemTest {
 		modifiedBytes[markerIndex + marker.size - 1] = 'x'.code.toByte()
 
 		val classLoader = object : ClassLoader(ClassLoader.getSystemClassLoader()) {
-			/** Defines the modified class bytecode in this class loader, triggering a class reload. */
 			fun defineModifiedClass(): Class<*> {
 				return defineClass("systemundertest.SystemUnderTest", modifiedBytes, 0, modifiedBytes.size)
 			}

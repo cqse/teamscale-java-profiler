@@ -32,9 +32,7 @@ public class JacocoAgentOptionsBuilder {
 			builder.append(",excludes=").append(agentOptions.jacocoExcludes);
 		}
 
-		// In EXEC_FILE mode, the agent writes raw execution data directly and doesn't
-		// convert it to a coverage report, so it doesn't need class files for probe-to-source mapping.
-		// The conversion happens externally, where class files are already available.
+		// Don't dump class files in testwise mode when coverage is written to an exec file
 		boolean needsClassFiles = agentOptions.mode == EMode.NORMAL || agentOptions.testwiseCoverageMode != ETestwiseCoverageMode.EXEC_FILE;
 		if (agentOptions.classDirectoriesOrZips.isEmpty() && needsClassFiles) {
 			Path classDumpDirectory = createTemporaryDumpDirectory();
@@ -42,7 +40,6 @@ public class JacocoAgentOptionsBuilder {
 			builder.append(",classdumpdir=").append(classDumpDirectory.toAbsolutePath());
 
 			agentOptions.classDirectoriesOrZips = Collections.singletonList(classDumpDirectory.toFile());
-			agentOptions.classDumpDirectory = classDumpDirectory;
 		}
 
 		agentOptions.additionalJacocoOptions

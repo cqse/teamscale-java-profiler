@@ -111,12 +111,6 @@ public class AgentOptions {
 	/* package */ List<File> classDirectoriesOrZips = new ArrayList<>();
 
 	/**
-	 * The auto-created class dump directory, or null if the user specified class-dir explicitly.
-	 * Used to clear stale class files when an application server reload is detected.
-	 */
-	/* package */ Path classDumpDirectory = null;
-
-	/**
 	 * The logging configuration file.
 	 */
 	/* package */ Path loggingConfig = null;
@@ -631,13 +625,6 @@ public class AgentOptions {
 	 */
 	public List<File> getClassDirectoriesOrZips() {
 		return classDirectoriesOrZips;
-	}
-
-	/**
-	 * @see #classDumpDirectory
-	 */
-	public Path getClassDumpDirectory() {
-		return classDumpDirectory;
 	}
 
 	/** @see #teamscaleServer */

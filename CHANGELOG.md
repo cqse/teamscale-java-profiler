@@ -5,8 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
-- [fix] _agent_: Fixed `IllegalStateException: Can't add different class with same name` when application servers like JBoss perform a reload without full restart
-- [feature] _agent_: Automatically detects application server reloads (for example, JBoss reload) and clears stale class files from the dump directory
+- [fix] _agent_: Fixed `IllegalStateException: Can't add different class with same name` when application servers like JBoss perform a reload without full restart or when duplicate class files exist across multiple archives
 - [feature] _teamscale-gradle-plugin_: Annotated tasks with `@DisableCachingByDefault` where caching can't be applied
 
 # 36.4.0
