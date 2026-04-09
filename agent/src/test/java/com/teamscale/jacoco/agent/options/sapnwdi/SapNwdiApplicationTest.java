@@ -35,8 +35,8 @@ public class SapNwdiApplicationTest {
 	public void testSingleApplication() throws Exception {
 		List<SapNwdiApplication> configuration = SapNwdiApplication.parseApplications("com.teamscale.test2.Bar:alias");
 		assertThat(configuration).element(0).satisfies(application -> {
-			assertThat(application.getMarkerClass()).isEqualTo("com.teamscale.test2.Bar");
-			assertThat(application.getTeamscaleProject()).isEqualTo("alias");
+			assertThat(application.markerClass).isEqualTo("com.teamscale.test2.Bar");
+			assertThat(application.teamscaleProject).isEqualTo("alias");
 		});
 	}
 
@@ -45,12 +45,12 @@ public class SapNwdiApplicationTest {
 		List<SapNwdiApplication> configuration = SapNwdiApplication
 				.parseApplications("com.teamscale.test1.Bar:alias; com.teamscale.test2.Bar:id");
 		assertThat(configuration).element(0).satisfies(application -> {
-			assertThat(application.getMarkerClass()).isEqualTo("com.teamscale.test1.Bar");
-			assertThat(application.getTeamscaleProject()).isEqualTo("alias");
+			assertThat(application.markerClass).isEqualTo("com.teamscale.test1.Bar");
+			assertThat(application.teamscaleProject).isEqualTo("alias");
 		});
 		assertThat(configuration).element(1).satisfies(application -> {
-			assertThat(application.getMarkerClass()).isEqualTo("com.teamscale.test2.Bar");
-			assertThat(application.getTeamscaleProject()).isEqualTo("id");
+			assertThat(application.markerClass).isEqualTo("com.teamscale.test2.Bar");
+			assertThat(application.teamscaleProject).isEqualTo("id");
 		});
 	}
 }

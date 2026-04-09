@@ -49,10 +49,8 @@ class GitPropertiesLocatingTransformer(
 			}
 
 			val jarOrClassFolderUrl = codeSource.location
-			val searchRoot = GitPropertiesLocatorUtils.extractGitPropertiesSearchRoot(
-				jarOrClassFolderUrl
-			)
-			if (searchRoot == null || searchRoot.first == null) {
+			val searchRoot = GitPropertiesLocatorUtils.extractGitPropertiesSearchRoot(jarOrClassFolderUrl)
+			if (searchRoot == null) {
 				logger.warn(
 					"Not searching location for git.properties with unknown protocol or extension {}." +
 							" If this location contains your git.properties, please report this warning as a" +
@@ -62,12 +60,12 @@ class GitPropertiesLocatingTransformer(
 				return null
 			}
 
-			if (hasLocationAlreadyBeenSearched(searchRoot.first!!)) {
+			if (hasLocationAlreadyBeenSearched(searchRoot.first)) {
 				return null
 			}
 
 			logger.debug("Scheduling asynchronous search for git.properties in {}", searchRoot)
-			locator.searchFileForGitPropertiesAsync(searchRoot.first, searchRoot.second!!)
+			locator.searchFileForGitPropertiesAsync(searchRoot.first, searchRoot.second)
 		} catch (e: Throwable) {
 			// we catch Throwable to be sure that we log all errors as anything thrown from this method is
 			// silently discarded by the JVM

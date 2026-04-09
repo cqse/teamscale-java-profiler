@@ -25,7 +25,7 @@ class NwdiMarkerClassLocatingTransformer(
 ) : ClassFileTransformer {
 	private val logger = getLogger(this)
 	private val markerClassesToApplications =
-		apps.associateBy { it.getMarkerClass().replace('.', '/') }
+		apps.associateBy { it.markerClass.replace('.', '/') }
 
 	override fun transform(
 		classLoader: ClassLoader?,
@@ -44,10 +44,8 @@ class NwdiMarkerClassLocatingTransformer(
 			return null
 		}
 
-		if (!markerClassesToApplications.containsKey(className)) {
-			// only kick off search if the marker class was found.
-			return null
-		}
+		// only kick off search if the marker class was found.
+		val application = markerClassesToApplications[className] ?: return null
 
 		try {
 			// unknown when this can happen, we suspect when code is generated at runtime
@@ -63,7 +61,7 @@ class NwdiMarkerClassLocatingTransformer(
 				val commitDescriptor = CommitDescriptor(
 					DTR_BRIDGE_DEFAULT_BRANCH, attr.lastModifiedTime().toMillis()
 				)
-				store.setCommitForApplication(commitDescriptor, markerClassesToApplications[className])
+				store.setCommitForApplication(commitDescriptor, application)
 			}
 		} catch (e: Throwable) {
 			// we catch Throwable to be sure that we log all errors as anything thrown from this method is

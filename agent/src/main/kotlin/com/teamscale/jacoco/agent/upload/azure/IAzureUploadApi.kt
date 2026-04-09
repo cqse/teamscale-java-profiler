@@ -13,7 +13,7 @@ interface IAzureUploadApi {
 		@Path(value = "path", encoded = true) path: String?,
 		@HeaderMap headers: MutableMap<String, String>?,
 		@QueryMap query: MutableMap<String, String>?
-	): Call<ResponseBody?>?
+	): Call<ResponseBody>
 
 	/** PUT call to the azure file storage with data in the body  */
 	@PUT("{path}")
@@ -22,7 +22,7 @@ interface IAzureUploadApi {
 		@HeaderMap headers: MutableMap<String, String>?,
 		@QueryMap query: MutableMap<String, String>?,
 		@Body content: RequestBody?
-	): Call<ResponseBody?>?
+	): Call<ResponseBody>
 
 	/** HEAD call to the azure file storage  */
 	@HEAD("{path}")
@@ -30,5 +30,5 @@ interface IAzureUploadApi {
 		@Path(value = "path", encoded = true) path: String?,
 		@HeaderMap headers: MutableMap<String, String>?,
 		@QueryMap query: MutableMap<String, String>?
-	): Call<Void?>?
+	): Call<Void>
 }

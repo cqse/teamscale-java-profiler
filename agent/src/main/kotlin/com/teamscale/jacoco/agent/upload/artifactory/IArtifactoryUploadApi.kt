@@ -2,6 +2,7 @@ package com.teamscale.jacoco.agent.upload.artifactory
 
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.create
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -23,7 +24,7 @@ interface IArtifactoryUploadApi {
 	 */
 	@Throws(IOException::class)
 	fun uploadCoverageZip(path: String, data: File): Response<ResponseBody> {
-		val body = create("application/zip".toMediaTypeOrNull(), data)
+		val body = data.asRequestBody("application/zip".toMediaTypeOrNull())
 		return upload(path, body).execute()
 	}
 }

@@ -607,7 +607,7 @@ public class AgentOptions {
 	private IUploader createNwdiTeamscaleUploader(Instrumentation instrumentation) {
 		DelayedSapNwdiMultiUploader uploader = new DelayedSapNwdiMultiUploader(
 				(commit, application) -> new TeamscaleUploader(
-						teamscaleServer.withProjectAndCommit(application.getTeamscaleProject(), commit)));
+						teamscaleServer.withProjectAndCommit(application.teamscaleProject, commit)));
 		instrumentation.addTransformer(new NwdiMarkerClassLocatingTransformer(uploader, getLocationIncludeFilter(),
 				sapNetWeaverJavaApplications));
 		return uploader;
