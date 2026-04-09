@@ -176,7 +176,7 @@ class ArtifactoryConfig {
 		@JvmStatic
 		@Throws(UploaderException::class)
 		fun parseGitProperties(
-			jarFile: File?, searchRecursively: Boolean, gitPropertiesCommitTimeFormat: DateTimeFormatter?
+			jarFile: File, searchRecursively: Boolean, gitPropertiesCommitTimeFormat: DateTimeFormatter?
 		): CommitInfo? {
 			try {
 				val commitInfo = GitPropertiesLocatorUtils.getCommitInfoFromGitProperties(

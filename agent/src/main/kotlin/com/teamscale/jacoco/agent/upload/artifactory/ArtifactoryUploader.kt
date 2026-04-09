@@ -96,8 +96,9 @@ class ArtifactoryUploader(
 	}
 
 	private fun setUploadPath(coverageFile: CoverageFile, artifactoryConfig: ArtifactoryConfig) {
-		val commit = artifactoryConfig.commitInfo!!.commit
-		val timeRev = "${commit.timestamp}-${artifactoryConfig.commitInfo!!.revision}"
+		val commit = artifactoryConfig.commitInfo?.commit ?: return
+		val revision = artifactoryConfig.commitInfo?.revision ?: return
+		val timeRev = "${commit.timestamp}-${revision}"
 		val fileName = "${coverageFile.nameWithoutExtension}.zip"
 
 		uploadPath = if (artifactoryConfig.legacyPath) {
