@@ -159,6 +159,8 @@ public class Agent extends AgentBase {
 	/**
 	 * Dumps the current execution data, converts it, writes it to the output directory defined in {@link #options} and
 	 * uploads it if an uploader is configured. Logs any errors, never throws an exception.
+	 * <p>
+	 * Synchronized because this can be triggered concurrently by the timer and by the HTTP /dump endpoint.
 	 */
 	@Override
 	public synchronized void dumpReport() {
@@ -182,6 +184,9 @@ public class Agent extends AgentBase {
 			return;
 		}
 
+		// Created fresh per dump so its CoverageBuilder does not carry class IDs from previous dumps.
+		// Without this, application server reloads (for example, JBoss) cause an IllegalStateException
+		// because the reloaded class has a different CRC64 than what CoverageBuilder stored earlier.
 		JaCoCoXmlReportGenerator generator = new JaCoCoXmlReportGenerator(
 				options.getClassDirectoriesOrZips(), options.getLocationIncludeFilter(),
 				options.getDuplicateClassFileBehavior(), options.shouldIgnoreUncoveredClasses(), wrap(logger));
