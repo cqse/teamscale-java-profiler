@@ -11,7 +11,6 @@ import java.util.stream.Collectors
  * multiple locations.
  */
 abstract class DelayedMultiUploaderBase : IUploader {
-	/** Logger.  */
 	@JvmField
 	protected val logger: Logger = getLogger(this)
 
@@ -29,7 +28,6 @@ abstract class DelayedMultiUploaderBase : IUploader {
 	}
 
 	override fun describe(): String {
-		val wrappedUploaders = this.wrappedUploaders
 		if (!wrappedUploaders.isEmpty()) {
 			return wrappedUploaders.joinToString { it.describe() }
 		}

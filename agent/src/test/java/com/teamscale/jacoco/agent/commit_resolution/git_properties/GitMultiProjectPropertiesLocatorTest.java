@@ -27,7 +27,7 @@ class GitMultiProjectPropertiesLocatorTest {
 		File jarFile = new File(getClass().getResource("emptyTeamscaleProjectGitProperties").getFile());
 		locator.searchFile(jarFile, false);
 		assertThat(projectAndCommits.size()).isEqualTo(1);
-		assertThat(projectAndCommits.get(0).getProject()).isEqualTo("my-teamscale-project");
+		assertThat(projectAndCommits.get(0).project).isEqualTo("my-teamscale-project");
 	}
 
 	@Test
@@ -45,7 +45,7 @@ class GitMultiProjectPropertiesLocatorTest {
 		);
 		File jarFile = new File(getClass().getResource("multiple-same-target-git-properties-folder").getFile());
 		locator.searchFile(jarFile, false);
-		List<TeamscaleServer> teamscaleServers = delayedTeamscaleMultiProjectUploader.getTeamscaleUploaders().stream()
+		List<TeamscaleServer> teamscaleServers = delayedTeamscaleMultiProjectUploader.teamscaleUploaders.stream()
 				.map(t -> t.teamscaleServer).collect(Collectors.toList());
 		assertThat(teamscaleServers).hasSize(2);
 		assertThat(teamscaleServers).anyMatch(server -> server.project.equals("demo2") && server.commit.equals(

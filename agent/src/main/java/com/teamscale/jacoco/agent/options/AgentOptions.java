@@ -559,17 +559,17 @@ public class AgentOptions {
 	private DelayedUploader<ProjectAndCommit> createDelayedSingleProjectTeamscaleUploader() {
 		return new DelayedUploader<>(
 				projectAndCommit -> {
-					if (!StringUtils.isEmpty(projectAndCommit.getProject()) && !teamscaleServer.project
-							.equals(projectAndCommit.getProject())) {
+					if (!StringUtils.isEmpty(projectAndCommit.project) && !teamscaleServer.project
+							.equals(projectAndCommit.project)) {
 						logger.warn(
-								"Teamscale project '" + teamscaleServer.project + "' specified in the agent configuration is not the same as the Teamscale project '" + projectAndCommit.getProject() + "' specified in git.properties file(s). Proceeding to upload to the" +
+								"Teamscale project '" + teamscaleServer.project + "' specified in the agent configuration is not the same as the Teamscale project '" + projectAndCommit.project + "' specified in git.properties file(s). Proceeding to upload to the" +
 										" Teamscale project '" + teamscaleServer.project + "' specified in the agent configuration.");
 					}
-					if (projectAndCommit.getCommitInfo().preferCommitDescriptorOverRevision ||
-							StringUtils.isEmpty(projectAndCommit.getCommitInfo().revision)) {
-						teamscaleServer.commit = projectAndCommit.getCommitInfo().commit;
+					if (projectAndCommit.commitInfo.preferCommitDescriptorOverRevision ||
+							StringUtils.isEmpty(projectAndCommit.commitInfo.revision)) {
+						teamscaleServer.commit = projectAndCommit.commitInfo.commit;
 					} else {
-						teamscaleServer.revision = projectAndCommit.getCommitInfo().revision;
+						teamscaleServer.revision = projectAndCommit.commitInfo.revision;
 					}
 					return new TeamscaleUploader(teamscaleServer);
 				}, outputDirectory);
