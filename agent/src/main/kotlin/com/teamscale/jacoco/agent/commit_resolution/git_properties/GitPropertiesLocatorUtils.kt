@@ -170,9 +170,8 @@ object GitPropertiesLocatorUtils {
 		val artefactUrl = extractArtefactUrl(jarOrClassFolderUrl)
 
 		val virtualFile = URL(artefactUrl).openConnection().getContent()
-		val virtualFileClass: Class<*> = virtualFile.javaClass
 		// obtain the physical location of the class file. It is created on demand in <jboss-installation-dir>/standalone/tmp/vfs
-		val getPhysicalFileMethod = virtualFileClass.getMethod("getPhysicalFile")
+		val getPhysicalFileMethod = virtualFile.javaClass.getMethod("getPhysicalFile")
 		val file = getPhysicalFileMethod.invoke(virtualFile) as File
 		return file to !file.isDirectory()
 	}
@@ -336,7 +335,7 @@ object GitPropertiesLocatorUtils {
 		inputStream: JarInputStream,
 		archiveName: String?,
 		recursiveSearch: Boolean,
-		isRootArchive: Boolean = true // Added flag to prevent nested crashes
+		isRootArchive: Boolean = true
 	): MutableList<Pair<String, Properties>> {
 		val result = mutableListOf<Pair<String, Properties>>()
 		var isEmpty = true
@@ -344,13 +343,12 @@ object GitPropertiesLocatorUtils {
 		var entry = inputStream.nextJarEntry
 		while (entry != null) {
 			isEmpty = false
-			val fullEntryName = if (archiveName.isNullOrEmpty()) entry.name else "$archiveName/${entry.name}"
+			val fullEntryName = if (archiveName.isNullOrEmpty()) entry.name else "$archiveName${File.separator}${entry.name}"
 			val fileName = entry.name.substringAfterLast('/')
 
 			if (fileName.equals(GIT_PROPERTIES_FILE_NAME, ignoreCase = true)) {
 				val gitProperties = Properties().apply { load(inputStream) }
 				result.add(fullEntryName to gitProperties)
-
 			} else if (recursiveSearch && isJarLikeFile(entry.name)) {
 				val nestedJarStream = JarInputStream(inputStream)
 				result.addAll(
@@ -372,11 +370,11 @@ object GitPropertiesLocatorUtils {
 
 	/**
 	 * Returns the CommitInfo (revision and branch + timestmap) from a git properties file. The revision can be either
-	 * in [.GIT_PROPERTIES_GIT_COMMIT_ID] or [.GIT_PROPERTIES_GIT_COMMIT_ID_FULL]. The branch and timestamp
-	 * in [.GIT_PROPERTIES_GIT_BRANCH] + [.GIT_PROPERTIES_GIT_COMMIT_TIME] or in
-	 * [.GIT_PROPERTIES_TEAMSCALE_COMMIT_BRANCH] + [.GIT_PROPERTIES_TEAMSCALE_COMMIT_TIME]. By default,
-	 * times will be parsed with [.GIT_PROPERTIES_DEFAULT_GRADLE_DATE_FORMAT] and
-	 * [.GIT_PROPERTIES_DEFAULT_MAVEN_DATE_FORMAT]. An additional format can be given with
+	 * in [GIT_PROPERTIES_GIT_COMMIT_ID] or [GIT_PROPERTIES_GIT_COMMIT_ID_FULL]. The branch and timestamp
+	 * in [GIT_PROPERTIES_GIT_BRANCH] + [GIT_PROPERTIES_GIT_COMMIT_TIME] or in
+	 * [GIT_PROPERTIES_TEAMSCALE_COMMIT_BRANCH] + [GIT_PROPERTIES_TEAMSCALE_COMMIT_TIME]. By default,
+	 * times will be parsed with [GIT_PROPERTIES_DEFAULT_GRADLE_DATE_FORMAT] and
+	 * [GIT_PROPERTIES_DEFAULT_MAVEN_DATE_FORMAT]. An additional format can be given with
 	 * `dateTimeFormatter`
 	 */
 	@JvmStatic
@@ -387,17 +385,14 @@ object GitPropertiesLocatorUtils {
 	): CommitInfo {
 		val dateTimeFormatter = createDateTimeFormatter(additionalDateTimeFormatter)
 
-		// Get Revision
 		val revision = getRevisionFromGitProperties(gitProperties)
 
 		// Get branch and timestamp from git.commit.branch and git.commit.id
 		var commitDescriptor = getCommitDescriptorFromDefaultGitPropertyValues(
-			gitProperties, entryName,
-			jarFile, dateTimeFormatter
+			gitProperties, entryName, jarFile, dateTimeFormatter
 		)
 		// When read from these properties, we should prefer to upload to the revision
 		var preferCommitDescriptorOverRevision = false
-
 
 		// Get branch and timestamp from teamscale.commit.branch and teamscale.commit.time (TS-38561)
 		val teamscaleTimestampBasedCommitDescriptor = getCommitDescriptorFromTeamscaleTimestampProperty(
@@ -441,7 +436,7 @@ object GitPropertiesLocatorUtils {
 
 	private fun getRevisionFromGitProperties(gitProperties: Properties): String? {
 		var revision = gitProperties.getProperty(GIT_PROPERTIES_GIT_COMMIT_ID)
-		if (isEmpty(revision)) {
+		if (revision.isNullOrEmpty()) {
 			revision = gitProperties.getProperty(GIT_PROPERTIES_GIT_COMMIT_ID_FULL)
 		}
 		return revision
@@ -457,7 +452,7 @@ object GitPropertiesLocatorUtils {
 		val teamscaleCommitBranch = gitProperties.getProperty(GIT_PROPERTIES_TEAMSCALE_COMMIT_BRANCH)
 		val teamscaleCommitTime = gitProperties.getProperty(GIT_PROPERTIES_TEAMSCALE_COMMIT_TIME)
 
-		if (isEmpty(teamscaleCommitBranch) || isEmpty(teamscaleCommitTime)) {
+		if (teamscaleCommitBranch.isNullOrEmpty() || teamscaleCommitTime.isNullOrEmpty()) {
 			return null
 		}
 
@@ -493,7 +488,7 @@ object GitPropertiesLocatorUtils {
 	): CommitDescriptor? {
 		val gitBranch = gitProperties.getProperty(GIT_PROPERTIES_GIT_BRANCH)
 		val gitTime = gitProperties.getProperty(GIT_PROPERTIES_GIT_COMMIT_TIME)
-		if (!isEmpty(gitBranch) && !isEmpty(gitTime)) {
+		if (!gitBranch.isNullOrEmpty() && !gitTime.isNullOrEmpty()) {
 			val gitTimestamp: Long
 			try {
 				gitTimestamp = ZonedDateTime.parse(gitTime, dateTimeFormatter).toInstant().toEpochMilli()

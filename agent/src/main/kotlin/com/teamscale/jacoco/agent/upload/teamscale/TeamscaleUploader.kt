@@ -11,7 +11,6 @@ import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
 import com.teamscale.jacoco.agent.upload.IUploadRetry
 import com.teamscale.jacoco.agent.upload.IUploader
 import com.teamscale.jacoco.agent.util.AgentUtils
-import com.teamscale.jacoco.agent.util.Benchmark
 import com.teamscale.report.jacoco.CoverageFile
 import java.io.File
 import java.io.IOException

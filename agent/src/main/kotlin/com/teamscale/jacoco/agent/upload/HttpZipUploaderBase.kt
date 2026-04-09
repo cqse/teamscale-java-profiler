@@ -4,20 +4,17 @@ import com.teamscale.client.FileSystemUtils.readFileBinary
 import com.teamscale.client.HttpUtils.createRetrofit
 import com.teamscale.jacoco.agent.benchmark
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
-import com.teamscale.jacoco.agent.util.Benchmark
 import com.teamscale.report.jacoco.CoverageFile
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import org.slf4j.Logger
 import retrofit2.Response
-import retrofit2.Retrofit
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.function.Consumer
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 

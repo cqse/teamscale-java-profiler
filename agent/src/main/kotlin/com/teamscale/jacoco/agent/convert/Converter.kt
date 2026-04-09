@@ -4,7 +4,6 @@ import com.teamscale.client.TestDetails
 import com.teamscale.jacoco.agent.benchmark
 import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.jacoco.agent.options.AgentOptionParseException
-import com.teamscale.jacoco.agent.util.Benchmark
 import com.teamscale.report.ReportUtils
 import com.teamscale.report.ReportUtils.listFiles
 import com.teamscale.report.jacoco.EmptyReportException
@@ -16,8 +15,6 @@ import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.report.testwise.model.factory.TestInfoFactory
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.report.util.CommandLineLogger
-import com.teamscale.report.util.ILogger
-import java.io.File
 import java.io.IOException
 import java.lang.String
 import java.nio.file.Paths
