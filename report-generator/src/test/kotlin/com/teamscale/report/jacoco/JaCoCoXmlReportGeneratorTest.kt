@@ -109,6 +109,61 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 			.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
 	}
 
+	/**
+	 * Verifies that reusing a single [JaCoCoXmlReportGenerator] across multiple dumps crashes when the class files
+	 * change between dumps (for example, due to an application server reload). The internal [CoverageBuilder] retains
+	 * class IDs from the first dump and throws [IllegalStateException] when it encounters a different ID for the same
+	 * class name.
+	 *
+	 * This documents why the agent must create a fresh generator per dump (see [Agent.dumpReportUnsafe]).
+	 */
+	@Test
+	fun testReusedGeneratorCrashesWhenClassFilesChangeBetweenDumps() {
+		val sourceA = useTestFile("different-duplicate-classes" + File.separator + "a")
+		val sourceB = useTestFile("different-duplicate-classes" + File.separator + "b")
+
+		// Create a temp directory that simulates the JaCoCo class dump directory
+		val tempDir = Files.createTempDirectory("reuse-generator-test").toFile()
+
+		try {
+			// Start with version A of TestClass
+			sourceA.listFiles()!!.forEach { it.copyTo(File(tempDir, it.name)) }
+
+			val generator = JaCoCoXmlReportGenerator(
+				listOf(tempDir),
+				ClasspathWildcardIncludeFilter(null, null),
+				EDuplicateClassFileBehavior.WARN,
+				false,
+				Mockito.mock()
+			)
+
+			// First dump succeeds (CoverageBuilder stores CRC64-A for TestClass)
+			try {
+				val currentTime = System.currentTimeMillis()
+				generator.convertSingleDumpToReport(
+					createDummyDump(), Paths.get("test-reuse-1-$currentTime.xml").toFile()
+				)
+			} catch (e: EmptyReportException) {
+				// Expected: dummy dump class IDs don't match actual class files
+			}
+
+			// Replace with version B of TestClass (different bytecode, different CRC64)
+			tempDir.listFiles()!!.forEach { it.delete() }
+			sourceB.listFiles()!!.forEach { it.copyTo(File(tempDir, it.name)) }
+
+			// Second dump on the SAME generator crashes because CoverageBuilder retained CRC64-A but now sees CRC64-B
+			val currentTime = System.currentTimeMillis()
+			assertThatThrownBy {
+				generator.convertSingleDumpToReport(
+					createDummyDump(), Paths.get("test-reuse-2-$currentTime.xml").toFile()
+				)
+			}.isExactlyInstanceOf(IOException::class.java)
+				.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
+		} finally {
+			tempDir.deleteRecursively()
+		}
+	}
+
 	@Test
 	fun testEmptyCoverageFileThrowsException() {
 		val testFolderName = "empty-report-handling"
