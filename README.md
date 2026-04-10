@@ -65,7 +65,7 @@ The diagram below shows the data flow from JVM startup to coverage upload.
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
          │
-         │  Periodically (default: every 10 min) or on HTTP request
+         │  Periodically (default: every 480 min) or on HTTP request
          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  Coverage Dump Pipeline                                                 │
