@@ -139,23 +139,21 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 
 			// First dump succeeds (CoverageBuilder stores CRC64-A for TestClass)
 			try {
-				val currentTime = System.currentTimeMillis()
 				generator.convertSingleDumpToReport(
-					createDummyDump(), Paths.get("test-reuse-1-$currentTime.xml").toFile()
+					createDummyDump(), File(tempDir, "output-1.xml")
 				)
 			} catch (e: EmptyReportException) {
 				// Expected: dummy dump class IDs don't match actual class files
 			}
 
 			// Replace with version B of TestClass (different bytecode, different CRC64)
-			tempDir.listFiles()!!.forEach { it.delete() }
+			tempDir.listFiles()!!.filter { it.name != "output-1.xml" }.forEach { it.delete() }
 			sourceB.listFiles()!!.forEach { it.copyTo(File(tempDir, it.name)) }
 
 			// Second dump on the SAME generator crashes because CoverageBuilder retained CRC64-A but now sees CRC64-B
-			val currentTime = System.currentTimeMillis()
 			assertThatThrownBy {
 				generator.convertSingleDumpToReport(
-					createDummyDump(), Paths.get("test-reuse-2-$currentTime.xml").toFile()
+					createDummyDump(), File(tempDir, "output-2.xml")
 				)
 			}.isExactlyInstanceOf(IOException::class.java)
 				.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
