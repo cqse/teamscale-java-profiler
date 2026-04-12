@@ -60,7 +60,7 @@ class JacocoAgentOptionsBuilder(private val agentOptions: AgentOptions) {
 		}
 
 		try {
-			return Files.createTempDirectory(agentOptions.getOutputDirectory(), "jacoco-class-dump")
+			return Files.createTempDirectory(agentOptions.outputDirectory, "jacoco-class-dump")
 		} catch (_: IOException) {
 			logger.warn("Unable to create temporary directory in output directory. Trying in agent's directory.")
 		}

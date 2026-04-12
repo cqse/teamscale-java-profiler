@@ -39,7 +39,7 @@ object StringUtils {
 		if (text == null) {
 			return true
 		}
-		return EMPTY_STRING == text.trim { it <= ' ' }
+		return EMPTY_STRING == text.trim()
 	}
 
 	/**

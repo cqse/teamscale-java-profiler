@@ -27,11 +27,11 @@ public class CoverageToTeamscaleStrategy extends CoverageToJsonStrategyBase {
 		try {
 			teamscaleClient
 					.uploadReport(EReportFormat.TESTWISE_COVERAGE, json,
-							agentOptions.getTeamscaleServerOptions().commit,
-							agentOptions.getTeamscaleServerOptions().revision,
-							agentOptions.getTeamscaleServerOptions().repository,
-							agentOptions.getTeamscaleServerOptions().partition,
-							agentOptions.getTeamscaleServerOptions().getMessage());
+							agentOptions.teamscaleServer.commit,
+							agentOptions.teamscaleServer.revision,
+							agentOptions.teamscaleServer.repository,
+							agentOptions.teamscaleServer.partition,
+							agentOptions.teamscaleServer.getMessage());
 		} catch (IOException e) {
 			File reportFile = agentOptions.createNewFileInOutputDirectory("testwise-coverage", "json");
 			FileSystemUtils.writeFileUTF8(reportFile, json);

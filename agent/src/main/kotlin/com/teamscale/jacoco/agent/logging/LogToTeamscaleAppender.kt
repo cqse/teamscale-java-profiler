@@ -170,7 +170,7 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 			context.getLogger(Logger.ROOT_LOGGER_NAME).apply {
 				val logToTeamscaleAppender = LogToTeamscaleAppender().apply {
 					setContext(context)
-					setProfilerId(agentOptions.configurationViaTeamscale.profilerId!!)
+					setProfilerId(agentOptions.configurationViaTeamscale!!.profilerId!!)
 					setTeamscaleClient(client.service)
 					start()
 				}

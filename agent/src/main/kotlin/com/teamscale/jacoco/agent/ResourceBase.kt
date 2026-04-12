@@ -2,12 +2,10 @@ package com.teamscale.jacoco.agent
 
 import com.teamscale.client.CommitDescriptor
 import com.teamscale.client.StringUtils
-import com.teamscale.client.TeamscaleServer
 import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.report.testwise.model.RevisionInfo
 import org.jetbrains.annotations.Contract
 import org.slf4j.Logger
-import java.util.Optional
 import javax.ws.rs.BadRequestException
 import javax.ws.rs.GET
 import javax.ws.rs.PUT
@@ -37,13 +35,13 @@ abstract class ResourceBase {
 	@get:GET
 	val partition: String
 		/** Returns the partition for the Teamscale upload.  */
-		get() = agentBase.options.teamscaleServerOptions.partition.orEmpty()
+		get() = agentBase.options.teamscaleServer.partition.orEmpty()
 
 	@get:Path("/message")
 	@get:GET
 	val message: String
 		/** Returns the upload message for the Teamscale upload.  */
-		get() = agentBase.options.teamscaleServerOptions.message.orEmpty()
+		get() = agentBase.options.teamscaleServer.message.orEmpty()
 
 	@get:Produces(MediaType.APPLICATION_JSON)
 	@get:Path("/revision")
@@ -71,7 +69,7 @@ abstract class ResourceBase {
 		logger.debug("Changing partition name to $partition")
 		agentBase.dumpReport()
 		agentBase.controller.sessionId = partition
-		agentBase.options.teamscaleServerOptions.partition = partition
+		agentBase.options.teamscaleServer.partition = partition
 		return Response.noContent().build()
 	}
 
@@ -86,7 +84,7 @@ abstract class ResourceBase {
 
 		agentBase.dumpReport()
 		logger.debug("Changing message to $message")
-		agentBase.options.teamscaleServerOptions.message = message
+		agentBase.options.teamscaleServer.message = message
 
 		return Response.noContent().build()
 	}
@@ -102,7 +100,7 @@ abstract class ResourceBase {
 
 		agentBase.dumpReport()
 		logger.debug("Changing revision name to $revision")
-		agentBase.options.teamscaleServerOptions.revision = revision
+		agentBase.options.teamscaleServer.revision = revision
 
 		return Response.noContent().build()
 	}
@@ -117,7 +115,7 @@ abstract class ResourceBase {
 		}
 
 		agentBase.dumpReport()
-		agentBase.options.teamscaleServerOptions.commit = CommitDescriptor.parse(commit)
+		agentBase.options.teamscaleServer.commit = CommitDescriptor.parse(commit)
 
 		return Response.noContent().build()
 	}
@@ -125,7 +123,7 @@ abstract class ResourceBase {
 	private val revisionInfo: RevisionInfo
 		/** Returns revision information for the Teamscale upload.  */
 		get() {
-			val server = agentBase.options.teamscaleServerOptions
+			val server = agentBase.options.teamscaleServer
 			return RevisionInfo(server.commit, server.revision)
 		}
 

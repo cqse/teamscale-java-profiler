@@ -30,8 +30,8 @@ public class TestwiseCoverageAgent extends AgentBase {
 	public static TestwiseCoverageAgent create(AgentOptions agentOptions) throws IOException {
 		Logger logger = LoggingUtils.getLogger(JaCoCoTestwiseReportGenerator.class);
 		JaCoCoTestwiseReportGenerator reportGenerator = new JaCoCoTestwiseReportGenerator(
-				agentOptions.getClassDirectoriesOrZips(), agentOptions.getLocationIncludeFilter(),
-				agentOptions.getDuplicateClassFileBehavior(), LoggingUtils.wrap(logger));
+				agentOptions.classDirectoriesOrZips, agentOptions.getLocationIncludeFilter(),
+				agentOptions.duplicateClassFileBehavior, LoggingUtils.wrap(logger));
 		return new TestwiseCoverageAgent(agentOptions,
 				new TestExecutionWriter(agentOptions.createNewFileInOutputDirectory("test-execution", "json")),
 				reportGenerator);
@@ -41,7 +41,7 @@ public class TestwiseCoverageAgent extends AgentBase {
 	public TestwiseCoverageAgent(AgentOptions options, TestExecutionWriter testExecutionWriter,
 			JaCoCoTestwiseReportGenerator reportGenerator) throws IllegalStateException {
 		super(options);
-		switch (options.getTestwiseCoverageMode()) {
+		switch (options.testwiseCoverageMode) {
 			case TEAMSCALE_UPLOAD:
 				testEventHandler = new CoverageToTeamscaleStrategy(controller, options, reportGenerator);
 				break;

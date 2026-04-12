@@ -38,12 +38,12 @@ abstract class AgentBase(
 	 */
 	private val optionsObjectToLog by lazy {
 		object {
-			override fun toString() =
-				if (options.shouldObfuscateSecurityRelatedOutputs()) {
-					options.getObfuscatedOptionsString()
+			override fun toString(): String =
+				if (options.obfuscateSecurityRelatedOutputs) {
+					options.obfuscatedOptionsString
 				} else {
-					options.getOriginalOptionsString()
-				}
+					options.originalOptionsString
+				} ?: ""
 		}
 	}
 
@@ -57,7 +57,7 @@ abstract class AgentBase(
 			"Starting Teamscale Java Profiler for process {} with options: {}",
 			ManagementFactory.getRuntimeMXBean().name, optionsObjectToLog
 		)
-		options.getHttpServerPort()?.let { port ->
+		options.httpServerPort?.let { port ->
 			try {
 				initServer()
 			} catch (e: Exception) {
@@ -72,7 +72,10 @@ abstract class AgentBase(
 	 */
 	@Throws(Exception::class)
 	private fun initServer() {
-		logger.info("Listening for test events on port {}.", options.getHttpServerPort())
+		val port = options.httpServerPort
+		require(port != null) { "Port must be set." }
+
+		logger.info("Listening for test events on port {}.", port)
 
 		// Jersey Implementation
 		val handler = buildUsingResourceConfig()
@@ -84,7 +87,7 @@ abstract class AgentBase(
 		server = Server(threadPool)
 		// Create a server connector, set the port and add it to the server
 		val connector = ServerConnector(server)
-		connector.port = options.getHttpServerPort()
+		connector.port = port
 		server.addConnector(connector)
 		server.handler = handler
 		server.start()
@@ -125,7 +128,7 @@ abstract class AgentBase(
 
 	/** Stop the http server if it's running  */
 	fun stopServer() {
-		options.getHttpServerPort()?.let {
+		options.httpServerPort?.let {
 			try {
 				server.stop()
 			} catch (e: Exception) {

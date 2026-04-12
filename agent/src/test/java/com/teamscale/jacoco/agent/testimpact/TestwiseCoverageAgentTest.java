@@ -161,16 +161,15 @@ public class TestwiseCoverageAgentTest {
 		AgentOptions options = mock(AgentOptions.class);
 		when(options.createTeamscaleClient(true)).thenReturn(client);
 
-
 		TeamscaleServer server = new TeamscaleServer();
 		server.commit = new CommitDescriptor("branch", "12345");
-		server.url = HttpUrl.get("http://doesnt-exist.io");
+		server.url = HttpUrl.get("https://doesnt-exist.io");
 		server.userName = "build";
 		server.userAccessToken = "token";
 		server.partition = "partition";
-		when(options.getTeamscaleServerOptions()).thenReturn(server);
-		when(options.getHttpServerPort()).thenReturn(port);
-		when(options.getTestwiseCoverageMode()).thenReturn(ETestwiseCoverageMode.TEAMSCALE_UPLOAD);
+		options.teamscaleServer = server;
+		options.httpServerPort = port;
+		options.testwiseCoverageMode = ETestwiseCoverageMode.TEAMSCALE_UPLOAD;
 
 		when(options.createTeamscaleClient(true)).thenReturn(client);
 		return options;

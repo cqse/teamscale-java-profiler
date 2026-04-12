@@ -71,12 +71,12 @@ public class AgentOptionsTest {
 	@Test
 	public void testIntervalOptions() throws Exception {
 		AgentOptions agentOptions = parseAndMaybeThrow("");
-		assertThat(agentOptions.getDumpIntervalInMinutes()).isEqualTo(480);
+		assertThat(agentOptions.dumpIntervalInMinutes).isEqualTo(480);
 		agentOptions = parseAndMaybeThrow("interval=0");
 		assertThat(agentOptions.shouldDumpInIntervals()).isEqualTo(false);
 		agentOptions = parseAndMaybeThrow("interval=30");
 		assertThat(agentOptions.shouldDumpInIntervals()).isEqualTo(true);
-		assertThat(agentOptions.getDumpIntervalInMinutes()).isEqualTo(30);
+		assertThat(agentOptions.dumpIntervalInMinutes).isEqualTo(30);
 	}
 
 	/** Tests the options for uploading coverage to teamscale. */
@@ -91,7 +91,7 @@ public class AgentOptionsTest {
 				"teamscale-commit=default:HEAD," +
 				"teamscale-message=\"This is my message\"");
 
-		TeamscaleServer teamscaleServer = agentOptions.getTeamscaleServerOptions();
+		TeamscaleServer teamscaleServer = agentOptions.teamscaleServer;
 		assertThat(teamscaleServer.url.toString()).isEqualTo("http://127.0.0.1/");
 		assertThat(teamscaleServer.project).isEqualTo("test");
 		assertThat(teamscaleServer.userName).isEqualTo("build");
@@ -106,14 +106,14 @@ public class AgentOptionsTest {
 	public void testHttpServerOptions() throws Exception {
 		AgentOptions agentOptions = parseAndMaybeThrow("mode=TESTWISE,class-dir=.," +
 				"http-server-port=8081");
-		assertThat(agentOptions.getHttpServerPort()).isEqualTo(8081);
+		assertThat(agentOptions.httpServerPort).isEqualTo(8081);
 	}
 
 	/** Tests the options http-server-port option for normal mode. */
 	@Test
 	public void testHttpServerOptionsForNormalMode() throws Exception {
 		AgentOptions agentOptions = parseAndMaybeThrow("http-server-port=8081");
-		assertThat(agentOptions.getHttpServerPort()).isEqualTo(8081);
+		assertThat(agentOptions.httpServerPort).isEqualTo(8081);
 	}
 
 	/** Tests the options for the Test Impact mode. */
@@ -121,29 +121,29 @@ public class AgentOptionsTest {
 	public void testHttpServerOptionsWithCoverageViaHttp() throws Exception {
 		AgentOptions agentOptions = parseAndMaybeThrow("mode=TESTWISE,class-dir=.," +
 				"http-server-port=8081,tia-mode=http");
-		assertThat(agentOptions.getHttpServerPort()).isEqualTo(8081);
-		assertThat(agentOptions.getTestwiseCoverageMode()).isEqualTo(ETestwiseCoverageMode.HTTP);
+		assertThat(agentOptions.httpServerPort).isEqualTo(8081);
+		assertThat(agentOptions.testwiseCoverageMode).isEqualTo(ETestwiseCoverageMode.HTTP);
 	}
 
 	/** Tests setting ignore-uncovered-classes works. */
 	@Test
 	public void testIgnoreUncoveredClasses() throws Exception {
 		AgentOptions agentOptions = parseAndMaybeThrow("ignore-uncovered-classes=true");
-		assertTrue(agentOptions.shouldIgnoreUncoveredClasses());
+		assertTrue(agentOptions.ignoreUncoveredClasses);
 	}
 
 	/** Tests default for ignore-uncovered-classes is false. */
 	@Test
 	public void testIgnoreUncoveredClassesDefault() throws Exception {
 		AgentOptions agentOptions = parseAndMaybeThrow("");
-		assertFalse(agentOptions.shouldIgnoreUncoveredClasses());
+		assertFalse(agentOptions.ignoreUncoveredClasses);
 	}
 
 	/** Tests default for ignore-uncovered-classes is false. */
 	@Test
 	public void shouldAllowMinusForEnumConstants() throws Exception {
 		AgentOptions agentOptions = parseAndMaybeThrow("tia-mode=exec-file");
-		assertThat(agentOptions.getTestwiseCoverageMode()).isEqualTo(ETestwiseCoverageMode.EXEC_FILE);
+		assertThat(agentOptions.testwiseCoverageMode).isEqualTo(ETestwiseCoverageMode.EXEC_FILE);
 	}
 
 	/** Tests that supplying both revision and commit info is forbidden. */
@@ -179,7 +179,7 @@ public class AgentOptionsTest {
 		AgentOptions options = parseAndMaybeThrow(
 				"teamscale-revision-manifest-jar=" + jar.getAbsolutePath() + ",teamscale-server-url=ts.com,teamscale-user=u,teamscale-access-token=t,teamscale-project=p,teamscale-partition=p");
 
-		assertThat(options.getTeamscaleServerOptions().revision).isEqualTo("f364d58dc4966ca856260185e46a90f80ee5e9c6");
+		assertThat(options.teamscaleServer.revision).isEqualTo("f364d58dc4966ca856260185e46a90f80ee5e9c6");
 	}
 
 	/**
@@ -250,11 +250,11 @@ public class AgentOptionsTest {
 	public void testVersionInfosInTestwiseMode() throws Exception {
 		AgentOptions agentOptions = parseAndMaybeThrow("mode=TESTWISE,class-dir=.," +
 				"http-server-port=8081,teamscale-revision=1234,teamscale-server-url=ts.com,teamscale-user=u,teamscale-access-token=t,teamscale-project=p,teamscale-partition=p");
-		assertThat(agentOptions.getTeamscaleServerOptions().revision).isEqualTo("1234");
+		assertThat(agentOptions.teamscaleServer.revision).isEqualTo("1234");
 
 		agentOptions = parseAndMaybeThrow("mode=TESTWISE,class-dir=.," +
 				"http-server-port=8081,teamscale-commit=branch:1234,teamscale-server-url=ts.com,teamscale-user=u,teamscale-access-token=t,teamscale-project=p,teamscale-partition=p");
-		assertThat(agentOptions.getTeamscaleServerOptions().commit).isEqualTo(CommitDescriptor.parse("branch:1234"));
+		assertThat(agentOptions.teamscaleServer.commit).isEqualTo(CommitDescriptor.parse("branch:1234"));
 	}
 
 	/** Tests the options for azure file storage upload. */

@@ -53,7 +53,7 @@ object PreMain {
 	 */
 	@JvmStatic
 	@Throws(Exception::class)
-	fun premain(options: String?, instrumentation: Instrumentation?) {
+	fun premain(options: String?, instrumentation: Instrumentation) {
 		if (System.getProperty(LOCKING_SYSTEM_PROPERTY) != null) return
 		System.setProperty(LOCKING_SYSTEM_PROPERTY, "true")
 
@@ -162,7 +162,7 @@ object PreMain {
 		initializeLogging(agentOptions, delayedLogger)
 		val logger = LoggingUtils.getLogger(Agent::class.java)
 		delayedLogger.logTo(logger)
-		HttpUtils.setShouldValidateSsl(agentOptions.shouldValidateSsl())
+		HttpUtils.setShouldValidateSsl(agentOptions.validateSsl)
 
 		return parseResult
 	}
@@ -181,13 +181,13 @@ object PreMain {
 		if (agentOptions.isDebugLogging) {
 			initializeDebugLogging(agentOptions, logger)
 		} else {
-			loggingResources = LoggingUtils.initializeLogging(agentOptions.getLoggingConfig())
+			loggingResources = LoggingUtils.initializeLogging(agentOptions.loggingConfig)
 			logger.info("Logging to ${LogDirectoryPropertyDefiner().getPropertyValue()}")
 		}
 
-		if (agentOptions.teamscaleServerOptions.isConfiguredForServerConnection) {
+		if (agentOptions.teamscaleServer.isConfiguredForServerConnection) {
 			if (LogToTeamscaleAppender.addTeamscaleAppenderTo(LoggingUtils.loggerContext, agentOptions)) {
-				logger.info("Logs are being forwarded to Teamscale at ${agentOptions.teamscaleServerOptions.url}")
+				logger.info("Logs are being forwarded to Teamscale at ${agentOptions.teamscaleServer.url}")
 			}
 		}
 	}
@@ -204,7 +204,7 @@ object PreMain {
 	@Throws(UploaderException::class, IOException::class)
 	private fun createAgent(
 		agentOptions: AgentOptions,
-		instrumentation: Instrumentation?
+		instrumentation: Instrumentation
 	): AgentBase = if (agentOptions.useTestwiseCoverageMode()) {
 		TestwiseCoverageAgent.create(agentOptions)
 	} else {
@@ -216,7 +216,7 @@ object PreMain {
 	 * given.
 	 */
 	private fun initializeDebugLogging(agentOptions: AgentOptions, logger: DelayedLogger) {
-		loggingResources = LoggingUtils.initializeDebugLogging(agentOptions.getDebugLogDirectory())
+		loggingResources = LoggingUtils.initializeDebugLogging(agentOptions.debugLogDirectory)
 		val logDirectory = Paths.get(DebugLogDirectoryPropertyDefiner().getPropertyValue())
 		if (FileSystemUtils.isValidPath(logDirectory.toString()) && Files.isWritable(logDirectory)) {
 			logger.info("Logging to $logDirectory")

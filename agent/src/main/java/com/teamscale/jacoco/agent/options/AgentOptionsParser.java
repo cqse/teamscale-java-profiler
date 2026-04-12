@@ -283,7 +283,7 @@ public class AgentOptionsParser {
 		if (value.equalsIgnoreCase("false")) {
 			return;
 		}
-		options.debugLogging = true;
+		options.isDebugLogging = true;
 		if (!value.isEmpty() && !value.equalsIgnoreCase("true")) {
 			options.debugLogDirectory = Paths.get(value);
 		}
@@ -414,7 +414,7 @@ public class AgentOptionsParser {
 					"Config-id '" + options.teamscaleServer.configId + "' specified without teamscale url/user/accessKey! These options must be provided locally via config-file or command line argument.");
 		}
 		// Set ssl validation option in case it needs to be off before trying to reach Teamscale.
-		HttpUtils.setShouldValidateSsl(options.shouldValidateSsl());
+		HttpUtils.setShouldValidateSsl(options.validateSsl);
 		ConfigurationViaTeamscale configuration = ConfigurationViaTeamscale.retrieve(logger,
 				options.teamscaleServer.configId,
 				options.teamscaleServer.url,

@@ -44,10 +44,10 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 		logger.info("Upload method: {}", uploader.describe())
 		retryUnsuccessfulUploads(options, uploader)
 		generator = JaCoCoXmlReportGenerator(
-			options.getClassDirectoriesOrZips(),
+			options.classDirectoriesOrZips,
 			options.locationIncludeFilter,
-			options.getDuplicateClassFileBehavior(),
-			options.shouldIgnoreUncoveredClasses(),
+			options.duplicateClassFileBehavior,
+			options.ignoreUncoveredClasses,
 			LoggingUtils.wrap(logger)
 		)
 
@@ -58,7 +58,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 			}
 			logger.info("Dumping every ${options.dumpIntervalInMinutes} minutes.")
 		}
-		options.teamscaleServerOptions.partition?.let { partition ->
+		options.teamscaleServer.partition?.let { partition ->
 			controller.sessionId = partition
 		}
 	}
@@ -115,9 +115,9 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 
 	override fun prepareShutdown() {
 		timer?.cancel()
-		if (options.shouldDumpOnExit()) dumpReport()
+		if (options.shouldDumpOnExit) dumpReport()
 
-		val dir = options.outputDirectory
+		val dir = options.outputDirectory ?: return
 		try {
 			if (dir.listDirectoryEntries().isEmpty()) dir.deleteIfExists()
 		} catch (e: IOException) {

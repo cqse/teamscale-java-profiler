@@ -124,11 +124,11 @@ public class CoverageToTeamscaleStrategyTest {
 		} else {
 			server.commit = new CommitDescriptor("branch", "12345");
 		}
-		server.url = HttpUrl.get("http://doesnt-exist.io");
+		server.url = HttpUrl.get("https://doesnt-exist.io");
 		server.userName = "build";
 		server.userAccessToken = "token";
 		server.partition = "partition";
-		when(options.getTeamscaleServerOptions()).thenReturn(server);
+		options.teamscaleServer = server;
 
 		when(options.createTeamscaleClient(true)).thenReturn(client);
 		return options;

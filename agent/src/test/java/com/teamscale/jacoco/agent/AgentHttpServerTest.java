@@ -55,7 +55,7 @@ public class AgentHttpServerTest {
 
 		putText("/message", newMessage);
 
-		TeamscaleServer teamscaleServer = agent.options.getTeamscaleServerOptions();
+		TeamscaleServer teamscaleServer = agent.options.teamscaleServer;
 		assertThat(teamscaleServer.getMessage()).isEqualTo(newMessage);
 	}
 
@@ -74,7 +74,7 @@ public class AgentHttpServerTest {
 
 		putText("/partition", newPartition);
 
-		TeamscaleServer teamscaleServer = agent.options.getTeamscaleServerOptions();
+		TeamscaleServer teamscaleServer = agent.options.teamscaleServer;
 		assertThat(teamscaleServer.partition).isEqualTo(newPartition);
 	}
 

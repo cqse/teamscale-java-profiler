@@ -214,7 +214,9 @@ object GitPropertiesLocatorUtils {
 	@JvmStatic
 	@Throws(IOException::class, InvalidGitPropertiesException::class)
 	fun getProjectRevisionsFromGitProperties(
-		file: File, isJarFile: Boolean, recursiveSearch: Boolean,
+		file: File,
+		isJarFile: Boolean,
+		recursiveSearch: Boolean,
 		gitPropertiesCommitTimeFormat: DateTimeFormatter?
 	) = findGitPropertiesInFile(
 		file, isJarFile,

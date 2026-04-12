@@ -104,10 +104,10 @@ public abstract class TestEventHandlerStrategyBase {
 
 		Response<List<PrioritizableTestCluster>> response = teamscaleClient
 				.getImpactedTests(availableTestsWithClusterId, baseline, baselineRevision,
-						agentOptions.getTeamscaleServerOptions().commit,
-						agentOptions.getTeamscaleServerOptions().revision,
-						agentOptions.getTeamscaleServerOptions().repository,
-						Collections.singletonList(agentOptions.getTeamscaleServerOptions().partition),
+						agentOptions.teamscaleServer.commit,
+						agentOptions.teamscaleServer.revision,
+						agentOptions.teamscaleServer.repository,
+						Collections.singletonList(agentOptions.teamscaleServer.partition),
 						includeNonImpactedTests, includeAddedTests, includeFailedAndSkipped);
 		if (response.isSuccessful()) {
 			List<PrioritizableTestCluster> prioritizableTestClusters = response.body();
@@ -125,7 +125,7 @@ public abstract class TestEventHandlerStrategyBase {
 	 * Returns the partition defined in the agent options. Asserts that the partition is defined.
 	 */
 	private String getPartition() {
-		String partition = agentOptions.getTeamscaleServerOptions().partition;
+		String partition = agentOptions.teamscaleServer.partition;
 		if (partition == null) {
 			throw new UnsupportedOperationException(
 					"You must provide a partition via the agent's '" + TeamscaleConfig.TEAMSCALE_PARTITION_OPTION + "' option or using the /partition REST endpoint.");
@@ -139,7 +139,7 @@ public abstract class TestEventHandlerStrategyBase {
 					" Thus, you cannot use the agent to retrieve impacted tests via the testrun/start REST endpoint." +
 					" Please use the 'teamscale-' agent parameters to configure a Teamscale connection.");
 		}
-		if (!agentOptions.getTeamscaleServerOptions().hasCommitOrRevision()) {
+		if (!agentOptions.teamscaleServer.hasCommitOrRevision()) {
 			throw new UnsupportedOperationException(
 					"You must provide a revision or commit via the agent's '" + TeamscaleConfig.TEAMSCALE_REVISION_OPTION + "', '" +
 							TeamscaleConfig.TEAMSCALE_REVISION_MANIFEST_JAR_OPTION + "', '" + TeamscaleConfig.TEAMSCALE_COMMIT_OPTION +

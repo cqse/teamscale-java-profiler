@@ -96,9 +96,9 @@ class GitSingleProjectPropertiesLocator<T>(
 		/** Extracts data from the JAR.  */
 		@Throws(IOException::class, InvalidGitPropertiesException::class)
 		fun extractData(
-			file: File?, isJarFile: Boolean,
+			file: File, isJarFile: Boolean,
 			recursiveSearch: Boolean,
 			gitPropertiesCommitTimeFormat: DateTimeFormatter?
-		): MutableList<T>
+		): List<T>
 	}
 }

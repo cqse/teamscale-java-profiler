@@ -35,7 +35,6 @@ class DelayedUploader<T> internal constructor(
 	 * Visible for testing. Allows tests to control the [Executor] to test the
 	 * asynchronous functionality of this class.
 	 */
-	/* package */
 	init {
 		registerShutdownHook()
 	}

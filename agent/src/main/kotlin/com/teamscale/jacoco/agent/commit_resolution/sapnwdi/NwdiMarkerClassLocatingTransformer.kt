@@ -21,7 +21,7 @@ import java.util.stream.Collectors
 class NwdiMarkerClassLocatingTransformer(
 	private val store: DelayedSapNwdiMultiUploader,
 	private val locationIncludeFilter: ClasspathWildcardIncludeFilter,
-	apps: MutableCollection<SapNwdiApplication>
+	apps: List<SapNwdiApplication>
 ) : ClassFileTransformer {
 	private val logger = getLogger(this)
 	private val markerClassesToApplications =
