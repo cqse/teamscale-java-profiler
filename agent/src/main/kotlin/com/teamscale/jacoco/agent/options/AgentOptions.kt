@@ -433,9 +433,7 @@ open class AgentOptions(private val logger: ILogger) {
 		else -> EUploadMethod.LOCAL_DISK
 	}
 
-	/**
-	 * Creates an uploader for the coverage XMLs.
-	 */
+	/** Creates an uploader for the coverage XMLs. */
 	@Throws(UploaderException::class)
 	fun createUploader(instrumentation: Instrumentation?) = when (determineUploadMethod()) {
 		EUploadMethod.TEAMSCALE_MULTI_PROJECT -> createTeamscaleMultiProjectUploader(instrumentation)

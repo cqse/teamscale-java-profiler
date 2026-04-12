@@ -22,10 +22,6 @@ class JacocoAgentOptionsBuilder(private val agentOptions: AgentOptions) {
 		if (agentOptions.jacocoIncludes != null) {
 			builder.append(",includes=").append(agentOptions.jacocoIncludes)
 		}
-		if (agentOptions.jacocoExcludes != null) {
-			logger.debug("Using default excludes: ${AgentOptions.DEFAULT_EXCLUDES}")
-			builder.append(",excludes=").append(agentOptions.jacocoExcludes)
-		}
 
 		// Don't dump class files in testwise mode when coverage is written to an exec file
 		val needsClassFiles =
