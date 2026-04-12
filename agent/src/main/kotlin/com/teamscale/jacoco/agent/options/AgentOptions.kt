@@ -648,7 +648,7 @@ open class AgentOptions(private val logger: ILogger) {
 	 */
 	@Throws(IOException::class)
 	fun createNewFileInPartitionOutputDirectory(prefix: String, extension: String): File {
-		val partitionOutputDir: Path = outputDirectory!!.resolve(
+		val partitionOutputDir = outputDirectory!!.resolve(
 			safeFolderName(teamscaleServer.partition!!)
 		)
 		ensureDirectoryExists(partitionOutputDir.toFile())
@@ -684,24 +684,22 @@ open class AgentOptions(private val logger: ILogger) {
 		/**
 		 * Can be used to format [java.time.LocalDate] to the format "yyyy-MM-dd-HH-mm-ss.SSS"
 		 */
-		/* package */
-		val DATE_TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter
-			.ofPattern("yyyy-MM-dd-HH-mm-ss.SSS", Locale.ENGLISH)
+		val DATE_TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss.SSS", Locale.ENGLISH)
 
 		/**
 		 * The default excludes applied to JaCoCo. These are packages that should never be profiled. Excluding them makes
 		 * debugging traces easier and reduces trace size and warnings about unmatched classes in Teamscale.
 		 */
-		const val DEFAULT_EXCLUDES: String =
+		const val DEFAULT_EXCLUDES =
 			"shadow.*:com.sun.*:sun.*:org.eclipse.*:org.junit.*:junit.*:org.apache.*:org.slf4j.*:javax.*:org.gradle.*:java.*:org.jboss.*:org.wildfly.*:org.springframework.*:com.fasterxml.*:jakarta.*:org.aspectj.*:org.h2.*:org.hibernate.*:org.assertj.*:org.mockito.*:org.thymeleaf.*"
 
 		/** Option name that allows to specify a jar file that contains the git commit hash in a git.properties file.  */
-		const val GIT_PROPERTIES_JAR_OPTION: String = "git-properties-jar"
+		const val GIT_PROPERTIES_JAR_OPTION = "git-properties-jar"
 
 		/**
 		 * Specifies the date format in which the commit timestamp in the git.properties file is formatted.
 		 */
-		const val GIT_PROPERTIES_COMMIT_DATE_FORMAT_OPTION: String = "git-properties-commit-date-format"
+		const val GIT_PROPERTIES_COMMIT_DATE_FORMAT_OPTION = "git-properties-commit-date-format"
 
 		private fun safeFolderName(folderName: String): Path {
 			val result = folderName.replace("[<>:\"/|?*]".toRegex(), "")

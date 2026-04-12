@@ -81,6 +81,7 @@ class ConfigurationViaTeamscale(
 		try {
 			var response = teamscaleClient.unregisterProfiler(profilerId!!).execute()
 			if (response.code() == 405) {
+				@Suppress("DEPRECATION")
 				response = teamscaleClient.unregisterProfilerLegacy(profilerId).execute()
 			}
 			if (!response.isSuccessful) {

@@ -23,6 +23,9 @@ class JacocoAgentOptionsBuilder(private val agentOptions: AgentOptions) {
 			builder.append(",includes=").append(agentOptions.jacocoIncludes)
 		}
 
+		logger.debug("Using default excludes: ${AgentOptions.DEFAULT_EXCLUDES}")
+		builder.append(",excludes=").append(agentOptions.jacocoExcludes)
+
 		// Don't dump class files in testwise mode when coverage is written to an exec file
 		val needsClassFiles =
 			agentOptions.mode == EMode.NORMAL || agentOptions.testwiseCoverageMode != ETestwiseCoverageMode.EXEC_FILE

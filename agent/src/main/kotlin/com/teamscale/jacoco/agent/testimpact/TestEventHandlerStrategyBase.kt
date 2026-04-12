@@ -60,6 +60,7 @@ abstract class TestEventHandlerStrategyBase protected constructor(
 			testExecution.uniformPath = test
 			if (startTimestamp != -1L) {
 				val endTimestamp = System.currentTimeMillis()
+				@Suppress("DEPRECATION")
 				testExecution.durationMillis = endTimestamp - startTimestamp
 			}
 		}

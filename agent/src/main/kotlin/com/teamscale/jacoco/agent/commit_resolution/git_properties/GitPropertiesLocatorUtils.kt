@@ -9,6 +9,7 @@ import com.teamscale.report.util.BashFileSkippingInputStream
 import java.io.File
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
+import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
 import java.nio.file.Files
@@ -168,8 +169,7 @@ object GitPropertiesLocatorUtils {
 		// vfs:/content/helloworld.war/WEB-INF/classes
 		// Next, we try to extract the artefact URL from it, e.g., vfs:/content/helloworld.war
 		val artefactUrl = extractArtefactUrl(jarOrClassFolderUrl)
-
-		val virtualFile = URL(artefactUrl).openConnection().getContent()
+		val virtualFile = URI.create(artefactUrl).toURL().openConnection().getContent()
 		// obtain the physical location of the class file. It is created on demand in <jboss-installation-dir>/standalone/tmp/vfs
 		val getPhysicalFileMethod = virtualFile.javaClass.getMethod("getPhysicalFile")
 		val file = getPhysicalFileMethod.invoke(virtualFile) as File
