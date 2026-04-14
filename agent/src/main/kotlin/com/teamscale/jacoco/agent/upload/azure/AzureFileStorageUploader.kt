@@ -34,7 +34,7 @@ import kotlin.text.lowercase
 /** Uploads the coverage archive to a provided azure file storage.  */
 class AzureFileStorageUploader(
 	config: AzureFileStorageConfig,
-	additionalMetaDataFiles: MutableList<Path>
+	additionalMetaDataFiles: List<Path>
 ) : HttpZipUploaderBase<IAzureUploadApi>(
 	config.url!!,
 	additionalMetaDataFiles,

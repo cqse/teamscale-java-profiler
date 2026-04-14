@@ -29,7 +29,7 @@ import kotlin.Throws
  */
 class ArtifactoryUploader(
 	private val artifactoryConfig: ArtifactoryConfig,
-	additionalMetaDataFiles: MutableList<Path>,
+	additionalMetaDataFiles: List<Path>,
 	reportFormat: EReportFormat
 ) : HttpZipUploaderBase<IArtifactoryUploadApi>(
 	artifactoryConfig.url!!,

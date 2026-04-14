@@ -25,7 +25,7 @@ abstract class HttpZipUploaderBase<T>
 	@JvmField
 	protected var uploadUrl: HttpUrl,
 	/** Additional files to include in the uploaded zip.  */
-	protected val additionalMetaDataFiles: MutableList<Path>,
+	protected val additionalMetaDataFiles: List<Path>,
 	/** The API class.  */
 	private val apiClass: Class<T>
 ) : IUploader {
@@ -132,7 +132,7 @@ abstract class HttpZipUploaderBase<T>
 		zipOutputStream.putNextEntry(ZipEntry(getZipEntryCoverageFileName(coverageFile)))
 		coverageFile.copyStream(zipOutputStream)
 
-		for (additionalFile in additionalMetaDataFiles) {
+		additionalMetaDataFiles.forEach { additionalFile ->
 			zipOutputStream.putNextEntry(ZipEntry(additionalFile.fileName.toString()))
 			zipOutputStream.write(readFileBinary(additionalFile.toFile()))
 		}

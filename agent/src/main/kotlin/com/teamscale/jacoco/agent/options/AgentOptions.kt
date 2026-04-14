@@ -102,23 +102,19 @@ open class AgentOptions(private val logger: ILogger) {
 	/** Contains the options related to teamscale-specific proxy settings for https.  */
 	var teamscaleProxyOptionsForHttps: TeamscaleProxyOptions?
 
-	/**
-	 * Additional metadata files to upload together with the coverage XML.
-	 */
+	/** Additional metadata files to upload together with the coverage XML. */
 	@JvmField
-	var additionalMetaDataFiles = mutableListOf<Path>()
+	var additionalMetaDataFiles = listOf<Path>()
 
 	/** Whether the agent should be run in testwise coverage mode or normal mode.  */
 	@JvmField
 	var mode = EMode.NORMAL
 
-	/**
-	 * The interval in minutes for dumping XML data.
-	 */
+	/** The interval in minutes for dumping XML data. */
 	@JvmField
 	var dumpIntervalInMinutes = 480
 
-	/** Whether to dump coverage when the JVM shuts down.  */
+	/** Whether to dump coverage when the JVM shuts down. */
 	@JvmField
 	var shouldDumpOnExit = true
 
@@ -158,7 +154,7 @@ open class AgentOptions(private val logger: ILogger) {
 	 * Additional user-provided options to pass to JaCoCo.
 	 */
 	@JvmField
-	var additionalJacocoOptions = listOf<Pair<String, String>>()
+	var additionalJacocoOptions = mutableListOf<Pair<String, String>>()
 
 	/**
 	 * The teamscale server to which coverage should be uploaded.

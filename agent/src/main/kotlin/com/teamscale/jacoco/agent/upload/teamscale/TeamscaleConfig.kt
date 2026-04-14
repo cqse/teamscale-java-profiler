@@ -54,9 +54,8 @@ class TeamscaleConfig(
 				return true
 			}
 			TEAMSCALE_COMMIT_MANIFEST_JAR_OPTION -> {
-				teamscaleServer.commit = getCommitFromManifest(
-					AgentOptionsParser.parsePath(filePatternResolver, key, value).toFile()
-				)
+				val path = AgentOptionsParser.parsePath(filePatternResolver, key, value) ?: return false
+				teamscaleServer.commit = getCommitFromManifest(path.toFile())
 				return true
 			}
 			"teamscale-message" -> {
@@ -72,9 +71,8 @@ class TeamscaleConfig(
 				return true
 			}
 			TEAMSCALE_REVISION_MANIFEST_JAR_OPTION -> {
-				teamscaleServer.revision = getRevisionFromManifest(
-					AgentOptionsParser.parsePath(filePatternResolver, key, value).toFile()
-				)
+				val path = AgentOptionsParser.parsePath(filePatternResolver, key, value) ?: return false
+				teamscaleServer.revision = getRevisionFromManifest(path.toFile())
 				return true
 			}
 			else -> return false

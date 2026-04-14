@@ -53,7 +53,7 @@ object PreMain {
 	 */
 	@JvmStatic
 	@Throws(Exception::class)
-	fun premain(options: String?, instrumentation: Instrumentation) {
+	fun premain(options: String, instrumentation: Instrumentation) {
 		if (System.getProperty(LOCKING_SYSTEM_PROPERTY) != null) return
 		System.setProperty(LOCKING_SYSTEM_PROPERTY, "true")
 
@@ -74,7 +74,7 @@ object PreMain {
 
 			// After parsing everything and configuring logging, we now
 			// can throw the caught exceptions.
-			parseResult.second?.forEach { exception ->
+			parseResult.second.forEach { exception ->
 				throw exception
 			}
 		} catch (e: AgentOptionParseException) {
@@ -106,10 +106,10 @@ object PreMain {
 
 	@Throws(AgentOptionParseException::class, IOException::class, AgentOptionReceiveException::class)
 	private fun getAndApplyAgentOptions(
-		options: String?,
+		options: String,
 		environmentConfigId: String?,
 		environmentConfigFile: String?
-	): Pair<AgentOptions, MutableList<Exception>?> {
+	): Pair<AgentOptions, List<Exception>> {
 		val delayedLogger = DelayedLogger()
 		val javaAgents = ManagementFactory.getRuntimeMXBean().inputArguments
 			.filter { it.contains("-javaagent") }
@@ -138,7 +138,7 @@ object PreMain {
 
 		val environmentAccessToken = System.getenv(ACCESS_TOKEN_ENVIRONMENT_VARIABLE)
 
-		val parseResult: Pair<AgentOptions, MutableList<Exception>>
+		val parseResult: Pair<AgentOptions, List<Exception>>
 		val agentOptions: AgentOptions
 		try {
 			parseResult = AgentOptionsParser.parse(
