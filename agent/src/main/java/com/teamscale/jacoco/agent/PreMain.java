@@ -59,7 +59,9 @@ public class PreMain {
 	private static final String ACCESS_TOKEN_ENVIRONMENT_VARIABLE = "TEAMSCALE_ACCESS_TOKEN";
 
 	/**
-	 * Entry point for the agent, called by the JVM.
+	 * Entry point for the agent, called by the JVM. If this method throws an exception, the JVM will abort the
+	 * entire application. Therefore, configuration errors must be handled gracefully by returning normally, which
+	 * allows the application to start without coverage collection.
 	 */
 	public static void premain(String options, Instrumentation instrumentation) throws Exception {
 		if (System.getProperty(LOCKING_SYSTEM_PROPERTY) != null) {
@@ -87,8 +89,6 @@ public class PreMain {
 				throw exception;
 			}
 		} catch (AgentOptionParseException e) {
-			getLoggerContext().getLogger(PreMain.class).error(e.getMessage(), e);
-
 			// Flush logs to Teamscale, if configured.
 			closeLoggingResources();
 
@@ -97,7 +97,9 @@ public class PreMain {
 				agentOptions.configurationViaTeamscale.unregisterProfiler();
 			}
 
-			throw e;
+			// Don't crash the profiled application due to a configuration error
+			// (see TS-43260). The error has already been logged in getAndApplyAgentOptions.
+			return;
 		} catch (AgentOptionReceiveException e) {
 			// When Teamscale is not available, we don't want to fail hard to still allow for testing even if no
 			// coverage is collected (see TS-33237)
@@ -158,7 +160,9 @@ public class PreMain {
 			agentOptions = parseResult.getFirst();
 		} catch (AgentOptionParseException e) {
 			try (LoggingUtils.LoggingResources ignored = initializeFallbackLogging(options, delayedLogger)) {
-				delayedLogger.errorAndStdErr("Failed to parse agent options: " + e.getMessage(), e);
+				delayedLogger.errorAndStdErr(
+						"Failed to parse agent options: " + e.getMessage() + " The application should start up normally, but NO coverage will be collected!",
+						e);
 				attemptLogAndThrow(delayedLogger);
 				throw e;
 			}
@@ -206,7 +210,9 @@ public class PreMain {
 
 	/** Closes the opened logging contexts. */
 	static void closeLoggingResources() {
-		loggingResources.close();
+		if (loggingResources != null) {
+			loggingResources.close();
+		}
 	}
 
 	/**

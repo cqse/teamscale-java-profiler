@@ -410,8 +410,18 @@ public class AgentOptionsParser {
 			return;
 		}
 		if (!options.teamscaleServer.isConfiguredForServerConnection()) {
+			List<String> missingOptions = new ArrayList<>();
+			if (options.teamscaleServer.url == null) {
+				missingOptions.add("teamscale-server-url");
+			}
+			if (options.teamscaleServer.userName == null) {
+				missingOptions.add("teamscale-user");
+			}
+			if (options.teamscaleServer.userAccessToken == null) {
+				missingOptions.add("teamscale-access-token");
+			}
 			throw new AgentOptionParseException(
-					"Config-id '" + options.teamscaleServer.configId + "' specified without teamscale url/user/accessKey! These options must be provided locally via config-file or command line argument.");
+					"Config-id '" + options.teamscaleServer.configId + "' specified but the following required option(s) are missing: " + String.join(", ", missingOptions) + ". These options must be provided locally via config-file or command line argument.");
 		}
 		// Set ssl validation option in case it needs to be off before trying to reach Teamscale.
 		HttpUtils.setShouldValidateSsl(options.shouldValidateSsl());

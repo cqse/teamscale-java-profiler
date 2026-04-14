@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _agent_: The profiled application no longer crashes when the profiler configuration is invalid (e.g., missing `teamscale-user`). Instead, the application starts normally without coverage collection. The error message now also lists which specific options are missing.
 - [feature] _teamscale-gradle-plugin_: Annotated tasks with `@DisableCachingByDefault` where caching can't be applied
 
 # 36.4.0
