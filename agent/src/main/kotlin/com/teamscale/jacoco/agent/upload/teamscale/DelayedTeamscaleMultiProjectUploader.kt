@@ -10,7 +10,7 @@ import java.util.function.BiFunction
 
 /** Wrapper for [TeamscaleUploader] that allows to upload the same coverage file to multiple Teamscale projects.  */
 class DelayedTeamscaleMultiProjectUploader(
-	private val teamscaleServerFactory: BiFunction<String?, CommitInfo?, TeamscaleServer>
+	private val teamscaleServerFactory: (String?, CommitInfo?) -> TeamscaleServer
 ) : DelayedMultiUploaderBase(), IUploader {
 	@JvmField
 	val teamscaleUploaders = mutableListOf<TeamscaleUploader>()
@@ -20,7 +20,7 @@ class DelayedTeamscaleMultiProjectUploader(
 	 * commit are already registered as an upload target and will prevent duplicate uploads.
 	 */
 	fun addTeamscaleProjectAndCommit(file: File, projectAndCommit: ProjectAndCommit) {
-		val teamscaleServer = teamscaleServerFactory.apply(
+		val teamscaleServer = teamscaleServerFactory(
 			projectAndCommit.project,
 			projectAndCommit.commitInfo
 		)

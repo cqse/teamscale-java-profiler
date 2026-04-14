@@ -496,13 +496,12 @@ open class AgentOptions(private val logger: ILogger) {
 	private fun createTeamscaleMultiProjectUploader(
 		instrumentation: Instrumentation?
 	): DelayedTeamscaleMultiProjectUploader {
-		val uploader = DelayedTeamscaleMultiProjectUploader(
-			BiFunction { project, commitInfo ->
+		val uploader = DelayedTeamscaleMultiProjectUploader { project, commitInfo ->
 				if (commitInfo!!.preferCommitDescriptorOverRevision || isEmpty(commitInfo.revision)) {
-					return@BiFunction teamscaleServer.withProjectAndCommit(project!!, commitInfo.commit!!)
+					return@DelayedTeamscaleMultiProjectUploader teamscaleServer.withProjectAndCommit(project!!, commitInfo.commit!!)
 				}
 				teamscaleServer.withProjectAndRevision(project!!, commitInfo.revision!!)
-			})
+			}
 
 		gitPropertiesJar?.let { jar ->
 			logger.info(
