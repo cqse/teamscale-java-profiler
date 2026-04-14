@@ -37,8 +37,16 @@ abstract class JaCoCoBasedReportGenerator<Visitor : ICoverageVisitor>(
 	private val duplicateClassFileBehavior: EDuplicateClassFileBehavior,
 	private val ignoreUncoveredClasses: Boolean,
 	private val logger: ILogger,
-	/** The coverage visitor which will be called with all the data found in the exec files. */
-	protected val coverageVisitor: Visitor,
+	/**
+	 * Supplier that creates a fresh coverage visitor for each dump. This is a supplier rather than
+	 * a plain instance because [EnhancedCoverageVisitor] and the coverage visitor must share the
+	 * same lifecycle: both are created per [convertSingleDumpToReport] call. If the coverage visitor
+	 * were reused across dumps, it would still carry class IDs from a previous dump, and a class
+	 * that reappears with a different CRC64 (for example, after an application server hot-reload)
+	 * would crash inside JaCoCo's CoverageBuilder instead of being handled by our duplicate
+	 * detection in [EnhancedCoverageVisitor].
+	 */
+	private val coverageVisitorSupplier: () -> Visitor,
 ) {
 
 	/**
@@ -50,9 +58,10 @@ abstract class JaCoCoBasedReportGenerator<Visitor : ICoverageVisitor>(
 	fun convertSingleDumpToReport(dump: Dump, outputFilePath: File): CoverageFile {
 		val coverageFile = CoverageFile(outputFilePath)
 		val mergedStore = dump.store
-		analyzeStructureAndAnnotateCoverage(mergedStore)
+		val coverageVisitor = coverageVisitorSupplier()
+		analyzeStructureAndAnnotateCoverage(mergedStore, coverageVisitor)
 		coverageFile.outputStream.use { outputStream ->
-			createReport(outputStream, dump.info, mergedStore)
+			createReport(outputStream, dump.info, mergedStore, coverageVisitor)
 		}
 		return coverageFile
 	}
@@ -69,12 +78,19 @@ abstract class JaCoCoBasedReportGenerator<Visitor : ICoverageVisitor>(
 		convertSingleDumpToReport(Dump(sessionInfo, loader.executionDataStore), outputFilePath)
 	}
 
-	/** Creates an XML report based on the given session and coverage data.  */
+	/**
+	 * Creates an XML report based on the given session and coverage data.
+	 *
+	 * @param coverageVisitor The visitor that was populated during [analyzeStructureAndAnnotateCoverage] for this dump.
+	 *   Passed as a parameter (rather than being a field) because a fresh instance is created per dump via
+	 *   [coverageVisitorSupplier].
+	 */
 	@Throws(IOException::class)
 	protected abstract fun createReport(
 		output: OutputStream,
 		sessionInfo: SessionInfo?,
-		store: ExecutionDataStore
+		store: ExecutionDataStore,
+		coverageVisitor: Visitor
 	)
 
 	/**
@@ -87,15 +103,23 @@ abstract class JaCoCoBasedReportGenerator<Visitor : ICoverageVisitor>(
 	 * throws `IllegalStateException` regardless of the configured [duplicateClassFileBehavior].
 	 */
 	@Throws(IOException::class)
-	private fun analyzeStructureAndAnnotateCoverage(store: ExecutionDataStore) {
-		val visitor = EnhancedCoverageVisitor()
+	private fun analyzeStructureAndAnnotateCoverage(store: ExecutionDataStore, coverageVisitor: Visitor) {
+		val visitor = EnhancedCoverageVisitor(coverageVisitor)
 		codeDirectoriesOrArchives.forEach { file ->
 			FilteringAnalyzer(store, visitor, locationIncludeFilter, logger)
 				.analyzeAll(file)
 		}
 	}
 
-	private inner class EnhancedCoverageVisitor : ICoverageVisitor {
+	/**
+	 * Wrapper around the actual coverage visitor (typically JaCoCo's [org.jacoco.core.analysis.CoverageBuilder] or
+	 * [com.teamscale.report.compact.TeamscaleCompactCoverageBuilder]) that intercepts duplicate, non-identical class
+	 * files before they reach the wrapped visitor. Without this, duplicates would hit `CoverageBuilder` directly,
+	 * which always throws `IllegalStateException` regardless of the configured [duplicateClassFileBehavior].
+	 */
+	private inner class EnhancedCoverageVisitor(
+		private val coverageVisitor: Visitor
+	) : ICoverageVisitor {
 
 		private val classIdByClassName: MutableMap<String, Long> = mutableMapOf()
 
@@ -108,6 +132,7 @@ abstract class JaCoCoBasedReportGenerator<Visitor : ICoverageVisitor>(
 				warnAboutDuplicateClassFile(coverage)
 				return
 			}
+
 			coverageVisitor.visitCoverage(coverage)
 		}
 

@@ -110,15 +110,12 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 	}
 
 	/**
-	 * Verifies that reusing a single [JaCoCoXmlReportGenerator] across multiple dumps crashes when the class files
-	 * change between dumps (for example, due to an application server reload). The internal [CoverageBuilder] retains
-	 * class IDs from the first dump and throws [IllegalStateException] when it encounters a different ID for the same
-	 * class name.
-	 *
-	 * This documents why the agent must create a fresh generator per dump (see [Agent.dumpReportUnsafe]).
+	 * Verifies that reusing a single [JaCoCoXmlReportGenerator] across multiple dumps works even when the class files
+	 * change between dumps (for example, due to an application server reload). The generator creates a fresh
+	 * [CoverageBuilder] for each dump via its supplier, so no state leaks between dumps.
 	 */
 	@Test
-	fun testReusedGeneratorCrashesWhenClassFilesChangeBetweenDumps() {
+	fun testReusedGeneratorHandlesClassFileChangesBetweenDumps() {
 		val sourceA = useTestFile("different-duplicate-classes" + File.separator + "a")
 		val sourceB = useTestFile("different-duplicate-classes" + File.separator + "b")
 
@@ -137,7 +134,7 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 				Mockito.mock()
 			)
 
-			// First dump succeeds (CoverageBuilder stores CRC64-A for TestClass)
+			// First dump succeeds
 			try {
 				generator.convertSingleDumpToReport(
 					createDummyDump(), File(tempDir, "output-1.xml")
@@ -150,13 +147,14 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 			tempDir.listFiles()!!.filter { it.name != "output-1.xml" }.forEach { it.delete() }
 			sourceB.listFiles()!!.forEach { it.copyTo(File(tempDir, it.name)) }
 
-			// Second dump on the SAME generator crashes because CoverageBuilder retained CRC64-A but now sees CRC64-B
-			assertThatThrownBy {
+			// Second dump on the SAME generator succeeds because each dump gets a fresh CoverageBuilder
+			try {
 				generator.convertSingleDumpToReport(
 					createDummyDump(), File(tempDir, "output-2.xml")
 				)
-			}.isExactlyInstanceOf(IOException::class.java)
-				.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
+			} catch (e: EmptyReportException) {
+				// Expected: dummy dump class IDs don't match actual class files
+			}
 		} finally {
 			tempDir.deleteRecursively()
 		}

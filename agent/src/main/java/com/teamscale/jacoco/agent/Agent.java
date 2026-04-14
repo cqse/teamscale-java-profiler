@@ -184,9 +184,6 @@ public class Agent extends AgentBase {
 			return;
 		}
 
-		// Created fresh per dump so its CoverageBuilder does not carry class IDs from previous dumps.
-		// Without this, application server reloads (for example, JBoss) cause an IllegalStateException
-		// because the reloaded class has a different CRC64 than what CoverageBuilder stored earlier.
 		JaCoCoXmlReportGenerator generator = new JaCoCoXmlReportGenerator(
 				options.getClassDirectoriesOrZips(), options.getLocationIncludeFilter(),
 				options.getDuplicateClassFileBehavior(), options.shouldIgnoreUncoveredClasses(), wrap(logger));
