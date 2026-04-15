@@ -61,6 +61,7 @@ dependencies {
 	testImplementation(project(":tia-client"))
 	testImplementation(libs.retrofit.converter.jackson)
 	testImplementation(libs.okhttp.mockwebserver)
+	testImplementation(libs.mockito.kotlin)
 }
 
 application {
