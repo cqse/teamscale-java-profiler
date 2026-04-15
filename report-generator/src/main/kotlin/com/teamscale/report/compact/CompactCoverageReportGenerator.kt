@@ -30,7 +30,7 @@ class CompactCoverageReportGenerator(
 	duplicateClassFileBehavior,
 	true,
 	logger,
-	TeamscaleCompactCoverageBuilder()
+	{ TeamscaleCompactCoverageBuilder() }
 ) {
 
 	/** Creates an XML report based on the given session and coverage data.  */
@@ -38,7 +38,8 @@ class CompactCoverageReportGenerator(
 	override fun createReport(
 		output: OutputStream,
 		sessionInfo: SessionInfo?,
-		store: ExecutionDataStore
+		store: ExecutionDataStore,
+		coverageVisitor: TeamscaleCompactCoverageBuilder
 	) {
 		val compactReportData = coverageVisitor.buildReport()
 		compactReportData.checkForEmptyReport()

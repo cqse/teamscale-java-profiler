@@ -34,7 +34,7 @@ class JaCoCoXmlReportGenerator(
 	duplicateClassFileBehavior,
 	ignoreUncoveredClasses,
 	logger,
-	CoverageBuilder()
+	{ CoverageBuilder() }
 ) {
 
 	/** Creates an XML report based on the given session and coverage data.  */
@@ -42,7 +42,8 @@ class JaCoCoXmlReportGenerator(
 	override fun createReport(
 		output: OutputStream,
 		sessionInfo: SessionInfo?,
-		store: ExecutionDataStore
+		store: ExecutionDataStore,
+		coverageVisitor: CoverageBuilder
 	) {
 		val bundleCoverage = BundleCoverageImpl("dummybundle", emptyList(), coverageVisitor.sourceFiles)
 		bundleCoverage.checkForEmptyReport()

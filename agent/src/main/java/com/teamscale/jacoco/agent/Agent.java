@@ -40,9 +40,6 @@ import static com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader.RETR
  */
 public class Agent extends AgentBase {
 
-	/** Converts binary data to XML. */
-	private final JaCoCoXmlReportGenerator generator;
-
 	/** Regular dump task. */
 	private Timer timer;
 
@@ -57,9 +54,6 @@ public class Agent extends AgentBase {
 		uploader = options.createUploader(instrumentation);
 		logger.info("Upload method: {}", uploader.describe());
 		retryUnsuccessfulUploads(options, uploader);
-		generator = new JaCoCoXmlReportGenerator(options.getClassDirectoriesOrZips(),
-				options.getLocationIncludeFilter(), options.getDuplicateClassFileBehavior(),
-				options.shouldIgnoreUncoveredClasses(), wrap(logger));
 
 		if (options.shouldDumpInIntervals()) {
 			timer = new Timer(this::dumpReport, Duration.ofMinutes(options.getDumpIntervalInMinutes()));
@@ -165,9 +159,11 @@ public class Agent extends AgentBase {
 	/**
 	 * Dumps the current execution data, converts it, writes it to the output directory defined in {@link #options} and
 	 * uploads it if an uploader is configured. Logs any errors, never throws an exception.
+	 * <p>
+	 * Synchronized because this can be triggered concurrently by the timer and by the HTTP /dump endpoint.
 	 */
 	@Override
-	public void dumpReport() {
+	public synchronized void dumpReport() {
 		logger.debug("Starting dump");
 
 		try {
@@ -187,6 +183,10 @@ public class Agent extends AgentBase {
 			logger.error("Dumping failed, retrying later", e);
 			return;
 		}
+
+		JaCoCoXmlReportGenerator generator = new JaCoCoXmlReportGenerator(
+				options.getClassDirectoriesOrZips(), options.getLocationIncludeFilter(),
+				options.getDuplicateClassFileBehavior(), options.shouldIgnoreUncoveredClasses(), wrap(logger));
 
 		try (Benchmark ignored = new Benchmark("Generating the XML report")) {
 			File outputFile = options.createNewFileInOutputDirectory("jacoco", "xml");

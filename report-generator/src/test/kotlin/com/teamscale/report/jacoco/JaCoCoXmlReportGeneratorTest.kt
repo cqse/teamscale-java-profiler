@@ -77,6 +77,89 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 		}
 	}
 
+	/**
+	 * Ensures that two non-identical, duplicate classes in separate archives (directories) do not cause an exception
+	 * with the default WARN behavior. This tests the scenario where the same class exists in multiple JARs/WARs,
+	 * for example, during an application server reload where both old and new deployments coexist.
+	 */
+	@Test
+	fun testDuplicateClassesAcrossSeparateArchivesShouldNotCrashWithWarn() {
+		try {
+			runGeneratorWithMultipleArchives(
+				"different-duplicate-classes",
+				EDuplicateClassFileBehavior.WARN
+			)
+		} catch (e: EmptyReportException) {
+			// Expected: we don't configure matching class IDs. We only verify no IllegalStateException is thrown.
+		}
+	}
+
+	/**
+	 * Ensures that two non-identical, duplicate classes in separate archives (directories) cause an exception
+	 * when FAIL behavior is configured.
+	 */
+	@Test
+	fun testDuplicateClassesAcrossSeparateArchivesShouldThrowWithFail() {
+		assertThatThrownBy {
+			runGeneratorWithMultipleArchives(
+				"different-duplicate-classes",
+				EDuplicateClassFileBehavior.FAIL
+			)
+		}.isExactlyInstanceOf(IOException::class.java)
+			.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
+	}
+
+	/**
+	 * Verifies that reusing a single [JaCoCoXmlReportGenerator] across multiple dumps works even when the class files
+	 * change between dumps (for example, due to an application server reload). The generator creates a fresh
+	 * [CoverageBuilder] for each dump via its supplier, so no state leaks between dumps.
+	 */
+	@Test
+	fun testReusedGeneratorHandlesClassFileChangesBetweenDumps() {
+		val sourceA = useTestFile("different-duplicate-classes" + File.separator + "a")
+		val sourceB = useTestFile("different-duplicate-classes" + File.separator + "b")
+
+		// Create a temp directory that simulates the JaCoCo class dump directory
+		val tempDir = Files.createTempDirectory("reuse-generator-test").toFile()
+
+		try {
+			// Start with version A of TestClass
+			sourceA.listFiles()!!.forEach { it.copyTo(File(tempDir, it.name)) }
+
+			val generator = JaCoCoXmlReportGenerator(
+				listOf(tempDir),
+				ClasspathWildcardIncludeFilter(null, null),
+				EDuplicateClassFileBehavior.WARN,
+				false,
+				Mockito.mock()
+			)
+
+			// First dump succeeds
+			try {
+				generator.convertSingleDumpToReport(
+					createDummyDump(), File(tempDir, "output-1.xml")
+				)
+			} catch (e: EmptyReportException) {
+				// Expected: dummy dump class IDs don't match actual class files
+			}
+
+			// Replace with version B of TestClass (different bytecode, different CRC64)
+			tempDir.listFiles()!!.filter { it.name != "output-1.xml" }.forEach { it.delete() }
+			sourceB.listFiles()!!.forEach { it.copyTo(File(tempDir, it.name)) }
+
+			// Second dump on the SAME generator succeeds because each dump gets a fresh CoverageBuilder
+			try {
+				generator.convertSingleDumpToReport(
+					createDummyDump(), File(tempDir, "output-2.xml")
+				)
+			} catch (e: EmptyReportException) {
+				// Expected: dummy dump class IDs don't match actual class files
+			}
+		} finally {
+			tempDir.deleteRecursively()
+		}
+	}
+
 	@Test
 	fun testEmptyCoverageFileThrowsException() {
 		val testFolderName = "empty-report-handling"
@@ -162,6 +245,31 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 			filter,
 			duplicateClassFileBehavior,
 			ignoreUncoveredClasses,
+			Mockito.mock()
+		).convertSingleDumpToReport(dump, Paths.get(outputFilePath).toFile())
+	}
+
+	/**
+	 * Runs the report generator with each subdirectory of the test data folder as a separate archive entry.
+	 * This simulates the case where the same class exists in multiple JARs/WARs (for example, after an application
+	 * server reload where both old and new deployments coexist on the classpath).
+	 */
+	@Throws(IOException::class, EmptyReportException::class)
+	private fun runGeneratorWithMultipleArchives(
+		testDataFolder: String,
+		duplicateClassFileBehavior: EDuplicateClassFileBehavior,
+		dump: Dump = createDummyDump()
+	): CoverageFile {
+		val parentFolder = useTestFile(testDataFolder)
+		val subdirectories = parentFolder.listFiles { file -> file.isDirectory }?.toList()
+			?: error("No subdirectories found in $parentFolder")
+		val currentTime = System.currentTimeMillis()
+		val outputFilePath = "test-coverage-multi-archive-$currentTime.xml"
+		return JaCoCoXmlReportGenerator(
+			subdirectories,
+			ClasspathWildcardIncludeFilter(null, null),
+			duplicateClassFileBehavior,
+			false,
 			Mockito.mock()
 		).convertSingleDumpToReport(dump, Paths.get(outputFilePath).toFile())
 	}
