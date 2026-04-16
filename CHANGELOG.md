@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [feature] _agent_: Renamed the docker image to `cqse/teamscale-java-profiler` and added support for the `linux/arm64` platform
 
 # 36.4.1
 - [fix] _agent_: Fixed `IllegalStateException: Can't add different class with same name` when application servers like JBoss perform a reload without full restart or when duplicate class files exist across multiple archives

@@ -17,8 +17,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-#      - name: Build with Gradle
-#        run: ./gradlew build
+      - name: Build with Gradle
+        run: ./gradlew build
       - name: Upload Release Assets
         if: startsWith(github.ref, 'refs/tags/v')
         uses: svenstaro/upload-release-action@v2
@@ -48,11 +48,10 @@ jobs:
             -PsonatypeUsername=${{ secrets.SONATYPE_USER }} \
             -PsonatypePassword=${{ secrets.SONATYPE_PASSWORD }}
       - name: Push Docker Image to DockerHub
-        # TODO: uncomment before merging
-        # if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          ./gradlew :agent:pushOciImage --registry=dockerHub
-          ./gradlew :agent:pushOciImage --registry=dockerHub -PociImageTag=latest
+          ./gradlew :agent:pushOciImage :agent:pushLegacyOciImage --registry=dockerHub
+          ./gradlew :agent:pushOciImage :agent:pushLegacyOciImage --registry=dockerHub -PociImageTag=latest
         env:
           ORG_GRADLE_PROJECT_dockerHubUsername: ${{ secrets.DOCKERHUB_USER }}
           ORG_GRADLE_PROJECT_dockerHubPassword: ${{ secrets.DOCKERHUB_TOKEN }}
