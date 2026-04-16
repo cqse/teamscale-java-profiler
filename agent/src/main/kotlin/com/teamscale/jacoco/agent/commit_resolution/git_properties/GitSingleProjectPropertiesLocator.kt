@@ -16,7 +16,7 @@ import java.util.concurrent.Executors
 class GitSingleProjectPropertiesLocator<T>(
 	private val uploader: DelayedUploader<T>,
 	private val recursiveSearch: Boolean,
-	private val gitPropertiesCommitTimeFormat: DateTimeFormatter?,
+	private val gitPropertiesCommitTimeFormat: DateTimeFormatter? = null,
 	private val executor: Executor = Executors.newSingleThreadExecutor(
 		DaemonThreadFactory(
 			GitSingleProjectPropertiesLocator::class.java,
