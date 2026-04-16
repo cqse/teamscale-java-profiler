@@ -15,28 +15,19 @@ import java.util.concurrent.Executors
  */
 class GitSingleProjectPropertiesLocator<T>(
 	private val uploader: DelayedUploader<T>,
-	private val dataExtractor: DataExtractor<T>,
-	private val executor: Executor,
 	private val recursiveSearch: Boolean,
-	private val gitPropertiesCommitTimeFormat: DateTimeFormatter?
+	private val gitPropertiesCommitTimeFormat: DateTimeFormatter?,
+	private val executor: Executor = Executors.newSingleThreadExecutor(
+		DaemonThreadFactory(
+			GitSingleProjectPropertiesLocator::class.java,
+			"git.properties Jar scanner thread"
+		)
+	),
+	private val dataExtractor: DataExtractor<T>
 ) : IGitPropertiesLocator {
 	private val logger = getLogger(this)
 	private var foundData: T? = null
 	private var jarFileWithGitProperties: File? = null
-
-	constructor(
-		uploader: DelayedUploader<T>,
-		dataExtractor: DataExtractor<T>,
-		recursiveSearch: Boolean,
-		gitPropertiesCommitTimeFormat: DateTimeFormatter?
-	) : this(
-		uploader, dataExtractor, Executors.newSingleThreadExecutor(
-				DaemonThreadFactory(
-					GitSingleProjectPropertiesLocator::class.java,
-					"git.properties Jar scanner thread"
-				)
-			), recursiveSearch, gitPropertiesCommitTimeFormat
-	)
 
 	/**
 	 * Asynchronously searches the given jar file for a git.properties file.
@@ -96,7 +87,8 @@ class GitSingleProjectPropertiesLocator<T>(
 		/** Extracts data from the JAR.  */
 		@Throws(IOException::class, InvalidGitPropertiesException::class)
 		fun extractData(
-			file: File, isJarFile: Boolean,
+			file: File,
+			isJarFile: Boolean,
 			recursiveSearch: Boolean,
 			gitPropertiesCommitTimeFormat: DateTimeFormatter?
 		): List<T>

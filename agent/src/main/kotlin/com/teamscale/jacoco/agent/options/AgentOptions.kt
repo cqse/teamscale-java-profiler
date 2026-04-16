@@ -525,31 +525,27 @@ open class AgentOptions(private val logger: ILogger) {
 		uploader: DelayedUploader<ProjectAndCommit>,
 		gitPropertiesJar: File
 	) {
-		val locator = GitSingleProjectPropertiesLocator(
-			uploader,
-			{ file, isJarFile, recursiveSearch, timeFormat ->
-				getProjectRevisionsFromGitProperties(file, isJarFile, recursiveSearch, timeFormat)
-			}, searchGitPropertiesRecursively,
-			gitPropertiesCommitTimeFormat
-		)
-		locator.searchFileForGitPropertiesAsync(gitPropertiesJar, true)
+		GitSingleProjectPropertiesLocator(
+			uploader, searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
+		) { file, isJarFile, recursiveSearch, timeFormat ->
+			getProjectRevisionsFromGitProperties(file, isJarFile, recursiveSearch, timeFormat)
+		}.searchFileForGitPropertiesAsync(gitPropertiesJar, true)
 	}
 
 	private fun registerSingleGitPropertiesLocator(
 		uploader: DelayedUploader<ProjectAndCommit>,
 		instrumentation: Instrumentation?
 	) {
-		val locator = GitSingleProjectPropertiesLocator(uploader,
-			{ file, isJarFile, recursiveSearch, timeFormat ->
-				getProjectRevisionsFromGitProperties(file, isJarFile, recursiveSearch, timeFormat)
-			}, searchGitPropertiesRecursively,
-			gitPropertiesCommitTimeFormat
-		)
+		val locator = GitSingleProjectPropertiesLocator(
+			uploader, searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
+		) { file, isJarFile, recursiveSearch, timeFormat ->
+			getProjectRevisionsFromGitProperties(file, isJarFile, recursiveSearch, timeFormat)
+		}
 		instrumentation?.addTransformer(GitPropertiesLocatingTransformer(locator, locationIncludeFilter))
 	}
 
-	private fun createDelayedSingleProjectTeamscaleUploader() = DelayedUploader(
-		{ projectAndCommit: ProjectAndCommit ->
+	private fun createDelayedSingleProjectTeamscaleUploader() =
+		DelayedUploader<ProjectAndCommit>(outputDirectory!!) { projectAndCommit ->
 			if (!isEmpty(projectAndCommit.project) && (teamscaleServer.project != projectAndCommit.project)) {
 				logger.warn(
 					"Teamscale project '" + teamscaleServer.project + "' specified in the agent configuration is not the same as the Teamscale project '" + projectAndCommit.project + "' specified in git.properties file(s). Proceeding to upload to the" +
@@ -564,8 +560,7 @@ open class AgentOptions(private val logger: ILogger) {
 				teamscaleServer.revision = projectAndCommit.commitInfo.revision
 			}
 			TeamscaleUploader(teamscaleServer)
-		}, outputDirectory!!
-	)
+		}
 
 	private fun startMultiGitPropertiesFileSearchInJarFile(
 		uploader: DelayedTeamscaleMultiProjectUploader,
@@ -587,21 +582,17 @@ open class AgentOptions(private val logger: ILogger) {
 	}
 
 	private fun createDelayedArtifactoryUploader(instrumentation: Instrumentation?): IUploader {
-		val uploader = DelayedUploader<CommitInfo>(
-			{ commitInfo ->
+		val uploader = DelayedUploader<CommitInfo>(outputDirectory!!) { commitInfo ->
 				artifactoryConfig.commitInfo = commitInfo
 				ArtifactoryUploader(artifactoryConfig, additionalMetaDataFiles, reportFormat)
-			}, outputDirectory!!
-		)
+			}
 		val locator = GitSingleProjectPropertiesLocator(
-			uploader,
-			{ file, isJarFile, recursiveSearch, timeFormat ->
-				getCommitInfoFromGitProperties(
-					file, isJarFile, recursiveSearch, timeFormat
-				)
-			},
-			searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
-		)
+			uploader, searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
+		) { file, isJarFile, recursiveSearch, timeFormat ->
+			getCommitInfoFromGitProperties(
+				file, isJarFile, recursiveSearch, timeFormat
+			)
+		}
 		instrumentation?.addTransformer(GitPropertiesLocatingTransformer(locator, locationIncludeFilter))
 		return uploader
 	}

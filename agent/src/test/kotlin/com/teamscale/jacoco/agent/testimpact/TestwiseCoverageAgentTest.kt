@@ -80,7 +80,7 @@ class TestwiseCoverageAgentTest {
 
 		val port: Int
 		synchronized(TestUtils::class.java) {
-			port = TestUtils.getFreePort()
+			port = TestUtils.freePort
 			val options = mockOptions(port)
 			whenever(options.createNewFileInOutputDirectory(anyOrNull(), anyOrNull()))
 				.thenReturn(File(tempDir, "test"))
@@ -125,7 +125,7 @@ class TestwiseCoverageAgentTest {
 
 		val port: Int
 		synchronized(TestUtils::class.java) {
-			port = TestUtils.getFreePort()
+			port = TestUtils.freePort
 			val options = mockOptions(port)
 			TestwiseCoverageAgent(options, null, reportGenerator)
 		}
@@ -166,7 +166,7 @@ class TestwiseCoverageAgentTest {
 
 		val port: Int
 		synchronized(TestUtils::class.java) {
-			port = TestUtils.getFreePort()
+			port = TestUtils.freePort
 			TestwiseCoverageAgent(mockOptions(port), null, reportGenerator)
 		}
 

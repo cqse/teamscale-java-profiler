@@ -18,18 +18,14 @@ import kotlin.io.path.walk
  * information describing a commit is asynchronously made available.
  */
 class DelayedUploader<T> internal constructor(
-	private val wrappedUploaderFactory: Function<T, IUploader>,
 	private val cacheDir: Path,
-	private val executor: Executor
+	private val executor: Executor = Executors.newSingleThreadExecutor(
+		DaemonThreadFactory(DelayedUploader::class.java, "Delayed cache upload thread")
+	),
+	private val wrappedUploaderFactory: (T) -> IUploader,
 ) : IUploader {
 	private val logger = getLogger(this)
 	private var wrappedUploader: IUploader? = null
-
-	constructor(wrappedUploaderFactory: Function<T, IUploader>, cacheDir: Path) : this(
-		wrappedUploaderFactory, cacheDir, Executors.newSingleThreadExecutor(
-			DaemonThreadFactory(DelayedUploader::class.java, "Delayed cache upload thread")
-		)
-	)
 
 	/**
 	 * Visible for testing. Allows tests to control the [Executor] to test the
@@ -79,7 +75,7 @@ class DelayedUploader<T> internal constructor(
 	@Synchronized
 	fun setCommitAndTriggerAsynchronousUpload(information: T) {
 		if (wrappedUploader == null) {
-			wrappedUploader = wrappedUploaderFactory.apply(information)
+			wrappedUploader = wrappedUploaderFactory(information)
 			logger.info(
 				"Commit to upload to has been found: {}. Uploading any cached XMLs now to {}", information,
 				wrappedUploader?.describe()
