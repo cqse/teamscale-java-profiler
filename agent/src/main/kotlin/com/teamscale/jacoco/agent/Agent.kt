@@ -30,8 +30,6 @@ import kotlin.time.toDuration
  * interval.
  */
 class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBase(options) {
-	/** Converts binary data to XML.  */
-	private val generator: JaCoCoXmlReportGenerator
 
 	/** Regular dump task.  */
 	private var timer: Timer? = null
@@ -39,17 +37,9 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 	/** Stores the XML files.  */
 	private val uploader = options.createUploader(instrumentation)
 
-	/** Constructor.  */
 	init {
 		logger.info("Upload method: {}", uploader.describe())
 		retryUnsuccessfulUploads(options, uploader)
-		generator = JaCoCoXmlReportGenerator(
-			options.classDirectoriesOrZips,
-			options.locationIncludeFilter,
-			options.duplicateClassFileBehavior,
-			options.ignoreUncoveredClasses,
-			LoggingUtils.wrap(logger)
-		)
 
 		if (options.shouldDumpInIntervals()) {
 			val period = options.dumpIntervalInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
@@ -131,9 +121,12 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 	}
 
 	/**
-	 * Dumps the current execution data, converts it, writes it to the output directory defined in [.options] and
+	 * Dumps the current execution data, converts it, writes it to the output directory defined in [options] and
 	 * uploads it if an uploader is configured. Logs any errors, never throws an exception.
+	 *
+	 * Synchronized because this can be triggered concurrently by the timer and by the HTTP /dump endpoint.
 	 */
+	@Synchronized
 	override fun dumpReport() {
 		logger.debug("Starting dump")
 
@@ -154,6 +147,14 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 			logger.error("Dumping failed, retrying later", e)
 			return
 		}
+
+		val generator = JaCoCoXmlReportGenerator(
+			options.classDirectoriesOrZips,
+			options.locationIncludeFilter,
+			options.duplicateClassFileBehavior,
+			options.ignoreUncoveredClasses,
+			LoggingUtils.wrap(logger)
+		)
 
 		try {
 			benchmark("Generating the XML report") {

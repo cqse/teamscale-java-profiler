@@ -3,11 +3,9 @@ package com.teamscale.jacoco.agent.options
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
 import com.teamscale.jacoco.agent.util.AgentUtils.agentDirectory
 import com.teamscale.jacoco.agent.util.AgentUtils.mainTempDirectory
-import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.function.Consumer
 
 /** Builder for the JaCoCo agent options string.  */
 class JacocoAgentOptionsBuilder(private val agentOptions: AgentOptions) {
@@ -30,11 +28,11 @@ class JacocoAgentOptionsBuilder(private val agentOptions: AgentOptions) {
 		val needsClassFiles =
 			agentOptions.mode == EMode.NORMAL || agentOptions.testwiseCoverageMode != ETestwiseCoverageMode.EXEC_FILE
 		if (agentOptions.classDirectoriesOrZips.isEmpty() && needsClassFiles) {
-			val tempDir = createTemporaryDumpDirectory()
-			tempDir.toFile().deleteOnExit()
-			builder.append(",classdumpdir=").append(tempDir.toAbsolutePath())
+			val classDumpDirectory = createTemporaryDumpDirectory()
+			classDumpDirectory.toFile().deleteOnExit()
+			builder.append(",classdumpdir=").append(classDumpDirectory.toAbsolutePath())
 
-			agentOptions.classDirectoriesOrZips = mutableListOf(tempDir.toFile())
+			agentOptions.classDirectoriesOrZips = mutableListOf(classDumpDirectory.toFile())
 		}
 
 		agentOptions.additionalJacocoOptions.forEach { pair ->
@@ -59,7 +57,7 @@ class JacocoAgentOptionsBuilder(private val agentOptions: AgentOptions) {
 		}
 
 		try {
-			return Files.createTempDirectory(agentOptions.outputDirectory, "jacoco-class-dump")
+			return Files.createTempDirectory(agentOptions.outputDirectory!!, "jacoco-class-dump")
 		} catch (_: IOException) {
 			logger.warn("Unable to create temporary directory in output directory. Trying in agent's directory.")
 		}
