@@ -6,6 +6,7 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [fix] _agent_: Fixed `IllegalStateException: Can't add different class with same name` when application servers like JBoss perform a reload without full restart or when duplicate class files exist across multiple archives
+- [fix] _agent_: The profiler no longer aborts the profiled application when its options are malformed or startup fails for any other reason. The startup failure is logged and the application continues to run without coverage collection
 - [feature] _teamscale-gradle-plugin_: Annotated tasks with `@DisableCachingByDefault` where caching can't be applied
 
 # 36.4.0
