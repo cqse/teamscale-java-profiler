@@ -35,7 +35,17 @@ import java.util.stream.Collectors;
 
 import static com.teamscale.jacoco.agent.logging.LoggingUtils.getLoggerContext;
 
-/** Container class for the premain entry point for the agent. */
+/**
+ * Container class for the premain entry point for the agent.
+ * <p>
+ * <b>Design decision: the agent must never crash the profiled application.</b>
+ * Even when the agent is misconfigured, startup must not propagate any exception out of
+ * {@link #premain(String, Instrumentation)}. An exception escaping {@code premain} would be re-thrown by the JVM as
+ * {@code IllegalAgentException}, which aborts startup of the profiled application. The profiler is an observational
+ * tool, so a failure to start up the profiler must degrade to "no coverage is collected" rather than taking down the
+ * application. All failure paths in {@code premain} are therefore logged and swallowed; see the top-level
+ * {@code try}/{@code catch} in {@link #premain(String, Instrumentation)}.
+ */
 public class PreMain {
 
 	private static LoggingUtils.LoggingResources loggingResources = null;
@@ -59,11 +69,27 @@ public class PreMain {
 	private static final String ACCESS_TOKEN_ENVIRONMENT_VARIABLE = "TEAMSCALE_ACCESS_TOKEN";
 
 	/**
-	 * Entry point for the agent, called by the JVM. If this method throws an exception, the JVM will abort the
-	 * entire application. Therefore, configuration errors must be handled gracefully by returning normally, which
-	 * allows the application to start without coverage collection.
+	 * Entry point for the agent, called by the JVM.
+	 * <p>
+	 * This method never throws. Any exception raised during startup is logged (to the file log and, if configured,
+	 * to Teamscale) and swallowed, and the JVM continues without coverage collection. See the class-level Javadoc for
+	 * the rationale.
 	 */
-	public static void premain(String options, Instrumentation instrumentation) throws Exception {
+	public static void premain(String options, Instrumentation instrumentation) {
+		try {
+			startProfiler(options, instrumentation);
+		} catch (Throwable t) {
+			// Top-level safety net: an exception escaping premain would be re-thrown by the JVM as
+			// IllegalAgentException and abort the profiled application. See class-level Javadoc.
+			logStartupFailure(t);
+		}
+	}
+
+	/**
+	 * Starts the profiler. Contains all logic that may legitimately throw during startup; every caller must route
+	 * through {@link #premain(String, Instrumentation)} which catches these exceptions.
+	 */
+	private static void startProfiler(String options, Instrumentation instrumentation) throws Exception {
 		if (System.getProperty(LOCKING_SYSTEM_PROPERTY) != null) {
 			return;
 		}
@@ -83,8 +109,8 @@ public class PreMain {
 					environmentConfigFile);
 			agentOptions = parseResult.getFirst();
 
-			// After parsing everything and configuring logging, we now
-			// can throw the caught exceptions.
+			// After parsing everything and configuring logging, we now can throw the caught exceptions. They are
+			// handled locally below and never propagate out of premain (see class-level Javadoc).
 			for (Exception exception : parseResult.getSecond()) {
 				throw exception;
 			}
@@ -118,6 +144,29 @@ public class PreMain {
 		}
 		AgentBase agent = createAgent(agentOptions, instrumentation);
 		agent.registerShutdownHook();
+	}
+
+	/**
+	 * Logs a startup failure on a best-effort basis. Must not throw: even logging failures are swallowed so that
+	 * {@link #premain(String, Instrumentation)} keeps its no-throw contract.
+	 */
+	private static void logStartupFailure(Throwable t) {
+		try {
+			LoggingUtils.getLogger(PreMain.class).error(
+					"Teamscale Java Profiler failed to start up. The profiled application will continue to run "
+							+ "without coverage collection.", t);
+		} catch (Throwable loggingFailure) {
+			// The logger may not be initialized yet or may itself be broken. Fall back to stderr so the failure is
+			// at least visible somewhere, then give up silently.
+			try {
+				System.err.println(
+						"[Teamscale Java Profiler] Failed to start up and will not collect coverage: " + t);
+				loggingFailure.addSuppressed(t);
+				loggingFailure.printStackTrace();
+			} catch (Throwable ignored) {
+				// Nothing we can do; the alternative is to crash the profiled application, which we must not do.
+			}
+		}
 	}
 
 	private static Pair<AgentOptions, List<Exception>> getAndApplyAgentOptions(String options,
@@ -208,7 +257,10 @@ public class PreMain {
 		}
 	}
 
-	/** Closes the opened logging contexts. */
+	/**
+	 * Closes the opened logging contexts. Safe to call before logging has been initialized, in which case this is a
+	 * no-op.
+	 */
 	static void closeLoggingResources() {
 		if (loggingResources != null) {
 			loggingResources.close();
