@@ -1,5 +1,7 @@
 package com.teamscale.jacoco.agent;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.instrument.Instrumentation;
@@ -13,6 +15,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  * {@code IllegalAgentException} and abort the profiled application.
  */
 class PreMainTest {
+
+	@BeforeEach
+	@AfterEach
+	void clearLockingProperty() {
+		// premain sets this property to prevent double-attach. Clear it so each test runs against a fresh state.
+		System.clearProperty(PreMain.LOCKING_SYSTEM_PROPERTY);
+	}
 
 	/**
 	 * Invalid agent options produce an {@code AgentOptionParseException} internally. The agent must swallow it so the

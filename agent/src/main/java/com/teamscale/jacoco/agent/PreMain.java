@@ -54,7 +54,7 @@ public class PreMain {
 	 * System property that we use to prevent this agent from being attached to the same VM twice. This can happen if
 	 * the agent is registered via multiple JVM environment variables and/or the command line at the same time.
 	 */
-	private static final String LOCKING_SYSTEM_PROPERTY = "TEAMSCALE_JAVA_PROFILER_ATTACHED";
+	static final String LOCKING_SYSTEM_PROPERTY = "TEAMSCALE_JAVA_PROFILER_ATTACHED";
 
 	/**
 	 * Environment variable from which to read the config ID to use. This is an ID for a profiler configuration that is
@@ -79,8 +79,6 @@ public class PreMain {
 		try {
 			startProfiler(options, instrumentation);
 		} catch (Throwable t) {
-			// Top-level safety net: an exception escaping premain would be re-thrown by the JVM as
-			// IllegalAgentException and abort the profiled application. See class-level Javadoc.
 			logStartupFailure(t);
 		}
 	}
@@ -125,8 +123,7 @@ public class PreMain {
 				agentOptions.configurationViaTeamscale.unregisterProfiler();
 			}
 
-			// Previously rethrown. We now swallow the exception so a misconfigured agent cannot abort the profiled
-			// application. The error has been logged above.
+			// Swallow to avoid aborting startup on misconfiguration (see class Javadoc).
 			return;
 		} catch (AgentOptionReceiveException e) {
 			// When Teamscale is not available, we don't want to fail hard to still allow for testing even if no
@@ -158,16 +155,9 @@ public class PreMain {
 					"Teamscale Java Profiler failed to start up. The profiled application will continue to run "
 							+ "without coverage collection.", t);
 		} catch (Throwable loggingFailure) {
-			// The logger may not be initialized yet or may itself be broken. Fall back to stderr so the failure is
-			// at least visible somewhere, then give up silently.
-			try {
-				System.err.println(
-						"[Teamscale Java Profiler] Failed to start up and will not collect coverage: " + t);
-				loggingFailure.addSuppressed(t);
-				loggingFailure.printStackTrace();
-			} catch (Throwable ignored) {
-				// Nothing we can do; the alternative is to crash the profiled application, which we must not do.
-			}
+			// Logger may not be initialized yet or may itself be broken. Fall back to stderr.
+			System.err.println("[Teamscale Java Profiler] Failed to start up and will not collect coverage: " + t);
+			System.err.println("[Teamscale Java Profiler] Logging itself failed: " + loggingFailure);
 		}
 	}
 
