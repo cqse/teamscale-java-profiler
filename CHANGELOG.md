@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 36.5.0
 - [feature] _agent_: Renamed the docker image to `cqse/teamscale-java-profiler` and added support for the `linux/arm64` platform
 - [fix] _teamscale-gradle-plugin_: Coverage aggregation report and upload were skipped when tests failed with `--continue`
 
