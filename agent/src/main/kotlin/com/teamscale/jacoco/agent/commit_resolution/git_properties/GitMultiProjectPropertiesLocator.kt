@@ -29,11 +29,11 @@ class GitMultiProjectPropertiesLocator(
 		gitPropertiesCommitTimeFormat: DateTimeFormatter?
 	) : this(
 		uploader, Executors.newSingleThreadExecutor(
-				DaemonThreadFactory(
-					GitMultiProjectPropertiesLocator::class.java,
-					"git.properties Jar scanner thread"
-				)
-			), recursiveSearch, gitPropertiesCommitTimeFormat
+			DaemonThreadFactory(
+				GitMultiProjectPropertiesLocator::class.java,
+				"git.properties Jar scanner thread"
+			)
+		), recursiveSearch, gitPropertiesCommitTimeFormat
 	)
 
 	/**

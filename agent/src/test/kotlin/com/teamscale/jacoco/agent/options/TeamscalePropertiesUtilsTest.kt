@@ -1,10 +1,8 @@
 package com.teamscale.jacoco.agent.options
 
 import com.teamscale.jacoco.agent.options.TeamscalePropertiesUtils.parseCredentials
-import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.assertj.core.api.Assertions
-import org.assertj.core.api.ThrowableAssert
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs

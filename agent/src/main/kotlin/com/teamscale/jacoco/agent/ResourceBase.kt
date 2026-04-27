@@ -6,11 +6,7 @@ import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.report.testwise.model.RevisionInfo
 import org.jetbrains.annotations.Contract
 import org.slf4j.Logger
-import javax.ws.rs.BadRequestException
-import javax.ws.rs.GET
-import javax.ws.rs.PUT
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 

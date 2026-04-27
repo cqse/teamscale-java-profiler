@@ -8,9 +8,7 @@ import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator
 import com.teamscale.report.testwise.jacoco.cache.CoverageGenerationException
 import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.report.testwise.model.TestInfo
-import com.teamscale.report.testwise.model.builder.TestCoverageBuilder
 import com.teamscale.report.testwise.model.builder.TestInfoBuilder
-import java.util.*
 
 /**
  * Strategy which directly converts the collected coverage into a JSON object in place and returns the result to the

@@ -1,20 +1,12 @@
 package com.teamscale.jacoco.agent.testimpact
 
-import com.teamscale.client.ClusteredTestDetails
-import com.teamscale.client.CommitDescriptor
-import com.teamscale.client.EReportFormat
-import com.teamscale.client.PrioritizableTest
-import com.teamscale.client.PrioritizableTestCluster
-import com.teamscale.client.TeamscaleClient
-import com.teamscale.client.TeamscaleServer
+import com.teamscale.client.*
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.jacoco.agent.options.ETestwiseCoverageMode
 import com.teamscale.jacoco.agent.util.TestUtils
 import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator
 import com.teamscale.report.testwise.model.ETestExecutionResult
-import com.teamscale.tia.client.RunningTest
 import com.teamscale.tia.client.TestRun
-import com.teamscale.tia.client.TestRunWithClusteredSuggestions
 import com.teamscale.tia.client.TiaAgent
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
@@ -27,12 +19,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.ArgumentMatchers.matches
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.*
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit

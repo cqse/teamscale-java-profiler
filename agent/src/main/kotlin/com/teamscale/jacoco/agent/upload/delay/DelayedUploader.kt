@@ -5,11 +5,9 @@ import com.teamscale.jacoco.agent.upload.IUploader
 import com.teamscale.jacoco.agent.util.DaemonThreadFactory
 import com.teamscale.report.jacoco.CoverageFile
 import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-import java.util.function.Function
 import kotlin.io.path.isDirectory
 import kotlin.io.path.walk
 

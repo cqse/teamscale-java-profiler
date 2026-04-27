@@ -4,13 +4,9 @@ import com.teamscale.client.CommitDescriptor
 import com.teamscale.client.TeamscaleServer
 import com.teamscale.jacoco.agent.options.ProjectAndCommit
 import com.teamscale.jacoco.agent.upload.teamscale.DelayedTeamscaleMultiProjectUploader
-import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.util.function.BiFunction
-import java.util.function.Predicate
-import java.util.stream.Collectors
 
 internal class GitMultiProjectPropertiesLocatorTest {
 	@Test
@@ -31,12 +27,12 @@ internal class GitMultiProjectPropertiesLocatorTest {
 	@Test
 	fun testNoMultipleUploadsToSameProjectAndRevision() {
 		val delayedTeamscaleMultiProjectUploader = DelayedTeamscaleMultiProjectUploader { project, revision ->
-				val server = TeamscaleServer()
-				server.project = project
-				server.revision = revision!!.revision
-				server.commit = revision.commit
-				server
-			}
+			val server = TeamscaleServer()
+			server.project = project
+			server.revision = revision!!.revision
+			server.commit = revision.commit
+			server
+		}
 		val locator = GitMultiProjectPropertiesLocator(
 			delayedTeamscaleMultiProjectUploader, true, null
 		)

@@ -1,7 +1,6 @@
 package com.teamscale.jacoco.agent.commit_resolution.sapnwdi
 
 import com.teamscale.client.CommitDescriptor
-import com.teamscale.client.StringUtils.isEmpty
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
 import com.teamscale.jacoco.agent.options.sapnwdi.DelayedSapNwdiMultiUploader
 import com.teamscale.jacoco.agent.options.sapnwdi.SapNwdiApplication
@@ -11,8 +10,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import java.security.ProtectionDomain
-import java.util.function.Function
-import java.util.stream.Collectors
 
 /**
  * [ClassFileTransformer] that doesn't change the loaded classes but guesses the rough commit timestamp by

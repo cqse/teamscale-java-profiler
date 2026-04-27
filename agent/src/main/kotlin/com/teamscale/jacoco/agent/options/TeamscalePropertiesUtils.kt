@@ -5,7 +5,6 @@ import com.teamscale.jacoco.agent.util.AgentUtils.agentDirectory
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.exists

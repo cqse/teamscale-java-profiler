@@ -3,7 +3,6 @@ package com.teamscale.jacoco.agent.testimpact
 import com.teamscale.client.ClusteredTestDetails
 import com.teamscale.client.HttpUtils.getErrorBodyStringSafe
 import com.teamscale.client.PrioritizableTestCluster
-import com.teamscale.client.TeamscaleClient
 import com.teamscale.client.TestWithClusterId
 import com.teamscale.jacoco.agent.JacocoRuntimeController
 import com.teamscale.jacoco.agent.JacocoRuntimeController.DumpException
@@ -13,9 +12,7 @@ import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleConfig
 import com.teamscale.report.testwise.jacoco.cache.CoverageGenerationException
 import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.report.testwise.model.TestInfo
-import retrofit2.Response
 import java.io.IOException
-import java.util.stream.Collectors
 
 /** Base class for strategies to handle test events.  */
 abstract class TestEventHandlerStrategyBase protected constructor(

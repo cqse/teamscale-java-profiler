@@ -19,7 +19,6 @@ import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader
 import com.teamscale.report.jacoco.CoverageFile
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.create
 import okhttp3.ResponseBody
 import retrofit2.Response
 import java.io.File
@@ -27,9 +26,6 @@ import java.io.IOException
 import java.nio.file.Path
 import java.util.*
 import java.util.regex.Pattern
-import kotlin.Throws
-import kotlin.text.format
-import kotlin.text.lowercase
 
 /** Uploads the coverage archive to a provided azure file storage.  */
 class AzureFileStorageUploader(
@@ -142,7 +138,8 @@ class AzureFileStorageUploader(
 	}
 
 	/** Creates a file name for the zip-archive containing the coverage.  */
-	private fun createFileName() = "${EReportFormat.JACOCO.name.lowercase(Locale.getDefault())}-${System.currentTimeMillis()}.zip"
+	private fun createFileName() =
+		"${EReportFormat.JACOCO.name.lowercase(Locale.getDefault())}-${System.currentTimeMillis()}.zip"
 
 	/** Checks if the file with the given name exists  */
 	@Throws(IOException::class, UploaderException::class)

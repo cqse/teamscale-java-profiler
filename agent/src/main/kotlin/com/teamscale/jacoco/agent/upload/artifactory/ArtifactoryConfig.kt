@@ -62,7 +62,8 @@ class ArtifactoryConfig {
 	}
 
 	/** Checks if all required fields are null.  */
-	fun hasAllRequiredFieldsNull() = url == null && user == null && password == null && apiKey == null && partition == null
+	fun hasAllRequiredFieldsNull() =
+		url == null && user == null && password == null && apiKey == null && partition == null
 
 	/** Checks whether commit and revision are set.  */
 	fun hasCommitInfo() = commitInfo != null

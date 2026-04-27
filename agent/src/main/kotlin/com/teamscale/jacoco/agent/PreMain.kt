@@ -3,17 +3,13 @@ package com.teamscale.jacoco.agent
 import com.teamscale.client.FileSystemUtils
 import com.teamscale.client.HttpUtils
 import com.teamscale.client.StringUtils
+import com.teamscale.jacoco.agent.PreMain.premain
 import com.teamscale.jacoco.agent.configuration.AgentOptionReceiveException
 import com.teamscale.jacoco.agent.logging.DebugLogDirectoryPropertyDefiner
 import com.teamscale.jacoco.agent.logging.LogDirectoryPropertyDefiner
 import com.teamscale.jacoco.agent.logging.LogToTeamscaleAppender
 import com.teamscale.jacoco.agent.logging.LoggingUtils
-import com.teamscale.jacoco.agent.options.AgentOptionParseException
-import com.teamscale.jacoco.agent.options.AgentOptions
-import com.teamscale.jacoco.agent.options.AgentOptionsParser
-import com.teamscale.jacoco.agent.options.FilePatternResolver
-import com.teamscale.jacoco.agent.options.JacocoAgentOptionsBuilder
-import com.teamscale.jacoco.agent.options.TeamscalePropertiesUtils
+import com.teamscale.jacoco.agent.options.*
 import com.teamscale.jacoco.agent.testimpact.TestwiseCoverageAgent
 import com.teamscale.jacoco.agent.upload.UploaderException
 import com.teamscale.jacoco.agent.util.AgentUtils
@@ -24,7 +20,6 @@ import java.lang.management.ManagementFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.use
 
 /** Container class for the premain entry point for the agent.  */
 object PreMain {
@@ -277,7 +272,7 @@ object PreMain {
 						)
 					}
 				}
-		}
+			}
 
 		return LoggingUtils.initializeDefaultLogging()
 	}

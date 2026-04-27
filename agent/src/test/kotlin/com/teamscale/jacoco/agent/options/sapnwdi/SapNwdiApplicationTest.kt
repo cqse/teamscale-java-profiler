@@ -2,7 +2,6 @@ package com.teamscale.jacoco.agent.options.sapnwdi
 
 import com.teamscale.jacoco.agent.options.sapnwdi.SapNwdiApplication.Companion.parseApplications
 import org.assertj.core.api.Assertions
-import org.assertj.core.api.ThrowableAssert
 import org.assertj.core.api.ThrowingConsumer
 import org.junit.jupiter.api.Test
 

@@ -8,12 +8,10 @@ import com.teamscale.jacoco.agent.upload.UploadTestBase
 import com.teamscale.jacoco.agent.upload.UploaderException
 import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 

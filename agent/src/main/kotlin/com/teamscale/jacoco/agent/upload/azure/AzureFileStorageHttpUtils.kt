@@ -49,7 +49,8 @@ internal object AzureFileStorageHttpUtils {
 		).map { headers.getOrDefault(it, "") }
 
 		val xmsHeader = headers.filter { it.key.startsWith("x-ms") }
-		return listOf( httpMethod.toString(),
+		return listOf(
+			httpMethod.toString(),
 			keys, xmsHeader.createCanonicalizedString(),
 			createCanonicalizedResources(account, path, queryParameters)
 		).joinToString()

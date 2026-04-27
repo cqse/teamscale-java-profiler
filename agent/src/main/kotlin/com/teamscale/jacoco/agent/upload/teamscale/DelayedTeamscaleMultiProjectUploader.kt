@@ -6,7 +6,6 @@ import com.teamscale.jacoco.agent.options.ProjectAndCommit
 import com.teamscale.jacoco.agent.upload.DelayedMultiUploaderBase
 import com.teamscale.jacoco.agent.upload.IUploader
 import java.io.File
-import java.util.function.BiFunction
 
 /** Wrapper for [TeamscaleUploader] that allows to upload the same coverage file to multiple Teamscale projects.  */
 class DelayedTeamscaleMultiProjectUploader(

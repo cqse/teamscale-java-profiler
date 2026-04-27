@@ -2,10 +2,8 @@ package com.teamscale.jacoco.agent
 
 import com.teamscale.report.jacoco.dump.Dump
 import org.jacoco.agent.rt.IAgent
-import org.jacoco.core.data.ExecutionData
 import org.jacoco.core.data.ExecutionDataReader
 import org.jacoco.core.data.ExecutionDataStore
-import org.jacoco.core.data.IExecutionDataVisitor
 import org.jacoco.core.data.ISessionInfoVisitor
 import org.jacoco.core.data.SessionInfo
 import java.io.ByteArrayInputStream

@@ -5,7 +5,6 @@ import com.teamscale.client.TeamscaleServer
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.CommitInfo
 import com.teamscale.jacoco.agent.upload.artifactory.ArtifactoryConfig
 import com.teamscale.report.util.ILogger
-import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.mockito.Mockito
 

@@ -1,11 +1,13 @@
 package com.teamscale.jacoco.agent.options
 
-import com.teamscale.client.*
 import com.teamscale.client.CommitDescriptor.Companion.parse
 import com.teamscale.client.HttpUtils.PROXY_AUTHORIZATION_HTTP_HEADER
 import com.teamscale.client.JsonUtils.serializeToJson
+import com.teamscale.client.ProfilerConfiguration
+import com.teamscale.client.ProfilerRegistration
+import com.teamscale.client.ProxySystemProperties
+import com.teamscale.client.TeamscaleProxySystemProperties
 import com.teamscale.jacoco.agent.options.AgentOptionsParser.Companion.putTeamscaleProxyOptionsIntoSystemProperties
-import com.teamscale.jacoco.agent.options.sapnwdi.SapNwdiApplication
 import com.teamscale.jacoco.agent.upload.artifactory.ArtifactoryConfig
 import com.teamscale.jacoco.agent.util.TestUtils.cleanAgentCoverageDirectory
 import com.teamscale.report.util.CommandLineLogger
@@ -14,7 +16,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions
-import org.assertj.core.api.ThrowableAssert
 import org.assertj.core.api.ThrowingConsumer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach

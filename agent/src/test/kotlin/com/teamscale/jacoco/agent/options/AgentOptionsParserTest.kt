@@ -8,11 +8,9 @@ import com.teamscale.jacoco.agent.options.AgentOptions.EUploadMethod
 import com.teamscale.jacoco.agent.upload.artifactory.ArtifactoryConfig
 import com.teamscale.jacoco.agent.util.TestUtils.cleanAgentCoverageDirectory
 import com.teamscale.report.util.CommandLineLogger
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions
-import org.assertj.core.api.ThrowableAssert
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -191,13 +189,18 @@ class AgentOptionsParserTest {
 			)
 		}.hasMessageContaining("You configured a 'teamscale-project' but no 'teamscale-partition' to upload to.")
 
-		Assertions.assertThatThrownBy { parseAndThrow("teamscale-server-url=teamscale.com") }.hasMessageContaining("not all required ones")
-		Assertions.assertThatThrownBy { parseAndThrow("teamscale-server-url=teamscale.com,teamscale-user=user") }.hasMessageContaining("not all required ones")
+		Assertions.assertThatThrownBy { parseAndThrow("teamscale-server-url=teamscale.com") }
+			.hasMessageContaining("not all required ones")
+		Assertions.assertThatThrownBy { parseAndThrow("teamscale-server-url=teamscale.com,teamscale-user=user") }
+			.hasMessageContaining("not all required ones")
 		Assertions.assertThatThrownBy { parseAndThrow("teamscale-server-url=teamscale.com,teamscale-access-token=token") }
 			.hasMessageContaining("not all required ones")
-		Assertions.assertThatThrownBy { parseAndThrow("teamscale-user=user,teamscale-access-token=token") }.hasMessageContaining("not all required ones")
-		Assertions.assertThatThrownBy { parseAndThrow("teamscale-revision=1234") }.hasMessageContaining("not all required ones")
-		Assertions.assertThatThrownBy { parseAndThrow("teamscale-commit=master:1234") }.hasMessageContaining("not all required ones")
+		Assertions.assertThatThrownBy { parseAndThrow("teamscale-user=user,teamscale-access-token=token") }
+			.hasMessageContaining("not all required ones")
+		Assertions.assertThatThrownBy { parseAndThrow("teamscale-revision=1234") }
+			.hasMessageContaining("not all required ones")
+		Assertions.assertThatThrownBy { parseAndThrow("teamscale-commit=master:1234") }
+			.hasMessageContaining("not all required ones")
 	}
 
 	@Test

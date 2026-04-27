@@ -1,9 +1,12 @@
 package com.teamscale.jacoco.agent.options
 
-import com.teamscale.client.*
+import com.teamscale.client.EReportFormat
 import com.teamscale.client.FileSystemUtils.ensureDirectoryExists
 import com.teamscale.client.FileSystemUtils.getFileExtension
+import com.teamscale.client.ProxySystemProperties
 import com.teamscale.client.StringUtils.isEmpty
+import com.teamscale.client.TeamscaleClient
+import com.teamscale.client.TeamscaleServer
 import com.teamscale.jacoco.agent.commandline.Validator
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.CommitInfo
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitMultiProjectPropertiesLocator
@@ -11,7 +14,6 @@ import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitProperties
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitPropertiesLocatorUtils.getCommitInfoFromGitProperties
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitPropertiesLocatorUtils.getProjectRevisionsFromGitProperties
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitSingleProjectPropertiesLocator
-import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitSingleProjectPropertiesLocator.DataExtractor
 import com.teamscale.jacoco.agent.commit_resolution.sapnwdi.NwdiMarkerClassLocatingTransformer
 import com.teamscale.jacoco.agent.configuration.ConfigurationViaTeamscale
 import com.teamscale.jacoco.agent.options.AgentOptions.Companion.GIT_PROPERTIES_COMMIT_DATE_FORMAT_OPTION
@@ -42,8 +44,6 @@ import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import java.util.function.BiFunction
-import java.util.function.Function
 import java.util.regex.Pattern
 import kotlin.io.path.exists
 import kotlin.io.path.isReadable
@@ -497,11 +497,14 @@ open class AgentOptions(private val logger: ILogger) {
 		instrumentation: Instrumentation?
 	): DelayedTeamscaleMultiProjectUploader {
 		val uploader = DelayedTeamscaleMultiProjectUploader { project, commitInfo ->
-				if (commitInfo!!.preferCommitDescriptorOverRevision || isEmpty(commitInfo.revision)) {
-					return@DelayedTeamscaleMultiProjectUploader teamscaleServer.withProjectAndCommit(project!!, commitInfo.commit!!)
-				}
-				teamscaleServer.withProjectAndRevision(project!!, commitInfo.revision!!)
+			if (commitInfo!!.preferCommitDescriptorOverRevision || isEmpty(commitInfo.revision)) {
+				return@DelayedTeamscaleMultiProjectUploader teamscaleServer.withProjectAndCommit(
+					project!!,
+					commitInfo.commit!!
+				)
 			}
+			teamscaleServer.withProjectAndRevision(project!!, commitInfo.revision!!)
+		}
 
 		gitPropertiesJar?.let { jar ->
 			logger.info(
@@ -583,9 +586,9 @@ open class AgentOptions(private val logger: ILogger) {
 
 	private fun createDelayedArtifactoryUploader(instrumentation: Instrumentation?): IUploader {
 		val uploader = DelayedUploader<CommitInfo>(outputDirectory!!) { commitInfo ->
-				artifactoryConfig.commitInfo = commitInfo
-				ArtifactoryUploader(artifactoryConfig, additionalMetaDataFiles, reportFormat)
-			}
+			artifactoryConfig.commitInfo = commitInfo
+			ArtifactoryUploader(artifactoryConfig, additionalMetaDataFiles, reportFormat)
+		}
 		val locator = GitSingleProjectPropertiesLocator(
 			uploader, searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
 		) { file, isJarFile, recursiveSearch, timeFormat ->
@@ -670,7 +673,8 @@ open class AgentOptions(private val logger: ILogger) {
 		/**
 		 * Can be used to format [java.time.LocalDate] to the format "yyyy-MM-dd-HH-mm-ss.SSS"
 		 */
-		val DATE_TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss.SSS", Locale.ENGLISH)
+		val DATE_TIME_FORMATTER: DateTimeFormatter =
+			DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss.SSS", Locale.ENGLISH)
 
 		/**
 		 * The default excludes applied to JaCoCo. These are packages that should never be profiled. Excluding them makes

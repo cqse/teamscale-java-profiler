@@ -2,7 +2,6 @@ package com.teamscale.jacoco.agent
 
 import com.teamscale.report.util.ILogger
 import org.slf4j.Logger
-import java.util.function.Consumer
 
 /**
  * A logger that buffers logs in memory and writes them to the actual logger at a later point. This is needed when stuff

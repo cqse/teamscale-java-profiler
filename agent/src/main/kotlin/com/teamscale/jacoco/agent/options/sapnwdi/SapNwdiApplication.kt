@@ -1,7 +1,6 @@
 package com.teamscale.jacoco.agent.options.sapnwdi
 
 import com.teamscale.jacoco.agent.options.AgentOptionParseException
-import java.util.*
 
 /**
  * An SAP application that is identified by a [.markerClass] and refers to a corresponding Teamscale project.

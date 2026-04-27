@@ -20,10 +20,10 @@ class CoverageToTeamscaleStrategy(
 	override fun handleTestwiseCoverageJsonReady(json: String) {
 		try {
 			teamscaleClient?.uploadReport(
-					EReportFormat.TESTWISE_COVERAGE, json,
-					agentOptions.teamscaleServer.commit,
-					agentOptions.teamscaleServer.revision,
-					agentOptions.teamscaleServer.repository,
+				EReportFormat.TESTWISE_COVERAGE, json,
+				agentOptions.teamscaleServer.commit,
+				agentOptions.teamscaleServer.revision,
+				agentOptions.teamscaleServer.repository,
 				agentOptions.teamscaleServer.partition!!,
 				agentOptions.teamscaleServer.message!!
 			)

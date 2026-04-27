@@ -1,7 +1,6 @@
 package com.teamscale.jacoco.agent.testimpact
 
 import com.teamscale.client.ClusteredTestDetails
-import com.teamscale.client.PrioritizableTestCluster
 import com.teamscale.jacoco.agent.JacocoRuntimeController.DumpException
 import com.teamscale.jacoco.agent.ResourceBase
 import com.teamscale.report.testwise.jacoco.cache.CoverageGenerationException

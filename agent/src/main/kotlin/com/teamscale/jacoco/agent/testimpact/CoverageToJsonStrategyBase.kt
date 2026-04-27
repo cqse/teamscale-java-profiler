@@ -16,7 +16,6 @@ import com.teamscale.report.testwise.model.builder.TestwiseCoverageReportBuilder
 import org.slf4j.Logger
 import java.io.File
 import java.io.IOException
-import java.util.stream.Collectors
 
 /**
  * Base for strategies that produce testwise coverage information in JSON and store or send this data further.
@@ -113,7 +112,8 @@ abstract class CoverageToJsonStrategyBase(
 		logger.debug(
 			"Creating testwise coverage from available tests `{}`, test executions `{}`, exec file and partial {}",
 			availableTests.map { it.uniformPath },
-			executionUniformPaths, partial)
+			executionUniformPaths, partial
+		)
 		reportGenerator.updateClassDirCache()
 		val testwiseCoverage = reportGenerator.convert(testExecFile!!)
 		logger.debug(

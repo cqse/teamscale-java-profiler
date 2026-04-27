@@ -3,7 +3,6 @@ package com.teamscale.jacoco.agent.upload.delay
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.CommitInfo
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitPropertiesLocatorUtils.getCommitInfoFromGitProperties
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitSingleProjectPropertiesLocator
-import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitSingleProjectPropertiesLocator.DataExtractor
 import com.teamscale.jacoco.agent.util.InMemoryUploader
 import com.teamscale.report.jacoco.CoverageFile
 import org.assertj.core.api.Assertions
@@ -13,10 +12,8 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.function.Function
 import kotlin.streams.asSequence
 
 class DelayedCommitDescriptorRetrievalTest {

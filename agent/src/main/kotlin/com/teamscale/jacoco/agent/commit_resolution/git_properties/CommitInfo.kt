@@ -1,8 +1,6 @@
 package com.teamscale.jacoco.agent.commit_resolution.git_properties
 
 import com.teamscale.client.CommitDescriptor
-import com.teamscale.client.StringUtils.isEmpty
-import java.util.*
 
 /** Hold information regarding a commit.  */
 data class CommitInfo(

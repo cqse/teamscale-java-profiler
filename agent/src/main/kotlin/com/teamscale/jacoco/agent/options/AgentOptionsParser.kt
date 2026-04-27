@@ -518,7 +518,8 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 		}
 
 		@Throws(AgentOptionParseException::class)
-		private fun getUrl(key: String?, value: String) = value.toHttpUrlOrNull() ?: throw AgentOptionParseException("Invalid URL given for option '$key'")
+		private fun getUrl(key: String?, value: String) =
+			value.toHttpUrlOrNull() ?: throw AgentOptionParseException("Invalid URL given for option '$key'")
 
 		/**
 		 * Splits the given value at semicolons.

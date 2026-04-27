@@ -3,8 +3,6 @@ package com.teamscale.jacoco.agent.upload
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
 import com.teamscale.report.jacoco.CoverageFile
 import org.slf4j.Logger
-import java.util.function.Consumer
-import java.util.stream.Collectors
 
 /**
  * Base class for wrapper uploaders that allow uploading the same coverage to

@@ -13,13 +13,11 @@ import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
 import java.util.*
-import java.util.jar.JarEntry
 import java.util.jar.JarInputStream
 import java.util.regex.Pattern
 
@@ -345,7 +343,8 @@ object GitPropertiesLocatorUtils {
 		var entry = inputStream.nextJarEntry
 		while (entry != null) {
 			isEmpty = false
-			val fullEntryName = if (archiveName.isNullOrEmpty()) entry.name else "$archiveName${File.separator}${entry.name}"
+			val fullEntryName =
+				if (archiveName.isNullOrEmpty()) entry.name else "$archiveName${File.separator}${entry.name}"
 			val fileName = entry.name.substringAfterLast('/')
 
 			if (fileName.equals(GIT_PROPERTIES_FILE_NAME, ignoreCase = true)) {
@@ -354,7 +353,8 @@ object GitPropertiesLocatorUtils {
 			} else if (recursiveSearch && isJarLikeFile(entry.name)) {
 				val nestedJarStream = JarInputStream(inputStream)
 				result.addAll(
-					findGitPropertiesInArchive(nestedJarStream, fullEntryName,
+					findGitPropertiesInArchive(
+						nestedJarStream, fullEntryName,
 						recursiveSearch = true,
 						isRootArchive = false
 					)

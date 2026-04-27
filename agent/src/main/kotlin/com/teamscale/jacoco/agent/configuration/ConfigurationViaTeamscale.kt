@@ -1,13 +1,7 @@
 package com.teamscale.jacoco.agent.configuration
 
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.teamscale.client.ITeamscaleService
-import com.teamscale.client.JsonUtils
-import com.teamscale.client.ProcessInformation
-import com.teamscale.client.ProfilerConfiguration
-import com.teamscale.client.ProfilerInfo
-import com.teamscale.client.ProfilerRegistration
-import com.teamscale.client.TeamscaleServiceGenerator
+import com.teamscale.client.*
 import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.jacoco.agent.util.AgentUtils
 import com.teamscale.report.util.ILogger
@@ -17,7 +11,6 @@ import retrofit2.Response
 import java.io.IOException
 import java.time.Duration
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
 
 /**

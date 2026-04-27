@@ -1,12 +1,6 @@
 package com.teamscale.jacoco.agent.testimpact
 
-import com.teamscale.client.ClusteredTestDetails
-import com.teamscale.client.CommitDescriptor
-import com.teamscale.client.EReportFormat
-import com.teamscale.client.PrioritizableTest
-import com.teamscale.client.PrioritizableTestCluster
-import com.teamscale.client.TeamscaleClient
-import com.teamscale.client.TeamscaleServer
+import com.teamscale.client.*
 import com.teamscale.jacoco.agent.JacocoRuntimeController
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator
@@ -24,12 +18,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.ArgumentMatchers.matches
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.*
 import retrofit2.Response
 import java.io.File
 import java.io.IOException

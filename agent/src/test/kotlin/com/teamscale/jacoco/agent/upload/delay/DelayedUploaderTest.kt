@@ -11,7 +11,6 @@ import java.nio.file.Path
 import java.time.ZonedDateTime
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.function.Function
 import java.util.stream.Collectors
 
 class DelayedUploaderTest {
@@ -40,7 +39,7 @@ class DelayedUploaderTest {
 		val coverageFile = CoverageFile(Files.createFile(coverageFilePath).toFile())
 
 		val destination = InMemoryUploader()
-		val store = DelayedUploader<String>( outputPath) { _ -> destination }
+		val store = DelayedUploader<String>(outputPath) { _ -> destination }
 
 		store.setCommitAndTriggerAsynchronousUpload("a2afb54566aaa")
 		store.upload(coverageFile)

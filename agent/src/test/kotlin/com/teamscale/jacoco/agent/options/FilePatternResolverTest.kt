@@ -3,14 +3,12 @@ package com.teamscale.jacoco.agent.options
 import com.teamscale.jacoco.agent.util.TestUtils.cleanAgentCoverageDirectory
 import com.teamscale.report.util.CommandLineLogger
 import org.assertj.core.api.Assertions
-import org.assertj.core.api.ThrowableAssert
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.IOException
-import java.nio.file.Path
 
 /** Tests the [AgentOptions].  */
 class FilePatternResolverTest {
