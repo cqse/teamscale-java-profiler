@@ -24,7 +24,7 @@ object JsonUtils {
 		.visibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
 		.visibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
 		.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-		.serializationInclusion(JsonInclude.Include.NON_NULL)
+		.defaultPropertyInclusion(JsonInclude.Value.ALL_NON_NULL)
 		.build()
 
 	/**

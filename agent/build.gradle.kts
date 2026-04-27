@@ -1,3 +1,5 @@
+import io.github.sgtsilvio.gradle.oci.dsl.OciImageDefinition
+
 plugins {
 	com.teamscale.`kotlin-convention`
 	com.teamscale.`java-convention`
@@ -10,6 +12,7 @@ plugins {
 	com.teamscale.coverage
 	com.teamscale.publish
 	com.teamscale.`logger-patch`
+	alias(libs.plugins.oci)
 }
 
 evaluationDependsOn(":installer")
@@ -102,4 +105,58 @@ distributions {
 
 tasks.shadowDistZip {
 	archiveFileName = "teamscale-jacoco-agent.zip"
+}
+
+// The OCI plugin adds a project-level repository ('dockerHubOciRegistry') for resolving
+// OCI image dependencies, which overrides the settings-level dependencyResolutionManagement
+// repositories. We need to re-declare mavenCentral() here so regular dependencies can still
+// be resolved. See: https://github.com/SgtSilvio/gradle-oci/issues/125
+repositories {
+	mavenCentral()
+}
+
+oci {
+	registries {
+		dockerHub {
+			optionalCredentials()
+		}
+	}
+
+	val ociImageTag = providers.gradleProperty("ociImageTag").orElse(appVersion)
+	val configureImage: Action<OciImageDefinition> = Action {
+		imageTag = ociImageTag
+		allPlatforms {
+			dependencies {
+				runtime("library:alpine:latest")
+			}
+			config {
+				entryPoint = listOf("/entrypoint.sh")
+			}
+			layer("agent") {
+				contents {
+					into("agent") {
+						from(tasks.shadowJar)
+					}
+				}
+			}
+			layer("entrypoint") {
+				contents {
+					from("src/docker/entrypoint.sh") {
+						filePermissions = "755".toInt(8)
+					}
+				}
+			}
+		}
+		specificPlatform(platform("linux", "amd64"))
+		specificPlatform(platform("linux", "arm64"))
+	}
+
+	imageDefinitions.register("main") {
+		imageName = "cqse/teamscale-java-profiler"
+		configureImage.execute(this)
+	}
+	imageDefinitions.register("legacy") {
+		imageName = "cqse/teamscale-jacoco-agent"
+		configureImage.execute(this)
+	}
 }

@@ -52,9 +52,7 @@ abstract class CompactCoverageAggregationPlugin : Plugin<Project> {
 					attributes.artifactType(ArtifactTypeDefinition.BINARY_DATA_TYPE)
 				}.files
 				this.executionData.from(executionData)
-				dependsOn(executionData.buildDependencies)
 				this.classDirectories.from(classDirectories)
-				dependsOn(classDirectories.buildDependencies)
 			}
 		}
 

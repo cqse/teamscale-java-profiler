@@ -51,7 +51,7 @@ Entry point: `PreMain.premain()` in `agent/src/main/java/com/teamscale/jacoco/ag
 4. Classes are instrumented at load time with coverage probes
 
 **Coverage modes:**
-- **Interval-based** (`Agent` class) - Periodically dumps coverage (default every 10 min)
+- **Interval-based** (`Agent` class) - Periodically dumps coverage (default every 480 min)
 - **Test-wise** (`TestwiseCoverageAgent` class) - Per-test coverage via HTTP endpoints (`/test/start`, `/test/end`)
 
 **Key classes:**
