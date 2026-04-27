@@ -35,11 +35,11 @@ public class JacocoAgentOptionsBuilder {
 		// Don't dump class files in testwise mode when coverage is written to an exec file
 		boolean needsClassFiles = agentOptions.mode == EMode.NORMAL || agentOptions.testwiseCoverageMode != ETestwiseCoverageMode.EXEC_FILE;
 		if (agentOptions.classDirectoriesOrZips.isEmpty() && needsClassFiles) {
-			Path tempDir = createTemporaryDumpDirectory();
-			tempDir.toFile().deleteOnExit();
-			builder.append(",classdumpdir=").append(tempDir.toAbsolutePath());
+			Path classDumpDirectory = createTemporaryDumpDirectory();
+			classDumpDirectory.toFile().deleteOnExit();
+			builder.append(",classdumpdir=").append(classDumpDirectory.toAbsolutePath());
 
-			agentOptions.classDirectoriesOrZips = Collections.singletonList(tempDir.toFile());
+			agentOptions.classDirectoriesOrZips = Collections.singletonList(classDumpDirectory.toFile());
 		}
 
 		agentOptions.additionalJacocoOptions

@@ -6,7 +6,14 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [fix] _agent_: The profiled application no longer crashes when the profiler configuration is invalid (e.g., missing `teamscale-user`). Instead, the application starts normally without coverage collection.
-- [feature] _teamscale-gradle-plugin_: Annotated tasks with `@DisableCachingByDefault` where caching can't be applied
+
+# 36.5.0
+- [feature] _agent_: Renamed the docker image to `cqse/teamscale-java-profiler` and added support for the `linux/arm64` platform
+- [fix] _teamscale-gradle-plugin_: Coverage aggregation report and upload were skipped when tests failed with `--continue`
+
+# 36.4.1
+- [fix] _agent_: Fixed `IllegalStateException: Can't add different class with same name` when application servers like JBoss perform a reload without full restart or when duplicate class files exist across multiple archives
+- [fix] _teamscale-gradle-plugin_: Annotated tasks with `@DisableCachingByDefault` where caching can't be applied
 
 # 36.4.0
 - [feature] _maven-plugin_: Auto-detect commit from CI/CD environment variables (Jenkins, GitHub Actions, GitLab CI, Azure DevOps, etc.)

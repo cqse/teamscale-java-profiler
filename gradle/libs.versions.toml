@@ -10,7 +10,7 @@ okhttp = "5.3.2"
 mockito = "5.23.0"
 mockitoKotlin = "6.3.0"
 picocli = "4.7.7"
-maven = "3.9.14"
+maven = "3.9.15"
 asm = "9.9.1"
 
 [libraries]
@@ -47,7 +47,7 @@ spark = { module = "com.sparkjava:spark-core", version = "2.9.4" }
 jcommander = { module = "com.beust:jcommander", version = "1.82" }
 commonsCodec = { module = "commons-codec:commons-codec", version = "1.21.0" }
 commonsLang = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
-commonsIo = { module = "commons-io:commons-io", version = "2.21.0" }
+commonsIo = { module = "commons-io:commons-io", version = "2.22.0" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.17" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version = "7.6.0.202603022253-r" }
 okio = { module = "com.squareup.okio:okio", version = "3.17.0" }
@@ -88,5 +88,6 @@ pluginPublish = { id = "com.gradle.plugin-publish", version = "2.1.1" }
 gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.7" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
 shadow = { id = "com.gradleup.shadow", version = "9.4.1" }
-kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.20" }
+oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.25.0" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.21" }
 jlink = { id = "org.beryx.jlink", version = "4.0.0" }
