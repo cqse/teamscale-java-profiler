@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 36.5.1
 - [fix] _agent_: The profiled application no longer crashes when the profiler configuration is invalid (e.g., missing `teamscale-user`). Instead, the application starts normally without coverage collection.
 
 # 36.5.0
