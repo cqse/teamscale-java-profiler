@@ -88,6 +88,6 @@ pluginPublish = { id = "com.gradle.plugin-publish", version = "2.1.1" }
 gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.7" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
 shadow = { id = "com.gradleup.shadow", version = "9.4.1" }
-oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.25.0" }
+oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.26.0" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.21" }
 jlink = { id = "org.beryx.jlink", version = "4.0.0" }
