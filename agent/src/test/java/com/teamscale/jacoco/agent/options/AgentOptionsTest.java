@@ -489,6 +489,27 @@ public class AgentOptionsTest {
 		return new AgentOptionsParser(new CommandLineLogger(), null, null, credentials, null);
 	}
 
+	/** Tests that config-id without teamscale-user reports the missing option by name. */
+	@Test
+	public void configIdWithMissingUserReportsMissingOption() {
+		assertThatThrownBy(
+				() -> parseAndMaybeThrow(
+						"config-id=test,teamscale-server-url=http://localhost:8080,teamscale-access-token=keyfoo"))
+				.isInstanceOf(AgentOptionParseException.class)
+				.hasMessageContaining("teamscale-user");
+	}
+
+	/** Tests that config-id with all required options missing reports all of them. */
+	@Test
+	public void configIdWithAllMissingOptionsReportsAll() {
+		assertThatThrownBy(
+				() -> parseAndMaybeThrow("config-id=test"))
+				.isInstanceOf(AgentOptionParseException.class)
+				.hasMessageContaining("teamscale-server-url")
+				.hasMessageContaining("teamscale-user")
+				.hasMessageContaining("teamscale-access-token");
+	}
+
 	/**
 	 * Delete created coverage folders
 	 */
