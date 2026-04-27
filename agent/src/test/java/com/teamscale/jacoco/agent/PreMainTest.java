@@ -1,5 +1,7 @@
 package com.teamscale.jacoco.agent;
 
+import com.teamscale.jacoco.agent.logging.LoggingUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -29,6 +31,16 @@ class PreMainTest {
 	@BeforeEach
 	void resetPremainLock() {
 		System.clearProperty("TEAMSCALE_JAVA_PROFILER_ATTACHED");
+	}
+
+	/**
+	 * Stops the logger context so file appenders configured during {@code premain} release their file handles. Without
+	 * this, Windows refuses to delete the {@code @TempDir} that holds {@code agent.log} and the test fails during
+	 * cleanup.
+	 */
+	@AfterEach
+	void releaseLogFileHandles() {
+		LoggingUtils.getLoggerContext().stop();
 	}
 
 	/**
