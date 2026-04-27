@@ -48,7 +48,7 @@ object PreMain {
 	 */
 	@JvmStatic
 	@Throws(Exception::class)
-	fun premain(options: String, instrumentation: Instrumentation) {
+	fun premain(options: String, instrumentation: Instrumentation?) {
 		if (System.getProperty(LOCKING_SYSTEM_PROPERTY) != null) return
 		System.setProperty(LOCKING_SYSTEM_PROPERTY, "true")
 
@@ -199,7 +199,7 @@ object PreMain {
 	@Throws(UploaderException::class, IOException::class)
 	private fun createAgent(
 		agentOptions: AgentOptions,
-		instrumentation: Instrumentation
+		instrumentation: Instrumentation?
 	): AgentBase = if (agentOptions.useTestwiseCoverageMode()) {
 		TestwiseCoverageAgent.create(agentOptions)
 	} else {
