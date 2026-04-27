@@ -43,6 +43,9 @@ class TeamscaleMockServer(val port: Int) {
 	private val service = Service.ignite()
 	private var impactedTests = listOf<String>()
 	val profilerEvents = mutableListOf<String>()
+
+	/** All log entries that the profiler forwarded to this server via {@code POST /profilers/:profilerId/logs}. */
+	val collectedLogMessages = mutableListOf<ProfilerLogEntry>()
 	private var profilerConfiguration: ProfilerConfiguration? = null
 	private var username: String? = null
 	private var accessToken: String? = null
@@ -70,6 +73,7 @@ class TeamscaleMockServer(val port: Int) {
 		sessions.clear()
 		allAvailableTests.clear()
 		profilerEvents.clear()
+		collectedLogMessages.clear()
 		impactedTestCommits.clear()
 		baselines.clear()
 	}
@@ -229,6 +233,11 @@ class TeamscaleMockServer(val port: Int) {
 
 		request.collectUserAgent()
 		profilerEvents.add("Profiler " + request.params(":profilerId") + " sent logs")
+		try {
+			collectedLogMessages.addAll(deserializeList<ProfilerLogEntry>(request.body()))
+		} catch (e: JsonProcessingException) {
+			// Body wasn't a list of ProfilerLogEntry — ignore so we don't break tests that don't care about log bodies.
+		}
 		return ""
 	}
 

@@ -122,7 +122,7 @@ public class AgentOptionsParser {
 		if (optionsString == null) {
 			optionsString = "";
 		}
-		logger.debug("Parsing options: " + optionsString);
+		logger.debug("Parsing options: " + AgentOptions.obfuscateAccessToken(optionsString));
 
 		AgentOptions options = new AgentOptions(logger);
 		options.originalOptionsString = optionsString;
@@ -432,7 +432,8 @@ public class AgentOptionsParser {
 				options.teamscaleServer.userAccessToken);
 		options.configurationViaTeamscale = configuration;
 		logger.debug(
-				"Received the following options from Teamscale: " + configuration.getProfilerConfiguration().configurationOptions);
+				"Received the following options from Teamscale: " + AgentOptions.obfuscateAccessToken(
+						configuration.getProfilerConfiguration().configurationOptions));
 		readConfigFromString(options, configuration.getProfilerConfiguration().configurationOptions);
 	}
 

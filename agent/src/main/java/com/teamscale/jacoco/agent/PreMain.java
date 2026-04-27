@@ -184,7 +184,7 @@ public class PreMain {
 		if (!differentAgents.isEmpty()) {
 			delayedLogger.warn(
 					"Using multiple java agents could interfere with coverage recording: " +
-							String.join(", ", differentAgents));
+							AgentOptions.obfuscateAccessToken(String.join(", ", differentAgents)));
 		}
 		if (!javaAgents.get(0).contains("teamscale-jacoco-agent.jar")) {
 			delayedLogger.warn("For best results consider registering the Teamscale Java Profiler first.");

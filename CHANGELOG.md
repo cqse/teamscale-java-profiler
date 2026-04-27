@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [security fix] _agent_: The Teamscale access token was logged in clear text in DEBUG-level logs (e.g., when `debug=true` was set) and in the WARN-level log emitted when multiple `-javaagent` arguments are present. The token is now obfuscated in those logs as well, matching INFO-level behavior.
 
 # 36.5.1
 - [fix] _agent_: The profiled application no longer crashes when the profiler configuration is invalid (e.g., missing `teamscale-user`). Instead, the application starts normally without coverage collection.
