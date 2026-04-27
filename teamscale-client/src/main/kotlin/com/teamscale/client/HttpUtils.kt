@@ -61,8 +61,9 @@ object HttpUtils {
 	@JvmOverloads
 	@JvmStatic
 	fun createRetrofit(
-		retrofitBuilderAction: Consumer<Retrofit.Builder>,
-		okHttpBuilderAction: Consumer<Builder>, readTimeout: Duration = DEFAULT_READ_TIMEOUT,
+		retrofitBuilderAction: Retrofit.Builder.() -> Unit,
+		okHttpBuilderAction: Builder.() -> Unit,
+		readTimeout: Duration = DEFAULT_READ_TIMEOUT,
 		writeTimeout: Duration = DEFAULT_WRITE_TIMEOUT
 	): Retrofit {
 		val httpClientBuilder = Builder().apply {
@@ -70,10 +71,10 @@ object HttpUtils {
 			setUpSslValidation()
 			setUpProxyServer()
 		}
-		okHttpBuilderAction.accept(httpClientBuilder)
+		okHttpBuilderAction(httpClientBuilder)
 
 		val builder = Retrofit.Builder().client(httpClientBuilder.build())
-		retrofitBuilderAction.accept(builder)
+		retrofitBuilderAction(builder)
 		return builder.build()
 	}
 

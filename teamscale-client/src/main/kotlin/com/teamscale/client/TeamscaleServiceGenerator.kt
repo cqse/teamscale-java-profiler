@@ -20,10 +20,7 @@ object TeamscaleServiceGenerator {
 	 * Generates a [Retrofit] instance for the given service, which uses basic auth to authenticate against the
 	 * server and which sets the accept header to json.
 	 */
-	@JvmStatic
-	@JvmOverloads
-	fun <S> createService(
-		serviceClass: Class<S>,
+	inline fun <reified S> createService(
 		baseUrl: HttpUrl,
 		username: String,
 		accessToken: String,
@@ -31,16 +28,15 @@ object TeamscaleServiceGenerator {
 		readTimeout: Duration = HttpUtils.DEFAULT_READ_TIMEOUT,
 		writeTimeout: Duration = HttpUtils.DEFAULT_WRITE_TIMEOUT,
 		vararg interceptors: Interceptor
-	) = createServiceWithRequestLogging(
-		serviceClass, baseUrl, username, accessToken, null, readTimeout, writeTimeout, userAgent, *interceptors
+	) = createServiceWithRequestLogging<S>(
+		baseUrl, username, accessToken, null, readTimeout, writeTimeout, userAgent, *interceptors
 	)
 
 	/**
 	 * Generates a [Retrofit] instance for the given service, which uses basic auth to authenticate against the
 	 * server and which sets the accept-header to json. Logs requests and responses to the given logfile.
 	 */
-	fun <S> createServiceWithRequestLogging(
-		serviceClass: Class<S>,
+	inline fun <reified S> createServiceWithRequestLogging(
 		baseUrl: HttpUrl,
 		username: String,
 		accessToken: String,
@@ -50,33 +46,22 @@ object TeamscaleServiceGenerator {
 		userAgent: String,
 		vararg interceptors: Interceptor
 	): S = HttpUtils.createRetrofit(
-		{ retrofitBuilder ->
-			retrofitBuilder.baseUrl(baseUrl)
-				.addConverterFactory(JacksonConverterFactory.create(JsonUtils.OBJECT_MAPPER))
+		{
+			baseUrl(baseUrl).addConverterFactory(JacksonConverterFactory.create(JsonUtils.OBJECT_MAPPER))
 		},
-		{ okHttpBuilder ->
-			okHttpBuilder.addInterceptors(*interceptors)
-				.addInterceptor(HttpUtils.getBasicAuthInterceptor(username, accessToken))
-				.addInterceptor(AcceptJsonInterceptor())
-				.addNetworkInterceptor(CustomUserAgentInterceptor(userAgent))
-			logfile?.let { okHttpBuilder.addInterceptor(FileLoggingInterceptor(it)) }
-		},
-		readTimeout, writeTimeout
-	).create(serviceClass)
-
-	private fun OkHttpClient.Builder.addInterceptors(
-		vararg interceptors: Interceptor
-	): OkHttpClient.Builder {
-		interceptors.forEach { interceptor ->
-			addInterceptor(interceptor)
-		}
-		return this
-	}
+		{
+			interceptors.forEach { addInterceptor(it) }
+			addInterceptor(HttpUtils.getBasicAuthInterceptor(username, accessToken))
+			addInterceptor(AcceptJsonInterceptor())
+			addNetworkInterceptor(CustomUserAgentInterceptor(userAgent))
+			logfile?.let { addInterceptor(FileLoggingInterceptor(it)) }
+		}, readTimeout, writeTimeout
+	).create(S::class.java)
 
 	/**
 	 * Sets an `Accept: application/json` header on all requests.
 	 */
-	private class AcceptJsonInterceptor : Interceptor {
+	class AcceptJsonInterceptor : Interceptor {
 		@Throws(IOException::class)
 		override fun intercept(chain: Interceptor.Chain): Response {
 			val newRequest = chain.request().newBuilder().header("Accept", "application/json").build()
