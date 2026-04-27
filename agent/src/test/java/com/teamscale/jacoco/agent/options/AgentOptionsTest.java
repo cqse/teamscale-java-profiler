@@ -510,6 +510,50 @@ public class AgentOptionsTest {
 				.hasMessageContaining("teamscale-access-token");
 	}
 
+	/** Tests that {@link AgentOptions#obfuscateAccessToken(String)} hides the token in a comma-separated options string. */
+	@Test
+	public void obfuscateAccessTokenHidesTokenInOptionsString() {
+		String input = "config-file=jacocoagent.properties,teamscale-access-token=unlYgehaYYYhbPAegNWV3WgjOzxkmNHn,teamscale-partition=p";
+		assertThat(AgentOptions.obfuscateAccessToken(input)).isEqualTo(
+				"config-file=jacocoagent.properties,teamscale-access-token=************mNHn,teamscale-partition=p");
+	}
+
+	/** Tests that obfuscation also covers tokens in newline-separated input (the format Teamscale returns for config-id). */
+	@Test
+	public void obfuscateAccessTokenHidesTokenInNewlineSeparatedString() {
+		String input = "teamscale-access-token=unlYgehaYYYhbPAegNWV3WgjOzxkmNHn\nteamscale-partition=p";
+		assertThat(AgentOptions.obfuscateAccessToken(input)).isEqualTo(
+				"teamscale-access-token=************mNHn\nteamscale-partition=p");
+	}
+
+	/** Tests that obfuscation hides every {@code *-access-token=} occurrence, not just the last one. */
+	@Test
+	public void obfuscateAccessTokenHidesMultipleTokens() {
+		String input = "teamscale-access-token=unlYgehaYYYhbPAegNWV3WgjOzxkmNHn,artifactory-access-token=anotherSecretAbcd";
+		assertThat(AgentOptions.obfuscateAccessToken(input)).isEqualTo(
+				"teamscale-access-token=************mNHn,artifactory-access-token=************Abcd");
+	}
+
+	/** Tests that strings without an access token are returned unchanged. */
+	@Test
+	public void obfuscateAccessTokenReturnsInputUnchangedWhenNoTokenPresent() {
+		String input = "config-file=jacocoagent.properties,teamscale-partition=p";
+		assertThat(AgentOptions.obfuscateAccessToken(input)).isEqualTo(input);
+	}
+
+	/** Tests the null-input contract used by {@link AgentOptions#getObfuscatedOptionsString()}. */
+	@Test
+	public void obfuscateAccessTokenReturnsEmptyStringForNullInput() {
+		assertThat(AgentOptions.obfuscateAccessToken(null)).isEmpty();
+	}
+
+	/** Tests that a token shorter than 4 characters does not throw and is fully obfuscated. */
+	@Test
+	public void obfuscateAccessTokenHandlesShortToken() {
+		assertThat(AgentOptions.obfuscateAccessToken("teamscale-access-token=abc")).isEqualTo(
+				"teamscale-access-token=************abc");
+	}
+
 	/**
 	 * Delete created coverage folders
 	 */

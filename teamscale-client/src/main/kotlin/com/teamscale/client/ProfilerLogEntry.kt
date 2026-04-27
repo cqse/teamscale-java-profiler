@@ -1,16 +1,19 @@
 package com.teamscale.client
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+
 /** A log entry to be sent to Teamscale */
-class ProfilerLogEntry(
+class ProfilerLogEntry @JsonCreator constructor(
 	/** The time of the event */
-	var timestamp: Long,
+	@param:JsonProperty("timestamp") var timestamp: Long,
 
 	/** Log message */
-	var message: String,
+	@param:JsonProperty("message") var message: String,
 
 	/** Details, for example, the stack trace */
-	var details: String?,
+	@param:JsonProperty("details") var details: String?,
 
 	/** Event severity */
-	var severity: String
+	@param:JsonProperty("severity") var severity: String
 )

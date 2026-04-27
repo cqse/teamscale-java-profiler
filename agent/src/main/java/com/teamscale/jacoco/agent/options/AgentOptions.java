@@ -256,20 +256,35 @@ public class AgentOptions {
 	 * "config-file=jacocoagent.properties,teamscale-access-token=************mNHn"
 	 */
 	public String getObfuscatedOptionsString() {
-		if (getOriginalOptionsString() == null) {
+		return obfuscateAccessToken(getOriginalOptionsString());
+	}
+
+	/**
+	 * Obfuscates any "*-access-token=..." value in the given options string for safe logging. Keeps only the last 4
+	 * characters of each token. Returns an empty string for {@code null} input and the original string when no token
+	 * pattern matches.
+	 */
+	public static String obfuscateAccessToken(String optionsString) {
+		if (optionsString == null) {
 			return "";
 		}
 
-		Pattern pattern = Pattern.compile("(.*-access-token=)([^,]+)(.*)");
-		Matcher match = pattern.matcher(getOriginalOptionsString());
-		if (match.find()) {
+		Pattern pattern = Pattern.compile("(-access-token=)([^,\\n\\r]+)");
+		Matcher match = pattern.matcher(optionsString);
+		StringBuffer obfuscated = new StringBuffer();
+		boolean foundAny = false;
+		while (match.find()) {
+			foundAny = true;
 			String apiKey = match.group(2);
 			String obfuscatedApiKey = String.format("************%s", apiKey.substring(Math.max(0,
 					apiKey.length() - 4)));
-			return String.format("%s%s%s", match.group(1), obfuscatedApiKey, match.group(3));
+			match.appendReplacement(obfuscated, Matcher.quoteReplacement(match.group(1) + obfuscatedApiKey));
 		}
-
-		return getOriginalOptionsString();
+		if (!foundAny) {
+			return optionsString;
+		}
+		match.appendTail(obfuscated);
+		return obfuscated.toString();
 	}
 
 	/**
