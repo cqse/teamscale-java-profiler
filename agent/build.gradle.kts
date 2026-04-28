@@ -105,21 +105,7 @@ tasks.shadowDistZip {
 	archiveFileName = "teamscale-jacoco-agent.zip"
 }
 
-// The OCI plugin adds a project-level repository ('dockerHubOciRegistry') for resolving
-// OCI image dependencies, which overrides the settings-level dependencyResolutionManagement
-// repositories. We need to re-declare mavenCentral() here so regular dependencies can still
-// be resolved. See: https://github.com/SgtSilvio/gradle-oci/issues/125
-repositories {
-	mavenCentral()
-}
-
 oci {
-	registries {
-		dockerHub {
-			optionalCredentials()
-		}
-	}
-
 	val ociImageTag = providers.gradleProperty("ociImageTag").orElse(appVersion)
 	val configureImage: Action<OciImageDefinition> = Action {
 		imageTag = ociImageTag

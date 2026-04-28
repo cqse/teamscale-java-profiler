@@ -4,14 +4,22 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
+    id("io.github.sgtsilvio.gradle.oci") version("0.26.0")
+}
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
-}
-
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
+    oci {
+        registries {
+            dockerHub {
+                optionalCredentials()
+            }
+        }
+    }
 }
 
 include(":agent")
