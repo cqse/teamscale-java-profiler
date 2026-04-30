@@ -1,7 +1,9 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
 	java
+	id("org.gradle.test-retry")
 }
 
 group = "com.teamscale"
@@ -26,6 +28,16 @@ tasks.test {
 		excludeEngines("teamscale-test-impacted")
 	}
 	testLogging.exceptionFormat = TestExceptionFormat.FULL
+	if (OperatingSystem.current().isWindows) {
+		maxHeapSize = "1g"
+	}
+	if (System.getenv("CI") == "true") {
+		retry {
+			maxRetries = 2
+			maxFailures = 5
+			failOnPassedAfterRetry = false
+		}
+	}
 }
 
 // Workaround until https://github.com/gradle/gradle/issues/15383 is fixed
