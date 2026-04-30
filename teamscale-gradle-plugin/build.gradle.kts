@@ -1,7 +1,6 @@
 import org.gradle.plugin.compatibility.compatibility
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	`java-gradle-plugin`
@@ -16,7 +15,7 @@ tasks.compileJava {
 	options.release = 11
 }
 
-tasks.withType<KotlinCompile> {
+tasks.compileKotlin {
 	compilerOptions {
 		jvmTarget = JvmTarget.JVM_11
 		// Needed to support older Gradle versions

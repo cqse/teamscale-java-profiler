@@ -9,6 +9,7 @@ repositories {
 dependencies {
 	implementation(plugin(libs.plugins.shadow))
 	implementation(plugin(libs.plugins.kotlinJvm))
+	implementation(plugin(libs.plugins.testRetry))
 
 	implementation(libs.asm.core)
 	implementation(libs.asm.commons)
