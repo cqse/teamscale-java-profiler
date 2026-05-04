@@ -1,8 +1,3 @@
-/*-------------------------------------------------------------------------+
-|                                                                          |
-| Copyright (c) 2009-2017 CQSE GmbH                                        |
-|                                                                          |
-+-------------------------------------------------------------------------*/
 package com.teamscale.jacoco.agent.convert
 
 import com.beust.jcommander.Parameter

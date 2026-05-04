@@ -1,8 +1,3 @@
-/*-------------------------------------------------------------------------+
-|                                                                          |
-| Copyright (c) 2009-2018 CQSE GmbH                                        |
-|                                                                          |
-+-------------------------------------------------------------------------*/
 package com.teamscale.report.jacoco
 
 import com.teamscale.report.util.BashFileSkippingInputStream
