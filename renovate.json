@@ -9,12 +9,25 @@
   "rangeStrategy": "bump",
   "separateMajorMinor": false,
   "ignorePaths": [
-    "system-tests/**",
     "sample-app/**",
-    "agent/src/docker/Dockerfile",
     "report-generator/build.gradle.kts"
   ],
   "packageRules": [
+    {
+      "matchFileNames": [
+        "system-tests/**"
+      ],
+      "enabled": false
+    },
+    {
+      "matchFileNames": [
+        "system-tests/**/gradle/wrapper/gradle-wrapper.properties"
+      ],
+      "matchManagers": [
+        "gradle-wrapper"
+      ],
+      "enabled": true
+    },
     {
       "matchPackagePrefixes": [
         "ch.qos.logback"

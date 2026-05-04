@@ -49,6 +49,8 @@ tasks.register<Test>("tiaTests") {
     testClassesDirs = sourceSets.test.get().output.classesDirs
     classpath = sourceSets.test.get().runtimeClasspath
     useJUnitPlatform()
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
     configure<TeamscaleTaskExtension> {
         partition = "Cucumber Tests"
         collectTestwiseCoverage = true

@@ -25,7 +25,7 @@ jersey-containerServletCore = { module = "org.glassfish.jersey.containers:jersey
 jersey-mediaJsonJackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackson" }
 jersey-hk2 = { module = "org.glassfish.jersey.inject:jersey-hk2" }
 
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.21.2" }
+jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.21.3" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 
 jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version = "1.2.2" }
@@ -88,6 +88,7 @@ pluginPublish = { id = "com.gradle.plugin-publish", version = "2.1.1" }
 gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.7" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
 shadow = { id = "com.gradleup.shadow", version = "9.4.1" }
-oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.25.0" }
+oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.27.0" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.21" }
 jlink = { id = "org.beryx.jlink", version = "4.0.0" }
+testRetry = { id = "org.gradle.test-retry", version = "1.6.4" }
