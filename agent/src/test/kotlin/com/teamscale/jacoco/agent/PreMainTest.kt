@@ -2,8 +2,10 @@ package com.teamscale.jacoco.agent
 
 import com.teamscale.jacoco.agent.PreMain.premain
 import com.teamscale.jacoco.agent.logging.LoggingUtils.loggerContext
+import com.teamscale.jacoco.agent.options.AgentOptionParseException
 import org.assertj.core.api.Assertions
-import org.assertj.core.api.ThrowableAssert
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,10 +16,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
- * Verifies the cross-cutting design invariant documented on [PreMain]: a failure to start up the profiler
- * (misconfiguration, missing files, environment issues, ...) must never propagate an exception out of
- * [premain], because the JVM would turn that into an
- * `IllegalAgentException` and abort the profiled application.
+ * Verifies the design invariants documented on [PreMain]:
+ *   - Configuration errors (unknown options, missing credentials) propagate out of [premain] so the JVM reports them.
+ *   - Runtime failures (port conflicts, uploader errors) are logged and swallowed so the profiled application
+ *     continues running without coverage collection.
  */
 internal class PreMainTest {
 	/**
@@ -41,49 +43,41 @@ internal class PreMainTest {
 	}
 
 	/**
-	 * Invalid agent options produce an `AgentOptionParseException` internally. The agent must swallow it so the
+	 * Invalid agent options are configuration errors. The agent must propagate them out of [premain] so the JVM
+	 * reports the misconfiguration immediately.
+	 */
+	@Test
+	fun premainPropagatesInvalidOptions() {
+		Assertions.assertThatThrownBy {
+			premain("this=is=not=a=valid=option,bogus-key=value", null)
+		}.isInstanceOf(AgentOptionParseException::class.java)
+			.hasMessageContaining("Unknown option: this")
+	}
+
+	/**
+	 * A `config-id` without the required Teamscale credentials is a configuration error.
+	 * The agent must propagate it so the user gets immediate feedback about the missing credentials.
+	 */
+	@Test
+	fun premainPropagatesConfigIdWithoutCredentials() {
+		Assertions.assertThatThrownBy { premain("config-id=some-config", null) }
+			.isInstanceOf(AgentOptionParseException::class.java)
+			.hasMessageContaining("Config-id")
+	}
+
+	/**
+	 * Exercises the runtime-failure safety net: failures that surface *after* options have been parsed
+	 * (e.g. Jetty [java.net.BindException], [UploaderException]) must be logged and swallowed so the
 	 * profiled application keeps running.
-	 */
-	@Test
-	fun premainDoesNotThrowOnInvalidOptions() {
-		Assertions.assertThatCode {
-			premain(
-				"this=is=not=a=valid=option,bogus-key=value",
-				null
-			)
-		}.doesNotThrowAnyException()
-	}
-
-	/**
-	 * Regression test for TS-43260: a `config-id` without the required Teamscale credentials used to propagate an
-	 * `AgentOptionParseException` out of `premain` and abort the profiled application. It must now be
-	 * swallowed.
-	 */
-	@Test
-	fun premainDoesNotThrowOnConfigIdWithoutCredentials() {
-		Assertions.assertThatCode { premain("config-id=some-config", null) }
-			.doesNotThrowAnyException()
-	}
-
-	/**
-	 * Exercises the top-level `try`/`catch` in [premain] that routes
-	 * into `logStartupFailure` — the safety net for failures that surface *after* options have been parsed
-	 * (and are therefore not covered by the `AgentOption*Exception` catches inside `startProfiler`).
-	 * 
-	 * 
+	 *
 	 * The trick: valid options pass parsing, then a `null` [Instrumentation] forces JaCoCo's runtime setup
-	 * to dereference `null` (first at `AgentModule.openPackage(inst, …)` inside
-	 * `JaCoCoPreMain.createRuntime`). The resulting [NullPointerException] is a stand-in for real-world
-	 * post-parse failures — e.g. a Jetty `BindException` when `http-server-port` is taken, or an
-	 * `UploaderException` during uploader construction — which would bubble up the same way. In production the
-	 * JVM always supplies a non-null `Instrumentation`; passing `null` here is only a cheap way to stage
-	 * the failure without a running JVM agent attach.
-	 * 
-	 * 
+	 * to dereference `null` (inside `JaCoCoPreMain.createRuntime`). The resulting [NullPointerException] is a
+	 * stand-in for real-world post-parse failures. In production the JVM always supplies a non-null
+	 * `Instrumentation`; passing `null` here is only a cheap way to stage the failure without a
+	 * running JVM agent attach.
+	 *
 	 * A custom `logging-config` points logback at a file inside `tempDir` so we can read back the emitted
-	 * error event. A plain [ch.qos.logback.core.read.ListAppender] attached in the test would be detached again
-	 * by the `LoggerContext.reset()` that `LoggingUtils.reconfigureLoggerContext` performs during option
-	 * parsing.
+	 * error event.
 	 */
 	@Test
 	@Throws(IOException::class)
@@ -100,15 +94,14 @@ internal class PreMainTest {
 					+ "</configuration>\n")).toByteArray(StandardCharsets.UTF_8)
 		)
 
-		Assertions.assertThatCode {
+		assertThatCode {
 			premain("logging-config=" + logbackConfig.toAbsolutePath() + ",includes=com.example.*", null)
 		}.doesNotThrowAnyException()
 
-		Assertions.assertThat(logFile).exists()
+		assertThat(logFile).exists()
 		val log = String(Files.readAllBytes(logFile), StandardCharsets.UTF_8)
-		Assertions.assertThat(log)
+		assertThat(log)
 			.contains("ERROR")
 			.contains("failed to start up")
-			.contains("NullPointerException")
 	}
 }

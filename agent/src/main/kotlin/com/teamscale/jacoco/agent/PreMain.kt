@@ -23,7 +23,7 @@ import java.nio.file.Paths
 
 /** Container class for the premain entry point for the agent.  */
 object PreMain {
-	private lateinit var loggingResources: LoggingUtils.LoggingResources
+	private var loggingResources: LoggingUtils.LoggingResources? = null
 
 	/**
 	 * System property that we use to prevent this agent from being attached to the same VM twice. This can happen if
@@ -81,6 +81,7 @@ object PreMain {
 			// Unregister the profiler from Teamscale.
 			agentOptions?.configurationViaTeamscale?.unregisterProfiler()
 
+			// Configuration errors must be visible to the user; let the JVM report them.
 			throw e
 		} catch (_: AgentOptionReceiveException) {
 			// When Teamscale is not available, we don't want to fail hard to still allow for testing even if no
@@ -88,6 +89,17 @@ object PreMain {
 			return
 		}
 
+		// Post-parse phase: runtime failures must not crash the profiled application.
+		try {
+			startProfiling(agentOptions, instrumentation)
+		} catch (t: Throwable) {
+			logStartupFailure(t)
+		}
+	}
+
+	/** Starts JaCoCo instrumentation and registers the agent. May throw at runtime.  */
+	@Throws(Exception::class)
+	private fun startProfiling(agentOptions: AgentOptions, instrumentation: Instrumentation?) {
 		val logger = LoggingUtils.getLogger(Agent::class.java)
 
 		logger.info("Teamscale Java profiler version ${AgentUtils.VERSION}")
@@ -97,6 +109,24 @@ object PreMain {
 
 		agentOptions.configurationViaTeamscale?.startHeartbeatThreadAndRegisterShutdownHook()
 		createAgent(agentOptions, instrumentation).registerShutdownHook()
+	}
+
+	/**
+	 * Logs a startup failure on a best-effort basis. Must not throw under any circumstances.
+	 */
+	private fun logStartupFailure(t: Throwable) {
+		try {
+			LoggingUtils.getLogger(PreMain::class.java).error(
+				"Teamscale Java Profiler failed to start up. The profiled application will continue to run " +
+						"without coverage collection.", t
+			)
+		} catch (loggingFailure: Throwable) {
+			try {
+				System.err.println("[Teamscale Java Profiler] Failed to start up and will not collect coverage: $t")
+				loggingFailure.addSuppressed(t)
+				loggingFailure.printStackTrace()
+			} catch (_: Throwable) { }
+		}
 	}
 
 	@Throws(AgentOptionParseException::class, IOException::class, AgentOptionReceiveException::class)
@@ -187,9 +217,9 @@ object PreMain {
 		}
 	}
 
-	/** Closes the opened logging contexts.  */
+	/** Closes the opened logging contexts if initialized.  */
 	fun closeLoggingResources() {
-		loggingResources.close()
+		loggingResources?.close()
 	}
 
 	/**

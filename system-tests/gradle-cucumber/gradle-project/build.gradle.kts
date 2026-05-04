@@ -45,6 +45,9 @@ tasks.test {
 }
 
 tasks.register<Test>("tiaTests") {
+    dependsOn(tasks.testClasses)
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
     useJUnitPlatform()
     configure<TeamscaleTaskExtension> {
         partition = "Cucumber Tests"
