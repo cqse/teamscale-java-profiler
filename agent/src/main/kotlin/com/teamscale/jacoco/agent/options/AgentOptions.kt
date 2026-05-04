@@ -44,6 +44,7 @@ import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.io.path.exists
 import kotlin.io.path.isReadable
@@ -231,26 +232,7 @@ open class AgentOptions(private val logger: ILogger) {
 	 * "config-file=jacocoagent.properties,teamscale-access-token=************mNHn"
 	 */
 	val obfuscatedOptionsString: String?
-		get() {
-			val original = originalOptionsString ?: return ""
-
-			val pattern = Pattern.compile("(.*-access-token=)([^,]+)(.*)")
-			val match = pattern.matcher(original)
-			if (match.find()) {
-				val apiKey = match.group(2)
-				val obfuscatedApiKey = "************${
-					apiKey.substring(
-						max(
-							0,
-							apiKey.length - 4
-						)
-					)
-				}"
-				return "${match.group(1)}$obfuscatedApiKey${match.group(3)}"
-			}
-
-			return originalOptionsString
-		}
+		get() = obfuscateAccessToken(originalOptionsString)
 
 	/**
 	 * Validates the options and returns a validator with all validation errors.
@@ -675,6 +657,39 @@ open class AgentOptions(private val logger: ILogger) {
 		 */
 		val DATE_TIME_FORMATTER: DateTimeFormatter =
 			DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss.SSS", Locale.ENGLISH)
+
+		/**
+		 * Obfuscates any "*-access-token=..." value in the given options string for safe logging. Keeps only the
+		 * last 4 characters of each token. Returns an empty string for `null` input and the original string when no
+		 * token pattern matches.
+		 */
+		@JvmStatic
+		fun obfuscateAccessToken(optionsString: String?): String {
+			if (optionsString == null) {
+				return ""
+			}
+
+			val pattern = Pattern.compile("(-access-token=)([^,\\n\\r]+)")
+			val matcher = pattern.matcher(optionsString)
+			val obfuscated = StringBuffer()
+			var foundAny = false
+			while (matcher.find()) {
+				foundAny = true
+				val apiKey = matcher.group(2)
+				val obfuscatedApiKey = "************${
+					apiKey.substring(max(0, apiKey.length - 4))
+				}"
+				matcher.appendReplacement(
+					obfuscated,
+					Matcher.quoteReplacement(matcher.group(1) + obfuscatedApiKey)
+				)
+			}
+			if (!foundAny) {
+				return optionsString
+			}
+			matcher.appendTail(obfuscated)
+			return obfuscated.toString()
+		}
 
 		/**
 		 * The default excludes applied to JaCoCo. These are packages that should never be profiled. Excluding them makes

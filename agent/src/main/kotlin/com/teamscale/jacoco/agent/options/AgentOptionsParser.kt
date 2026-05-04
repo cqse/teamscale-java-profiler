@@ -59,7 +59,7 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 		if (optionsString == null) {
 			optionsString = ""
 		}
-		logger.debug("Parsing options: $optionsString")
+		logger.debug("Parsing options: ${AgentOptions.obfuscateAccessToken(optionsString)}")
 
 		val options = AgentOptions(logger)
 		options.originalOptionsString = optionsString
@@ -365,7 +365,11 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 			options.teamscaleServer.userAccessToken!!
 		)
 		options.configurationViaTeamscale = configuration
-		logger.debug("Received the following options from Teamscale: ${configuration.profilerConfiguration!!.configurationOptions}")
+		logger.debug(
+			"Received the following options from Teamscale: ${
+				AgentOptions.obfuscateAccessToken(configuration.profilerConfiguration!!.configurationOptions)
+			}"
+		)
 		readConfigFromString(options, configuration.profilerConfiguration!!.configurationOptions)
 	}
 

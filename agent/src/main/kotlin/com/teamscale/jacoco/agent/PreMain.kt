@@ -144,7 +144,7 @@ object PreMain {
 		if (!differentAgents.isEmpty()) {
 			delayedLogger.warn(
 				"Using multiple java agents could interfere with coverage recording: ${
-					differentAgents.joinToString()
+					AgentOptions.obfuscateAccessToken(differentAgents.joinToString())
 				}"
 			)
 		}
