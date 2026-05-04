@@ -45,9 +45,6 @@ tasks.test {
 }
 
 tasks.register<Test>("tiaTests") {
-    dependsOn(tasks.testClasses)
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = sourceSets.test.get().runtimeClasspath
     useJUnitPlatform()
     testClassesDirs = sourceSets.test.get().output.classesDirs
     classpath = sourceSets.test.get().runtimeClasspath
