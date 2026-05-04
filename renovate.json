@@ -10,7 +10,6 @@
   "separateMajorMinor": false,
   "ignorePaths": [
     "sample-app/**",
-    "agent/src/docker/Dockerfile",
     "report-generator/build.gradle.kts"
   ],
   "packageRules": [

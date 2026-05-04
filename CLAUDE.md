@@ -16,8 +16,8 @@
 # Publish to local Maven repo (for local plugin testing)
 ./gradlew publishToMavenLocal
 
-# Build Docker image
-docker build -f agent/src/docker/Dockerfile .
+# Build OCI image (loads into local Docker daemon)
+./gradlew :agent:loadOciImage
 
 # Compile for different JaCoCo version (don't commit unless upgrading)
 ./gradlew dist
