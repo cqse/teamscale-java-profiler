@@ -42,7 +42,6 @@ object SystemTestUtils {
 	 *
 	 * Example: `file1.java:1,7-12;file2.java:9-22,33`
 	 */
-	@JvmStatic
 	val TestInfo.coverage
 		get() = paths.flatMap { it.files }.joinToString(";") { "${it.fileName}:${it.coveredLines}" }
 
@@ -51,7 +50,6 @@ object SystemTestUtils {
 	 *
 	 * @throws IOException if running Maven fails.
 	 */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun runMavenTests(mavenProjectPath: String, vararg args: String) {
 		val allArguments = mutableListOf("clean", "verify").apply {
@@ -65,7 +63,6 @@ object SystemTestUtils {
 	 *
 	 * @throws IOException if running Maven fails.
 	 */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun runMaven(mavenProjectPath: String, vararg mavenArguments: String) {
 		val result = buildMavenProcess(mavenProjectPath, *mavenArguments).execute()
@@ -85,7 +82,6 @@ object SystemTestUtils {
 	 *
 	 * @throws IOException if running Gradle fails.
 	 */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun runGradle(gradleProjectPath: String, vararg gradleArguments: String): ProcessUtils.ProcessResult {
 		val result = buildGradleProcess(gradleProjectPath, *gradleArguments).execute()
@@ -105,7 +101,6 @@ object SystemTestUtils {
 	 * Creates the command-line arguments that can be passed to [ProcessBuilder] to invoke Maven with the given
 	 * arguments.
 	 */
-	@JvmStatic
 	fun buildMavenProcess(mavenProjectDirectory: String, vararg mavenArguments: String): ProcessUtils.ProcessExecutor {
 		val arguments = mutableListOf<String>()
 		if (SystemUtils.IS_OS_WINDOWS) {
@@ -140,7 +135,6 @@ object SystemTestUtils {
 	}
 
 	/** Retrieve all files in the `tia/reports` folder sorted by name.  */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun getReportFileNames(mavenProjectPath: String, folderName: String): List<Path> {
 		Files.walk(Paths.get(mavenProjectPath, "target", folderName, "reports")).use { stream ->
@@ -149,7 +143,6 @@ object SystemTestUtils {
 	}
 
 	/** Instructs the agent via HTTP to dump the currently collected coverage.  */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun dumpCoverage(agentPort: Int) {
 		Retrofit.Builder().baseUrl("http://localhost:$agentPort").build()
@@ -157,7 +150,6 @@ object SystemTestUtils {
 	}
 
 	/** Instructs the agent via HTTP to change the partition.  */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun changePartition(agentPort: Int, newPartition: String) {
 		val requestBody = newPartition.toRequestBody("text/plain".toMediaTypeOrNull())

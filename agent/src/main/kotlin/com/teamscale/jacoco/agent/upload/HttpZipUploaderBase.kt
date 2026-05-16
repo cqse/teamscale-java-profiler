@@ -1,6 +1,5 @@
 package com.teamscale.jacoco.agent.upload
 
-import com.teamscale.client.FileSystemUtils.readFileBinary
 import com.teamscale.client.HttpUtils.createRetrofit
 import com.teamscale.jacoco.agent.benchmark
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
@@ -134,7 +133,7 @@ abstract class HttpZipUploaderBase<T>
 
 		additionalMetaDataFiles.forEach { additionalFile ->
 			zipOutputStream.putNextEntry(ZipEntry(additionalFile.fileName.toString()))
-			zipOutputStream.write(readFileBinary(additionalFile.toFile()))
+			zipOutputStream.write(additionalFile.toFile().readBytes())
 		}
 	}
 

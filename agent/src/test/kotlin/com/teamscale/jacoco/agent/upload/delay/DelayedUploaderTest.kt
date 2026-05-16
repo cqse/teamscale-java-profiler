@@ -65,8 +65,36 @@ class DelayedUploaderTest {
 		executor.shutdown()
 		executor.awaitTermination(5, TimeUnit.SECONDS)
 
-		Assertions.assertThat<Path>(Files.list(outputPath).collect(Collectors.toList()))
+		Assertions.assertThat(Files.list(outputPath).collect(Collectors.toList()))
 			.doesNotContain(coverageFilePath)
-		Assertions.assertThat<CoverageFile>(destination.uploadedFiles).contains(coverageFile)
+		Assertions.assertThat(destination.uploadedFiles).contains(coverageFile)
+	}
+
+	@Test
+	@Throws(Exception::class)
+	fun shouldOnlyUploadCachedXmlsFromRootCacheDirectory(@TempDir outputPath: Path) {
+		val nestedDir = Files.createDirectory(outputPath.resolve("nested"))
+		val rootCoverageFilePath = outputPath
+			.resolve(String.format("jacoco-%d.xml", ZonedDateTime.now().toInstant().toEpochMilli()))
+		val nestedCoverageFilePath = nestedDir
+			.resolve(String.format("jacoco-%d.xml", ZonedDateTime.now().toInstant().toEpochMilli() + 1))
+
+		val rootCoverageFile = CoverageFile(Files.createFile(rootCoverageFilePath).toFile())
+		val nestedCoverageFile = CoverageFile(Files.createFile(nestedCoverageFilePath).toFile())
+
+		val destination = InMemoryUploader()
+		val executor = Executors.newSingleThreadExecutor()
+		val store = DelayedUploader<String>(outputPath, executor) { _ -> destination }
+
+		store.upload(rootCoverageFile)
+		store.upload(nestedCoverageFile)
+		store.setCommitAndTriggerAsynchronousUpload("a2afb54566aaa")
+		executor.shutdown()
+		executor.awaitTermination(5, TimeUnit.SECONDS)
+
+		Assertions.assertThat(destination.uploadedFiles).contains(rootCoverageFile)
+		Assertions.assertThat(destination.uploadedFiles).doesNotContain(nestedCoverageFile)
+		Assertions.assertThat(Files.exists(nestedCoverageFilePath)).isTrue()
 	}
 }
+

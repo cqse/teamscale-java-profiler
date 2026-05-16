@@ -1,6 +1,5 @@
 package com.teamscale.jacoco.agent.testimpact
 
-import com.teamscale.client.FileSystemUtils.writeFileUTF8
 import com.teamscale.jacoco.agent.JacocoRuntimeController
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator
@@ -15,7 +14,8 @@ class CoverageToDiskStrategy(
 ) : CoverageToJsonStrategyBase(controller, agentOptions, reportGenerator) {
 	@Throws(IOException::class)
 	override fun handleTestwiseCoverageJsonReady(json: String) {
-		val reportFile = agentOptions.createNewFileInPartitionOutputDirectory("testwise-coverage", "json")
-		writeFileUTF8(reportFile, json)
+		agentOptions
+			.createNewFileInPartitionOutputDirectory("testwise-coverage", "json")
+			.writeText(json)
 	}
 }

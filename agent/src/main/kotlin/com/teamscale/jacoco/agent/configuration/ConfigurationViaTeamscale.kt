@@ -97,7 +97,6 @@ class ConfigurationViaTeamscale(
 		 * Tries to retrieve the profiler configuration from Teamscale. In case retrieval fails the method throws a
 		 * [AgentOptionReceiveException].
 		 */
-		@JvmStatic
 		@Throws(AgentOptionReceiveException::class)
 		fun retrieve(
 			logger: ILogger,

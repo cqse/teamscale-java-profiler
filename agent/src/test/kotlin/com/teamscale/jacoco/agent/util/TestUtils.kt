@@ -14,7 +14,6 @@ object TestUtils {
 	/**
 	 * Deletes all contents inside the coverage folder inside the agent directory
 	 */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun cleanAgentCoverageDirectory() {
 		val coverageDir = agentDirectory.resolve("coverage")

@@ -663,7 +663,6 @@ open class AgentOptions(private val logger: ILogger) {
 		 * last 4 characters of each token. Returns an empty string for `null` input and the original string when no
 		 * token pattern matches.
 		 */
-		@JvmStatic
 		fun obfuscateAccessToken(optionsString: String?): String {
 			if (optionsString == null) {
 				return ""

@@ -1,6 +1,5 @@
 package com.teamscale.jacoco.agent.upload.artifactory
 
-import com.teamscale.client.StringUtils.stripSuffix
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.CommitInfo
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitPropertiesLocatorUtils
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.InvalidGitPropertiesException
@@ -133,7 +132,6 @@ class ArtifactoryConfig {
 		 * 
 		 * @return true if it has successfully processed the given option.
 		 */
-		@JvmStatic
 		@Throws(AgentOptionParseException::class)
 		fun handleArtifactoryOptions(options: ArtifactoryConfig, key: String, value: String): Boolean {
 			when (key) {
@@ -154,11 +152,11 @@ class ArtifactoryConfig {
 					return true
 				}
 				ARTIFACTORY_ZIP_PATH_OPTION -> {
-					options.zipPath = stripSuffix(value, "/")
+					options.zipPath = value.removeSuffix("/")
 					return true
 				}
 				ARTIFACTORY_PATH_SUFFIX -> {
-					options.pathSuffix = stripSuffix(value, "/")
+					options.pathSuffix = value.removeSuffix("/")
 					return true
 				}
 				ARTIFACTORY_API_KEY_OPTION -> {
@@ -174,7 +172,6 @@ class ArtifactoryConfig {
 		}
 
 		/** Parses the commit information form a git.properties file.  */
-		@JvmStatic
 		@Throws(UploaderException::class)
 		fun parseGitProperties(
 			jarFile: File, searchRecursively: Boolean, gitPropertiesCommitTimeFormat: DateTimeFormatter?

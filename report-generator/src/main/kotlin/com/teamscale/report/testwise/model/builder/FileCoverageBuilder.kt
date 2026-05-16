@@ -52,7 +52,6 @@ class FileCoverageBuilder(
 		 * Merges all neighboring line numbers to ranges. E.g. a list of [[1-5],[3-7],[8-10],[12-14]] becomes
 		 * [[1-10],[12-14]]
 		 */
-		@JvmStatic
 		fun compactifyToRanges(lines: CompactLines): List<LineRange> =
 			lines.fold(mutableListOf()) { ranges, line ->
 				if (ranges.isNotEmpty() && ranges.last().end >= line - 1) {

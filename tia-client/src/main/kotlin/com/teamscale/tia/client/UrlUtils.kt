@@ -7,7 +7,6 @@ object UrlUtils {
 	 * etc).
 	 * Source: https://stackoverflow.com/a/44076794
 	 */
-	@JvmStatic
 	fun String.encodeUrl() =
 		replace("%", "%25")
 			.replace(" ", "%20")

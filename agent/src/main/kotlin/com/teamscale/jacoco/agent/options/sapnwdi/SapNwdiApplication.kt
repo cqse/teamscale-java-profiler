@@ -7,13 +7,12 @@ import com.teamscale.jacoco.agent.options.AgentOptionParseException
  */
 data class SapNwdiApplication(
 	/** A fully qualified class name that is used to match a jar file to this application.  */
-	@JvmField val markerClass: String,
+	val markerClass: String,
 	/** The teamscale project to which coverage should be uploaded.  */
-	@JvmField val teamscaleProject: String
+	val teamscaleProject: String
 ) {
 	companion object {
 		/** Parses an application definition string e.g. "com.package.MyClass:projectId;com.company.Main:project". */
-		@JvmStatic
 		@Throws(AgentOptionParseException::class)
 		fun parseApplications(applications: String): List<SapNwdiApplication> {
 			if (applications.isBlank()) {

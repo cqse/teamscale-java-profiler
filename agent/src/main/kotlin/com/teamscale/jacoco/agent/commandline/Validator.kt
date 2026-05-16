@@ -15,9 +15,9 @@ class Validator {
 		try {
 			validation.validate()
 		} catch (e: Exception) {
-			e.message?.let { messages.add(it) }
+			messages.add(e.message ?: "No error message")
 		} catch (e: AssertionError) {
-			e.message?.let { messages.add(it) }
+			messages.add(e.message ?: "No error message")
 		}
 	}
 

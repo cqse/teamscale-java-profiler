@@ -102,7 +102,7 @@ class ConvertCommand : ICommand {
 		names = ["--split-after", "-s"], required = false, arity = 1, description = "After how many tests " +
 				"testwise coverage should be split into multiple reports (Default is 5000)."
 	)
-	val splitAfter = 5000
+	var splitAfter = 5000
 
 	@Throws(IOException::class)
 	fun getClassDirectoriesOrZips(): List<File> = ClasspathUtils

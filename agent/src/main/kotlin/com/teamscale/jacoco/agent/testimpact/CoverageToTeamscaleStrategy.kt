@@ -1,7 +1,6 @@
 package com.teamscale.jacoco.agent.testimpact
 
 import com.teamscale.client.EReportFormat
-import com.teamscale.client.FileSystemUtils.writeFileUTF8
 import com.teamscale.jacoco.agent.JacocoRuntimeController
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator
@@ -29,7 +28,7 @@ class CoverageToTeamscaleStrategy(
 			)
 		} catch (e: IOException) {
 			val reportFile = agentOptions.createNewFileInOutputDirectory("testwise-coverage", "json")
-			writeFileUTF8(reportFile, json)
+			reportFile.writeText(json)
 			val errorMessage = "Failed to upload coverage to Teamscale! Report is stored in $reportFile!"
 			logger.error(errorMessage, e)
 			throw IOException(errorMessage, e)

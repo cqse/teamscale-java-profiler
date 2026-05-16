@@ -134,7 +134,6 @@ class CoverageToTeamscaleStrategyTest {
 
 	companion object {
 		/** Returns a dummy testwise coverage object for a test with the given name that covers a few lines of Main.java.  */
-		@JvmStatic
 		fun getDummyTestwiseCoverage(test: String): TestwiseCoverage {
 			val testCoverageBuilder = TestCoverageBuilder(test)
 			val fileCoverageBuilder = FileCoverageBuilder("src/main/java", "Main.java")

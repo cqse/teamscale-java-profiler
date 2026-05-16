@@ -20,7 +20,7 @@ class GitPropertiesLocatingTransformer(
 
 	override fun transform(
 		classLoader: ClassLoader?,
-		className: String,
+		className: String?,
 		aClass: Class<*>?,
 		protectionDomain: ProtectionDomain?,
 		classFileContent: ByteArray?
@@ -30,7 +30,7 @@ class GitPropertiesLocatingTransformer(
 			return null
 		}
 
-		if (className.isEmpty() || !locationIncludeFilter.isIncluded(className)) {
+		if (className.isNullOrEmpty() || !locationIncludeFilter.isIncluded(className)) {
 			// only search in jar files of included classes
 			return null
 		}

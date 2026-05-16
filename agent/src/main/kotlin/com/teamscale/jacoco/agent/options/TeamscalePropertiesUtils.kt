@@ -29,8 +29,6 @@ object TeamscalePropertiesUtils {
 	/**
 	 * Same as [.parseCredentials] but testable since the path is not hardcoded.
 	 */
-	/*package*/
-	@JvmStatic
 	@Throws(AgentOptionParseException::class)
 	fun parseCredentials(
 		teamscalePropertiesPath: Path

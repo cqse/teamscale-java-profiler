@@ -26,13 +26,11 @@ object HttpUtils {
 	/**
 	 * Default read timeout in seconds.
 	 */
-	@JvmField
 	val DEFAULT_READ_TIMEOUT: Duration = Duration.ofSeconds(60)
 
 	/**
 	 * Default write timeout in seconds.
 	 */
-	@JvmField
 	val DEFAULT_WRITE_TIMEOUT: Duration = Duration.ofSeconds(60)
 
 	/**
@@ -43,17 +41,10 @@ object HttpUtils {
 	/** Controls whether [okhttp3.OkHttpClient]s built with this class will validate SSL certificates.  */
 	private var shouldValidateSsl = true
 
-	/** @see .shouldValidateSsl
-	 */
-	@JvmStatic
 	fun setShouldValidateSsl(shouldValidateSsl: Boolean) {
 		HttpUtils.shouldValidateSsl = shouldValidateSsl
 	}
 
-	/**
-	 * Creates a new [Retrofit] with proper defaults. The instance and the corresponding [okhttp3.OkHttpClient] can
-	 * be customized with the given action. Timeouts for reading and writing can be customized.
-	 */
 	/**
 	 * Creates a new [Retrofit] with proper defaults. The instance and the corresponding [okhttp3.OkHttpClient] can
 	 * be customized with the given action. Read and write timeouts are set according to the default values.
@@ -176,7 +167,6 @@ object HttpUtils {
 	 * Returns the error body of the given response or a replacement string in case it is null.
 	 */
 	@Throws(IOException::class)
-	@JvmStatic
 	fun <T> getErrorBodyStringSafe(response: retrofit2.Response<T>): String {
 		val errorBody = response.errorBody() ?: return "<no response body provided>"
 		return errorBody.string()
@@ -185,7 +175,6 @@ object HttpUtils {
 	/**
 	 * Returns an interceptor, which adds a basic auth header to a request.
 	 */
-	@JvmStatic
 	fun getBasicAuthInterceptor(username: String, password: String): Interceptor {
 		val credentials = "$username:$password"
 		val basic = "Basic " + Base64.getEncoder().encodeToString(credentials.toByteArray())

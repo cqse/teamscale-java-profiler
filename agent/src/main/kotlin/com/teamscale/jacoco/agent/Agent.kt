@@ -82,7 +82,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 		try {
 			val properties = FileSystemUtils.readProperties(file)
 			val coverageFile = CoverageFile(
-				File(StringUtils.stripSuffix(file.absolutePath, TeamscaleUploader.RETRY_UPLOAD_FILE_SUFFIX))
+				File(file.absolutePath.removeSuffix(TeamscaleUploader.RETRY_UPLOAD_FILE_SUFFIX))
 			)
 
 			if (uploader is IUploadRetry) {

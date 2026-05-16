@@ -13,7 +13,6 @@ object Assertions {
 	 * @param message   exception message
 	 * @throws AssertionError if the condition is `false`
 	 */
-	@JvmStatic
 	@Contract(value = "false, _ -> fail", pure = true)
 	@Throws(AssertionError::class)
 	fun isTrue(condition: Boolean, message: String?) {

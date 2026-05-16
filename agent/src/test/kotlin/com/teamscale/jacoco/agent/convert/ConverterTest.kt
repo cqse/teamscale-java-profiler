@@ -1,6 +1,5 @@
 package com.teamscale.jacoco.agent.convert
 
-import com.teamscale.client.FileSystemUtils.readFileUTF8
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -28,7 +27,7 @@ class ConverterTest {
 
 		Converter(arguments).runJaCoCoReportGeneration()
 
-		val xml = readFileUTF8(outputFile)
+		val xml = outputFile.readText()
 		Assertions.assertThat(xml).isNotEmpty().contains("<package").contains("<sourcefile").contains("<counter")
 			.contains("TestClass")
 	}
@@ -47,7 +46,7 @@ class ConverterTest {
 
 		Converter(arguments).runJaCoCoReportGeneration()
 
-		val xml = readFileUTF8(outputFile)
+		val xml = outputFile.readText()
 		Assertions.assertThat(xml).isNotEmpty().contains("<package").contains("<sourcefile").contains("<counter")
 			.contains("TestClass")
 	}
@@ -73,7 +72,7 @@ class ConverterTest {
 
 		Converter(arguments).runTestwiseCoverageReportGeneration()
 
-		val json = readFileUTF8(File(tempDir, "testwise-coverage-1.json"))
+		val json = File(tempDir, "testwise-coverage-1.json").readText()
 		Assertions.assertThat(json)
 			.contains("\"uniformPath\" : \"[engine:junit-vintage]/[runner:org.conqat.lib.cqddl.CQDDLTest]/[test:testFunctions(org.conqat.lib.cqddl.CQDDLTest)]\"")
 			.contains("\"uniformPath\" : \"[engine:junit-vintage]/[runner:org.conqat.lib.cqddl.CQDDLTest]/[test:testDirectObjectInsertion(org.conqat.lib.cqddl.CQDDLTest)]\"")

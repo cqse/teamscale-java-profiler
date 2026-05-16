@@ -46,15 +46,15 @@ object PreMain {
 	/**
 	 * Entry point for the agent, called by the JVM.
 	 */
-	@JvmStatic
 	@Throws(Exception::class)
-	fun premain(options: String, instrumentation: Instrumentation?) {
+	@JvmStatic
+	fun premain(options: String?, instrumentation: Instrumentation?) {
 		if (System.getProperty(LOCKING_SYSTEM_PROPERTY) != null) return
 		System.setProperty(LOCKING_SYSTEM_PROPERTY, "true")
 
 		val environmentConfigId = System.getenv(CONFIG_ID_ENVIRONMENT_VARIABLE)
 		val environmentConfigFile = System.getenv(CONFIG_FILE_ENVIRONMENT_VARIABLE)
-		if (StringUtils.isEmpty(options) && environmentConfigId == null && environmentConfigFile == null) {
+		if (options.isNullOrEmpty() && environmentConfigId == null && environmentConfigFile == null) {
 			// profiler was registered globally, and no config was set explicitly by the user, thus ignore this process
 			// and don't profile anything
 			return
@@ -81,8 +81,9 @@ object PreMain {
 			// Unregister the profiler from Teamscale.
 			agentOptions?.configurationViaTeamscale?.unregisterProfiler()
 
-			// Configuration errors must be visible to the user; let the JVM report them.
-			throw e
+			// Don't crash the profiled application due to a configuration error
+			// (see TS-43260). The error has already been logged in getAndApplyAgentOptions.
+			return
 		} catch (_: AgentOptionReceiveException) {
 			// When Teamscale is not available, we don't want to fail hard to still allow for testing even if no
 			// coverage is collected (see TS-33237)
@@ -131,7 +132,7 @@ object PreMain {
 
 	@Throws(AgentOptionParseException::class, IOException::class, AgentOptionReceiveException::class)
 	private fun getAndApplyAgentOptions(
-		options: String,
+		options: String?,
 		environmentConfigId: String?,
 		environmentConfigFile: String?
 	): Pair<AgentOptions, List<Exception>> {
@@ -291,7 +292,7 @@ object PreMain {
 						val configFile = FilePatternResolver(delayedLogger).parsePath(
 							AgentOptionsParser.CONFIG_FILE_OPTION, configFileValue
 						).toFile()
-						loggingConfigLine = FileSystemUtils.readLinesUTF8(configFile)
+						loggingConfigLine = configFile.readLines()
 							.firstOrNull { it.startsWith(AgentOptionsParser.LOGGING_CONFIG_OPTION + "=") }
 					} catch (e: IOException) {
 						delayedLogger.error("Failed to load configuration from $configFileValue: ${e.message}", e)

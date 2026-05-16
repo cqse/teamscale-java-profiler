@@ -89,7 +89,6 @@ class TestwiseCoverageResource : ResourceBase() {
 		/**
 		 * Static setter to inject the [TestwiseCoverageAgent] to the resource.
 		 */
-		@JvmStatic
 		fun setAgent(agent: TestwiseCoverageAgent) {
 			testwiseCoverageAgent = agent
 			agentBase = agent

@@ -9,7 +9,7 @@ import java.nio.file.Path
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import kotlin.io.path.isDirectory
-import kotlin.io.path.walk
+import kotlin.io.path.listDirectoryEntries
 
 /**
  * Wraps an [IUploader] and in order to delay upload until a all
@@ -93,11 +93,11 @@ class DelayedUploader<T> internal constructor(
 				// Found data before XML was dumped
 				return
 			}
-			val xmlFilesStream = cacheDir.walk().filter { path ->
+			val xmlFiles = cacheDir.listDirectoryEntries().filter { path ->
 				val fileName = path.fileName.toString()
 				fileName.startsWith("jacoco-") && fileName.endsWith(".xml")
 			}
-			xmlFilesStream.forEach { path -> wrappedUploader?.upload(CoverageFile(path.toFile())) }
+			xmlFiles.forEach { path -> wrappedUploader?.upload(CoverageFile(path.toFile())) }
 			logger.debug("Finished upload of cached XMLs to {}", wrappedUploader?.describe())
 		} catch (e: IOException) {
 			logger.error("Failed to list cached coverage XML files in {}", cacheDir.toAbsolutePath(), e)

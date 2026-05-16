@@ -53,7 +53,7 @@ internal object AzureFileStorageHttpUtils {
 			httpMethod.toString(),
 			keys, xmsHeader.createCanonicalizedString(),
 			createCanonicalizedResources(account, path, queryParameters)
-		).joinToString()
+		).joinToString("\n")
 	}
 
 	/** Creates the string for the canonicalized resources.  */
@@ -76,7 +76,6 @@ internal object AzureFileStorageHttpUtils {
 		toSortedMap().map { (key, value) -> "$key:${value}" }.joinToString("\n")
 
 	/** Creates the string which is needed for the authorization of an azure file storage request.  */ /* package */
-	@JvmStatic
 	@Throws(UploaderException::class)
 	fun getAuthorizationString(
 		method: EHttpMethod, account: String, key: String?, path: String?,
@@ -100,7 +99,6 @@ internal object AzureFileStorageHttpUtils {
 		}
 	}
 
-	@JvmStatic
 	val baseHeaders: Map<String, String>
 		/** Returns the list of headers which must be present at every request  */
 		get() = mapOf(

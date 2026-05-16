@@ -35,6 +35,18 @@ internal class GitPropertiesLocatorUtilsTest {
 		).isEqualTo(File("/home/k/demo.jar"))
 	}
 
+	@Test
+	@Throws(Exception::class)
+	fun parseVfsCodeLocationsWithLiteralSpaces() {
+		val url = URI("vfs", null, "/content/my app.war/WEB-INF/classes", null).toURL()
+		val method = GitPropertiesLocatorUtils::class.java.getDeclaredMethod("getVfsContentFolder", URL::class.java)
+		method.isAccessible = true
+		@Suppress("UNCHECKED_CAST")
+		val result = method.invoke(GitPropertiesLocatorUtils, url) as Pair<File, Boolean>
+		Assertions.assertThat(result.first).isEqualTo(File("/tmp/vfs-content/my app.war"))
+		Assertions.assertThat(result.second).isTrue()
+	}
+
 	companion object {
 		/**
 		 * Registers a protocol handler so the test can construct "nested:" URLs that are not supported by plain Java
@@ -44,16 +56,27 @@ internal class GitPropertiesLocatorUtilsTest {
 		@BeforeAll
 		fun registerCatchAllUrlProtocol() {
 			URL.setURLStreamHandlerFactory { protocol ->
-				if ("nested" != protocol) {
-					return@setURLStreamHandlerFactory null
-				}
-				object : URLStreamHandler() {
-					/** Returns null, since opening the connection is never done in the test.:  */
-					override fun openConnection(url: URL?): URLConnection? {
-						return null
+				when (protocol) {
+					"nested" -> object : URLStreamHandler() {
+						/** Returns null, since opening the connection is never done in the test.:  */
+						override fun openConnection(url: URL?) = null
 					}
+					"vfs" -> object : URLStreamHandler() {
+						override fun openConnection(url: URL?): URLConnection = object : URLConnection(url) {
+							override fun connect() {
+							}
+
+							override fun getContent(): Any = FakeVfsVirtualFile(File("/tmp/vfs-content/my app.war"))
+						}
+					}
+					else -> null
 				}
 			}
 		}
 	}
+}
+
+class FakeVfsVirtualFile(private val physicalFile: File) {
+	@Suppress("unused")
+	fun getPhysicalFile(): File = physicalFile
 }

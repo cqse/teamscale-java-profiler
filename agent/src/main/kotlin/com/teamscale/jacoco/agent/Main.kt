@@ -76,6 +76,6 @@ object Main {
 	private class DefaultArguments {
 		/** Shows the help message.  */
 		@Parameter(names = ["--help"], help = true, description = "Shows all available command line arguments.")
-		val help = false
+		var help = false
 	}
 }

@@ -38,7 +38,7 @@ object AntPatternUtils {
 		var addTrailAll = false
 		if (normalized.endsWith("/**")) {
 			addTrailAll = true
-			normalized = StringUtils.stripSuffix(normalized, "/**")
+			normalized = normalized.removeSuffix("/**")
 		}
 
 		val patternBuilder = StringBuilder()

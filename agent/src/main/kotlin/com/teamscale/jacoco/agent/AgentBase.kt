@@ -22,13 +22,12 @@ import java.lang.management.ManagementFactory
  */
 abstract class AgentBase(
 	/** The agent options.  */
-	@JvmField var options: AgentOptions
+	var options: AgentOptions
 ) {
 	/** The logger.  */
 	val logger: Logger = LoggingUtils.getLogger(this)
 
-	/** Controls the JaCoCo runtime.  */
-	@JvmField
+	/** Controls the JaCoCo runtime. */
 	val controller: JacocoRuntimeController
 
 	private lateinit var server: Server

@@ -15,7 +15,6 @@ import javax.ws.rs.core.Response
  */
 abstract class ResourceBase {
 	/** The logger.  */
-	@JvmField
 	protected val logger: Logger = LoggingUtils.getLogger(this)
 
 	companion object {

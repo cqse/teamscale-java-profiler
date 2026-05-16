@@ -23,7 +23,6 @@ object AgentUtils {
 	/**
 	 * Returns the main temporary directory where all agent temp files should be placed.
 	 */
-	@JvmStatic
 	val mainTempDirectory: Path by lazy {
 		try {
 			// We add a trailing hyphen here to visually separate the PID from the random number that Java appends
@@ -37,7 +36,6 @@ object AgentUtils {
 	}
 
 	/** Returns the directory that contains the agent installation.  */
-	@JvmStatic
 	val agentDirectory: Path by lazy {
 		try {
 			val jarFileUri = PreMain::class.java.getProtectionDomain().codeSource.location.toURI()

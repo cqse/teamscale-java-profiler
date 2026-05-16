@@ -82,7 +82,6 @@ object GitPropertiesLocatorUtils {
 	 * @throws IOException                   If reading the jar file fails.
 	 * @throws InvalidGitPropertiesException If a git.properties file is found but it is malformed.
 	 */
-	@JvmStatic
 	@Throws(IOException::class, InvalidGitPropertiesException::class)
 	fun getCommitInfoFromGitProperties(
 		file: File,
@@ -103,7 +102,6 @@ object GitPropertiesLocatorUtils {
 	 * @throws URISyntaxException under certain circumstances if parsing the URL fails. This should be treated the same
 	 * as a null search result but the exception is preserved so it can be logged.
 	 */
-	@JvmStatic
 	@Throws(
 		URISyntaxException::class,
 		IOException::class,
@@ -167,7 +165,8 @@ object GitPropertiesLocatorUtils {
 		// vfs:/content/helloworld.war/WEB-INF/classes
 		// Next, we try to extract the artefact URL from it, e.g., vfs:/content/helloworld.war
 		val artefactUrl = extractArtefactUrl(jarOrClassFolderUrl)
-		val virtualFile = URI.create(artefactUrl).toURL().openConnection().getContent()
+		val path = artefactUrl.substringAfter(':')
+		val virtualFile = URI("vfs", null, path, null).toURL().openConnection().getContent()
 		// obtain the physical location of the class file. It is created on demand in <jboss-installation-dir>/standalone/tmp/vfs
 		val getPhysicalFileMethod = virtualFile.javaClass.getMethod("getPhysicalFile")
 		val file = getPhysicalFileMethod.invoke(virtualFile) as File
@@ -209,7 +208,6 @@ object GitPropertiesLocatorUtils {
 	 * @throws IOException                   If reading the jar file fails.
 	 * @throws InvalidGitPropertiesException If a git.properties file is found but it is malformed.
 	 */
-	@JvmStatic
 	@Throws(IOException::class, InvalidGitPropertiesException::class)
 	fun getProjectRevisionsFromGitProperties(
 		file: File,
@@ -237,7 +235,6 @@ object GitPropertiesLocatorUtils {
 	 * Returns pairs of paths to git.properties files and their parsed properties found in the provided folder or
 	 * archive file. Nested jar files will also be searched recursively if specified.
 	 */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun findGitPropertiesInFile(
 		file: File, isJarFile: Boolean, recursiveSearch: Boolean
@@ -328,8 +325,6 @@ object GitPropertiesLocatorUtils {
 	 * Returns pairs of paths to git.properties files and their parsed properties found in the provided JarInputStream.
 	 * Nested jar files will also be searched recursively if specified.
 	 */
-	@JvmStatic
-	@JvmOverloads
 	@Throws(IOException::class)
 	fun findGitPropertiesInArchive(
 		inputStream: JarInputStream,
@@ -379,7 +374,6 @@ object GitPropertiesLocatorUtils {
 	 * [GIT_PROPERTIES_DEFAULT_MAVEN_DATE_FORMAT]. An additional format can be given with
 	 * `dateTimeFormatter`
 	 */
-	@JvmStatic
 	@Throws(InvalidGitPropertiesException::class)
 	fun getCommitInfoFromGitProperties(
 		gitProperties: Properties, entryName: String?, jarFile: File?,

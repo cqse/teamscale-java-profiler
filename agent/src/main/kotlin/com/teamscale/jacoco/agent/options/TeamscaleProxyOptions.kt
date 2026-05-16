@@ -1,6 +1,5 @@
 package com.teamscale.jacoco.agent.options
 
-import com.teamscale.client.FileSystemUtils.readFileUTF8
 import com.teamscale.client.ProxySystemProperties
 import com.teamscale.client.StringUtils.isEmpty
 import com.teamscale.client.TeamscaleProxySystemProperties
@@ -105,7 +104,7 @@ class TeamscaleProxyOptions(private val protocol: ProxySystemProperties.Protocol
 			return
 		}
 		try {
-			val proxyPassword = readFileUTF8(proxyPasswordFilePath.toFile()).trim()
+			val proxyPassword = proxyPasswordFilePath.toFile().readText().trim()
 			TeamscaleProxySystemProperties(protocol).proxyPassword = proxyPassword
 		} catch (e: IOException) {
 			logger.error(

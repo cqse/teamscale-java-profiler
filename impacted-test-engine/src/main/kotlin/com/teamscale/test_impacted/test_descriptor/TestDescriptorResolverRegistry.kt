@@ -33,7 +33,6 @@ object TestDescriptorResolverRegistry {
 	}
 
 	/** Returns the test descriptor resolver or null if none exists for the test engine.  */
-	@JvmStatic
 	fun getTestDescriptorResolver(testEngineId: String): ITestDescriptorResolver? {
 		if (!TEST_DESCRIPTOR_RESOLVER_BY_ENGINE_ID.containsKey(testEngineId)) {
 			LOG.warning {

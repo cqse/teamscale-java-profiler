@@ -82,7 +82,6 @@ interface ITestwiseCoverageAgentApi {
 		 * Generates a [Retrofit] instance for this service, which uses basic auth to authenticate against the server
 		 * and which sets the Accept header to JSON.
 		 */
-		@JvmStatic
 		fun createService(baseUrl: HttpUrl): ITestwiseCoverageAgentApi {
 			val httpClientBuilder = OkHttpClient.Builder().apply {
 				connectTimeout(60, TimeUnit.SECONDS)

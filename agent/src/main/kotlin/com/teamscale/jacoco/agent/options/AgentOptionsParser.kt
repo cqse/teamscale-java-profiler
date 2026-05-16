@@ -1,10 +1,8 @@
 package com.teamscale.jacoco.agent.options
 
-import com.teamscale.client.FileSystemUtils.readFileUTF8
 import com.teamscale.client.HttpUtils.setShouldValidateSsl
 import com.teamscale.client.ProxySystemProperties
 import com.teamscale.client.StringUtils.isEmpty
-import com.teamscale.client.StringUtils.splitLinesAsList
 import com.teamscale.client.StringUtils.stripPrefix
 import com.teamscale.jacoco.agent.configuration.AgentOptionReceiveException
 import com.teamscale.jacoco.agent.configuration.ConfigurationViaTeamscale
@@ -25,6 +23,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.format.DateTimeFormatter
 import java.util.*
+
 
 /**
  * Parses agent command line options.
@@ -351,8 +350,20 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 	private fun readConfigFromTeamscale(options: AgentOptions) {
 		if (options.teamscaleServer.configId == null) return
 		if (!options.teamscaleServer.isConfiguredForServerConnection) {
+			val missingOptions = mutableListOf<String>()
+			if (options.teamscaleServer.url == null) {
+				missingOptions.add("teamscale-server-url")
+			}
+			if (options.teamscaleServer.userName == null) {
+				missingOptions.add("teamscale-user")
+			}
+			if (options.teamscaleServer.userAccessToken == null) {
+				missingOptions.add("teamscale-access-token")
+			}
 			throw AgentOptionParseException(
-				"Config-id '${options.teamscaleServer.configId}' specified without teamscale url/user/accessKey! These options must be provided locally via config-file or command line argument."
+				"Config-id '${options.teamscaleServer.configId}' specified but the following required option(s) are missing: ${
+					missingOptions.joinToString()
+				}. These options must be provided locally via config-file or command line argument."
 			)
 		}
 		// Set ssl validation option in case it needs to be off before trying to reach Teamscale.
@@ -396,7 +407,7 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 		options: AgentOptions, configFile: File
 	) {
 		try {
-			val content = readFileUTF8(configFile)
+			val content = configFile.readText()
 			readConfigFromString(options, content)
 		} catch (e: FileNotFoundException) {
 			throw AgentOptionParseException("File ${configFile.absolutePath} given for option 'config-file' not found", e)
@@ -406,7 +417,7 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 	}
 
 	private fun readConfigFromString(options: AgentOptions, content: String?) {
-		splitLinesAsList(content).forEach { optionKeyValue ->
+		content?.lines()?.forEach { optionKeyValue ->
 			try {
 				val trimmedOption = optionKeyValue.trim { it <= ' ' }
 				if (trimmedOption.isEmpty() || trimmedOption.startsWith(COMMENT_PREFIX)) {
@@ -451,7 +462,7 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 		 */
 		@Throws(AgentOptionParseException::class, AgentOptionReceiveException::class)
 		fun parse(
-			optionsString: String,
+			optionsString: String?,
 			environmentConfigId: String?,
 			environmentConfigFile: String?, credentials: TeamscaleCredentials?,
 			environmentAccessToken: String?,
@@ -469,7 +480,6 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 		 * Stores the agent options for proxies in the [com.teamscale.client.TeamscaleProxySystemProperties] and overwrites the password
 		 * with the password found in the proxy-password-file if necessary.
 		 */
-		@JvmStatic
 		@VisibleForTesting
 		fun putTeamscaleProxyOptionsIntoSystemProperties(options: AgentOptions) {
 			options.getTeamscaleProxyOptions(ProxySystemProperties.Protocol.HTTP)

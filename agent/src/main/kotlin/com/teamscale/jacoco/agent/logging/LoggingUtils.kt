@@ -24,11 +24,9 @@ import java.nio.file.Path
  */
 object LoggingUtils {
 	/** Returns a logger for the given object's class.  */
-	@JvmStatic
 	fun getLogger(obj: Any): Logger = LoggerFactory.getLogger(obj.javaClass)
 
 	/** Returns a logger for the given class.  */
-	@JvmStatic
 	fun getLogger(obj: Class<*>): Logger = LoggerFactory.getLogger(obj)
 
 	/** Initializes the logging to the default configured in the Jar.  */
@@ -59,7 +57,6 @@ object LoggingUtils {
 	 * @param throwable the throwable to convert
 	 * @return the stack trace as a String
 	 */
-	@JvmStatic
 	fun getStackTraceAsString(throwable: Throwable?) =
 		throwable?.let { ThrowableProxyUtil.asString(ThrowableProxy(it)) }
 
@@ -103,7 +100,6 @@ object LoggingUtils {
 	}
 
 	/** Wraps the given slf4j logger into an [com.teamscale.report.util.ILogger].  */
-	@JvmStatic
 	fun wrap(logger: Logger): ILogger {
 		return object : ILogger {
 			override fun debug(message: String) = logger.debug(message)
