@@ -155,7 +155,7 @@ class TiaMavenSystemTest {
 				.toUri()
 		)
 		val testwiseCoverageReport = JsonUtils.deserialize<TestwiseCoverageReport>(
-			FileSystemUtils.readFileUTF8(testwiseCoverage)
+			testwiseCoverage.readText()
 		)
 		checkExpectedUnitTestCoverage(testwiseCoverageReport)
 	}

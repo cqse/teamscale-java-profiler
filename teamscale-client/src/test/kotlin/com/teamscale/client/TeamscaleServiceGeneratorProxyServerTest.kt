@@ -59,8 +59,7 @@ internal class TeamscaleServiceGeneratorProxyServerTest {
 
 	@Throws(InterruptedException::class, IOException::class)
 	private fun assertProxyAuthenticationIsUsed(base64EncodedBasicAuth: String) {
-		val service = createService(
-			ITeamscaleService::class.java,
+		val service = createService<ITeamscaleService>(
 			"http://localhost:1337".toHttpUrl(),
 			"someUser", "someAccesstoken",
 			userAgent = buildUserAgent("Test Tool", "1.0.0")

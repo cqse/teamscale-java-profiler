@@ -21,21 +21,21 @@ class JaCoCoTestwiseReportGeneratorTest : TestDataBase() {
 	@Test
 	fun testSmokeTestTestwiseReportGeneration() {
 		val report = runReportGenerator("jacoco/cqddl/classes.zip", "jacoco/cqddl/coverage.exec")
-		val expected = FileSystemUtils.readFileUTF8(useTestFile("jacoco/cqddl/report.json.expected"))
+		val expected = useTestFile("jacoco/cqddl/report.json.expected").readText()
 		JSONAssert.assertEquals(expected, report, JSONCompareMode.STRICT)
 	}
 
 	@Test
 	fun testSampleTestwiseReportGeneration() {
 		val report = runReportGenerator("jacoco/sample/classes.zip", "jacoco/sample/coverage.exec")
-		val expected = FileSystemUtils.readFileUTF8(useTestFile("jacoco/sample/report.json.expected"))
+		val expected = useTestFile("jacoco/sample/report.json.expected").readText()
 		JSONAssert.assertEquals(expected, report, JSONCompareMode.STRICT)
 	}
 
 	@Test
 	fun defaultPackageIsHandledAsEmptyPath() {
 		val report = runReportGenerator("jacoco/default-package/classes.zip", "jacoco/default-package/coverage.exec")
-		val expected = FileSystemUtils.readFileUTF8(useTestFile("jacoco/default-package/report.json.expected"))
+		val expected = useTestFile("jacoco/default-package/report.json.expected").readText()
 		JSONAssert.assertEquals(expected, report, JSONCompareMode.STRICT)
 	}
 

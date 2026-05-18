@@ -39,7 +39,7 @@ object StringUtils {
 		if (text == null) {
 			return true
 		}
-		return EMPTY_STRING == text.trim { it <= ' ' }
+		return EMPTY_STRING == text.trim()
 	}
 
 	/**
@@ -68,24 +68,11 @@ object StringUtils {
 	 * @param prefix the prefix
 	 * @return the string without the prefix or the original string if it does not start with the prefix.
 	 */
-	@JvmStatic
 	fun stripPrefix(string: String, prefix: String): String {
 		if (string.startsWith(prefix)) {
 			return string.substring(prefix.length)
 		}
 		return string
-	}
-
-	/**
-	 * Remove suffix from a string.
-	 *
-	 * @param string the string
-	 * @param suffix the suffix
-	 * @return the string without the suffix or the original string if it does not end with the suffix.
-	 */
-	@JvmStatic
-	fun stripSuffix(string: String, suffix: String): String {
-		return string.removeSuffix(suffix)
 	}
 
 	/**
@@ -102,7 +89,6 @@ object StringUtils {
 	 * @param rhs The string to compare against.
 	 * @return The Levenshtein distance between the two strings.
 	 */
-	@JvmStatic
 	fun CharSequence.levenshteinDistance(rhs: CharSequence): Int {
 		if (this == rhs) return 0
 		if (isEmpty()) return rhs.length
@@ -135,30 +121,17 @@ object StringUtils {
 	}
 
 	/**
-	 * Split string in lines. For the empty string and `null` an empty
-	 * list is returned.
-	 */
-	@JvmStatic
-	fun splitLinesAsList(content: String?): List<String> = content?.lines() ?: emptyList()
-
-	/**
 	 * Test if a string ends with one of the provided suffixes. Returns
 	 * `false` if the list of prefixes is empty. This should only be used
 	 * for short lists of suffixes.
 	 */
-	@JvmStatic
-	fun endsWithOneOf(string: String, vararg suffixes: String): Boolean {
-		return suffixes.any { string.endsWith(it) }
-	}
+	fun endsWithOneOf(string: String, vararg suffixes: String) = suffixes.any { string.endsWith(it) }
 
 	/**
 	 * Removes double quotes from beginning and end (if present) and returns the new
 	 * string.
 	 */
-	@JvmStatic
-	fun removeDoubleQuotes(string: String): String {
-		return string.removeSuffix("\"").removePrefix("\"")
-	}
+	fun removeDoubleQuotes(string: String) = string.removeSuffix("\"").removePrefix("\"")
 
 	/**
 	 * Converts an empty string to null. If the input string is not empty, it returns the string unmodified.
@@ -166,10 +139,7 @@ object StringUtils {
 	 * @param string the string to be converted. Must not be null.
 	 * @return `null` if the input string is empty after trimming; the original string otherwise.
 	 */
-	@JvmStatic
-	fun emptyToNull(string: String): String? {
-		return if (isEmpty(string)) null else string
-	}
+	fun emptyToNull(string: String) = if (isEmpty(string)) null else string
 
 	/**
 	 * Converts a nullable string to a non-null, empty string.
@@ -178,8 +148,5 @@ object StringUtils {
 	 * @param stringOrNull the nullable string which may be null
 	 * @return a non-null string; either the original string or an empty string if the input was null
 	 */
-	@JvmStatic
-	fun nullToEmpty(stringOrNull: String?): String {
-		return stringOrNull ?: EMPTY_STRING
-	}
+	fun nullToEmpty(stringOrNull: String?) = stringOrNull ?: EMPTY_STRING
 }

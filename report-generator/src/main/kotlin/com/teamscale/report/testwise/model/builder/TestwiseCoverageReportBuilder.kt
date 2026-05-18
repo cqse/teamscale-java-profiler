@@ -23,7 +23,6 @@ class TestwiseCoverageReportBuilder {
 		 * Adds the [TestCoverageBuilder] to the map. If there is already a test with the same ID the coverage is
 		 * merged.
 		 */
-		@JvmStatic
 		fun createFrom(
 			testDetailsList: Collection<TestDetails>,
 			testCoverage: Collection<TestCoverageBuilder>,

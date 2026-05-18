@@ -61,7 +61,6 @@ open class ClasspathWildcardIncludeFilter(
 		 * Returns the normalized class name of the given class file's path. I.e. turns something like
 		 * "/opt/deploy/some.jar@com/teamscale/Class.class" into something like "com.teamscale.Class".
 		 */
-		@JvmStatic
 		fun getClassName(path: String): String {
 			val parts = FileSystemUtils.normalizeSeparators(path)
 				.split("@".toRegex()).dropLastWhile { it.isEmpty() }

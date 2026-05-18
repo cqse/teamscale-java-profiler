@@ -34,7 +34,6 @@ object FileSystemUtils {
 	 * files and directories are included.
 	 * @return the list of files found (the order is determined by the file system).
 	 */
-	@JvmStatic
 	fun listFilesRecursively(directory: File?, filter: FileFilter?): List<File> {
 		if (directory == null || !directory.isDirectory) {
 			return emptyList()
@@ -51,10 +50,7 @@ object FileSystemUtils {
 	 * `null`, if the file has no extension (i.e. if a filename
 	 * contains no '.'), returns the empty string if the '.' is the filename's last character.
 	 */
-	@JvmStatic
-	fun getFileExtension(file: File): String? {
-		return file.extension.takeIf { it.isNotEmpty() }
-	}
+	fun getFileExtension(file: File) = file.extension.takeIf { it.isNotEmpty() }
 
 	/**
 	 * Finds all files and directories contained in the given directory and all subdirectories matching the filter
@@ -118,7 +114,6 @@ object FileSystemUtils {
 	 * @throws IOException
 	 * if directories couldn't be created.
 	 */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun ensureDirectoryExists(directory: File) {
 		if (!directory.exists() && !directory.mkdirs()) {
@@ -147,20 +142,6 @@ object FileSystemUtils {
 		}
 	}
 
-	/** Read file content into a string using UTF-8 encoding. */
-	@JvmStatic
-	@Throws(IOException::class)
-	fun readFileUTF8(file: File): String {
-		return file.readText()
-	}
-
-	/** Read file content into a byte array.  */
-	@JvmStatic
-	@Throws(IOException::class)
-	fun readFileBinary(file: File): ByteArray {
-		return file.readBytes()
-	}
-
 	/**
 	 * Returns a safe filename that can be used for downloads. Replaces everything
 	 * that is not a letter or number with "-".
@@ -169,10 +150,8 @@ object FileSystemUtils {
 	 * Attention: This replaces dots, including the file-end-separator.
 	 * `toSafeFilename("a.c")=="a-c"`
 	 */
-	@JvmStatic
-	fun toSafeFilename(name: String): String {
-		return name.replace("\\W+".toRegex(), "-").replace("[-_]+".toRegex(), "-")
-	}
+	fun toSafeFilename(name: String) =
+		name.replace("\\W+".toRegex(), "-").replace("[-_]+".toRegex(), "-")
 
 	/**
 	 * Replaces the file name of the given path with the given new extension.
@@ -193,23 +172,10 @@ object FileSystemUtils {
 	 * `"yy"`
 	 *
 	 */
-	@JvmStatic
-	fun replaceFilePathFilenameWith(uniformPath: String, newFileName: String): String {
-		return when {
-			uniformPath.endsWith("/") -> uniformPath + newFileName
-			!uniformPath.contains('/') -> newFileName
-			else -> uniformPath.substringBeforeLast('/') + "/" + newFileName
-		}
-	}
-
-	/**
-	 * Write string to a file with UTF8 encoding. This ensures all directories
-	 * exist.
-	 */
-	@JvmStatic
-	@Throws(IOException::class)
-	fun writeFileUTF8(file: File, content: String) {
-		file.writeText(content)
+	fun replaceFilePathFilenameWith(uniformPath: String, newFileName: String) = when {
+		uniformPath.endsWith("/") -> uniformPath + newFileName
+		!uniformPath.contains('/') -> newFileName
+		else -> uniformPath.substringBeforeLast('/') + "/" + newFileName
 	}
 
 	/**
@@ -217,7 +183,6 @@ object FileSystemUtils {
 	 * invalid on the current platform e.g. because of any non-allowed characters or
 	 * because the path schema is for Windows (D:\test) but runs under Linux.
 	 */
-	@JvmStatic
 	fun isValidPath(path: String): Boolean {
 		try {
 			Paths.get(path)
@@ -232,13 +197,12 @@ object FileSystemUtils {
 	}
 
 	/** Reads properties from a properties file.  */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun readProperties(propertiesFile: File): Properties {
 		propertiesFile.inputStream().use { stream ->
-			val props = Properties()
-			props.load(stream)
-			return props
+			return Properties().apply {
+				load(stream)
+			}
 		}
 	}
 
@@ -247,9 +211,7 @@ object FileSystemUtils {
 	 */
 	@JvmStatic
 	@Throws(IOException::class)
-	fun readLinesUTF8(file: File): List<String> {
-		return file.readLines()
-	}
+	fun readLinesUTF8(file: File) = file.readLines()
 
 	/**
 	 * Copy all files specified by a file filter from one directory to another. This
@@ -259,7 +221,6 @@ object FileSystemUtils {
 	 * filter to specify file types.
 	 * @return number of files copied
 	 */
-	@JvmStatic
 	@Throws(IOException::class)
 	fun copyFiles(sourceDirectory: File, targetDirectory: File?, fileFilter: FileFilter?): Int {
 		val files: List<File> = listFilesRecursively(sourceDirectory, fileFilter)

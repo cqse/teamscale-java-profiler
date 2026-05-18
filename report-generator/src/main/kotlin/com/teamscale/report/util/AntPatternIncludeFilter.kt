@@ -1,8 +1,3 @@
-/*-------------------------------------------------------------------------+
-|                                                                          |
-| Copyright (c) 2009-2018 CQSE GmbH                                        |
-|                                                                          |
-+-------------------------------------------------------------------------*/
 package com.teamscale.report.util
 
 import com.teamscale.client.AntPatternUtils

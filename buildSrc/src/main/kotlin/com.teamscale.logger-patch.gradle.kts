@@ -1,7 +1,7 @@
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 
 plugins {
-    java
+	java
 }
 
 // Configures the compile and runtime classpath to transform all jar files using the JulManagerFreeTransform
@@ -11,13 +11,13 @@ val julManagerFreeAttribute = Attribute.of("julManagerFree", Boolean::class.java
 dependencies.artifactTypes.maybeCreate("jar").attributes.attribute(julManagerFreeAttribute, false)
 
 dependencies.registerTransform(JulManagerFreeTransform::class) {
-    from.attributes.attribute(ARTIFACT_TYPE_ATTRIBUTE, "jar").attribute(julManagerFreeAttribute, false)
-    to.attributes.attribute(ARTIFACT_TYPE_ATTRIBUTE, "jar").attribute(julManagerFreeAttribute, true)
+	from.attributes.attribute(ARTIFACT_TYPE_ATTRIBUTE, "jar").attribute(julManagerFreeAttribute, false)
+	to.attributes.attribute(ARTIFACT_TYPE_ATTRIBUTE, "jar").attribute(julManagerFreeAttribute, true)
 }
 
 configurations.compileClasspath {
-    attributes.attribute(julManagerFreeAttribute, true)
+	attributes.attribute(julManagerFreeAttribute, true)
 }
 configurations.runtimeClasspath {
-    attributes.attribute(julManagerFreeAttribute, true)
+	attributes.attribute(julManagerFreeAttribute, true)
 }

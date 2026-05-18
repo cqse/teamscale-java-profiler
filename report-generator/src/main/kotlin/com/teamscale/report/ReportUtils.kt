@@ -15,14 +15,12 @@ import java.io.IOException
 object ReportUtils {
 	/** Converts to given test list to a json report and writes it to the given file.  */
 	@Throws(IOException::class)
-	@JvmStatic
 	fun writeTestListReport(reportFile: File, report: List<TestDetails>) {
 		writeReportToFile(reportFile, report)
 	}
 
 	/** Converts to given test execution report to a json report and writes it to the given file.  */
 	@Throws(IOException::class)
-	@JvmStatic
 	fun writeTestExecutionReport(reportFile: File, report: List<TestExecution>) {
 		writeReportToFile(reportFile, report)
 	}
@@ -34,7 +32,6 @@ object ReportUtils {
 	}
 
 	/** Converts to given report to a json string. For testing only.  */
-	@JvmStatic
 	@Throws(JsonProcessingException::class)
 	fun getTestwiseCoverageReportAsString(report: TestwiseCoverageReport) = report.serializeToJson()
 

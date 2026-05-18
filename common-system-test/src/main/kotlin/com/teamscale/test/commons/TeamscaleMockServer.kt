@@ -52,7 +52,7 @@ class TeamscaleMockServer(val port: Int) {
 
 	init {
 		service.port(port)
-		service.exception<Exception>(Exception::class.java) { exception, _, response ->
+		service.exception(Exception::class.java) { exception, _, response ->
 			response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
 			response.body("Exception: " + exception!!.message)
 		}

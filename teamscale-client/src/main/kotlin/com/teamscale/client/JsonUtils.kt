@@ -37,14 +37,6 @@ object JsonUtils {
 	 */
 	@Throws(JsonProcessingException::class)
 	@JvmStatic
-	fun <T> deserialize(json: String, clazz: Class<T>): T =
-		OBJECT_MAPPER.readValue(json, clazz)
-
-	/**
-	 * Deserializes a JSON string into an object of the given class.
-	 */
-	@Throws(JsonProcessingException::class)
-	@JvmStatic
 	inline fun <reified T> deserialize(json: String): T =
 		OBJECT_MAPPER.readValue(json, T::class.java)
 
@@ -59,7 +51,6 @@ object JsonUtils {
 	 * Deserializes a JSON string into a list of objects of the given class.
 	 */
 	@Throws(JsonProcessingException::class)
-	@JvmStatic
 	inline fun <reified T> deserializeList(json: String): List<T> =
 		OBJECT_MAPPER.readValue(
 			json, OBJECT_MAPPER.typeFactory.constructCollectionLikeType(MutableList::class.java, T::class.java)
@@ -68,7 +59,6 @@ object JsonUtils {
 	/**
 	 * Serializes an object into its JSON representation.
 	 */
-	@JvmStatic
 	@Throws(JsonProcessingException::class)
 	fun Any.serializeToJson(): String =
 		OBJECT_MAPPER.writeValueAsString(this)
