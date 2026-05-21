@@ -43,7 +43,12 @@ open class FilteringAnalyzer(
 			analyzeClass(buffer)
 		} catch (cause: RuntimeException) {
 			if (cause.isUnsupportedClassFile()) {
-				logger.error(cause.message + " in " + location)
+				logger.error(
+					"Unsupported class file in '$location': ${cause.message}." +
+							" This is usually a class file compiled for a Java version newer than the profiler supports" +
+							" — exclude it via 'excludes' or upgrade the profiler.",
+					cause
+				)
 			} else {
 				throw analyzerError(location, cause)
 			}

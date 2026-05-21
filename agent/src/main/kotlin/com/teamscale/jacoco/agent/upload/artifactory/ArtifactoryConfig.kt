@@ -184,7 +184,11 @@ class ArtifactoryConfig {
 					gitPropertiesCommitTimeFormat
 				)
 				if (commitInfo.isEmpty()) {
-					throw UploaderException("Found no git.properties files in $jarFile")
+					throw UploaderException(
+						"Found no git.properties files in $jarFile." +
+								" The 'artifactory-git-properties-jar' option must point to a JAR that contains" +
+								" a git.properties with the commit from which the JAR was built."
+					)
 				}
 				if (commitInfo.size > 1) {
 					throw UploaderException(

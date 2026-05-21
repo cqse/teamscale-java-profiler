@@ -21,7 +21,9 @@ abstract class JUnitClassBasedTestDescriptorResolverBase : ITestDescriptorResolv
 
 		if (!classSegmentName.isPresent) {
 			LOG.severe {
-				"Falling back to unique ID as cluster id because class segment name could not be determined for test descriptor: $descriptor"
+				"Could not determine a class name for test descriptor '${descriptor.displayName}';" +
+						" using its unique ID as the impact-analysis cluster ID." +
+						" Tests in this descriptor may be over-selected for execution."
 			}
 			// Default to uniform path.
 			return Optional.of(descriptor.uniqueId.toString())

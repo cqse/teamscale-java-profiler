@@ -22,7 +22,10 @@ data class SapNwdiApplication(
 
 			return markerClassAndProjectPairs.map { pair ->
 				if (pair.isBlank()) {
-					throw AgentOptionParseException("Application definition is expected not to be empty.")
+					throw AgentOptionParseException(
+						"Empty entry in option 'sap-nwdi-applications'." +
+								" Provide entries in the form 'com.your.MarkerClass:teamscale-project-id', separated by ';'."
+					)
 				}
 
 				val parts = pair.split(":").dropLastWhile { it.isEmpty() }
@@ -34,12 +37,18 @@ data class SapNwdiApplication(
 
 				val markerClass = parts[0].trim()
 				if (markerClass.isEmpty()) {
-					throw AgentOptionParseException("Marker class is not given for $pair!")
+					throw AgentOptionParseException(
+						"Option 'sap-nwdi-applications': no marker class given in entry '$pair'." +
+								" Use the form 'com.your.MarkerClass:teamscale-project-id'."
+					)
 				}
 
 				val teamscaleProject = parts[1].trim()
 				if (teamscaleProject.isEmpty()) {
-					throw AgentOptionParseException("Teamscale project is not given for $pair!")
+					throw AgentOptionParseException(
+						"Option 'sap-nwdi-applications': no Teamscale project given in entry '$pair'." +
+								" Use the form 'com.your.MarkerClass:teamscale-project-id'."
+					)
 				}
 
 				SapNwdiApplication(markerClass, teamscaleProject)

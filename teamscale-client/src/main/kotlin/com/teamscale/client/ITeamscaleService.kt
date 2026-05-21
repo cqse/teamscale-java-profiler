@@ -196,8 +196,15 @@ fun ITeamscaleService.uploadReport(
 		}
 
 		val errorBody = HttpUtils.getErrorBodyStringSafe(response)
-		throw IOException("Request failed with error code ${response.code()}. Response body: $errorBody")
+		throw IOException(
+			"Uploading the report to Teamscale failed with HTTP ${response.code()}: $errorBody." +
+					" Check the partition, project, branch/timestamp, and the user's permissions in Teamscale."
+		)
 	} catch (e: IOException) {
-		throw IOException("Failed to upload report. ${e.message}", e)
+		throw IOException(
+			"Failed to upload report to Teamscale: ${e.message}." +
+					" Verify network connectivity and the configured Teamscale URL and credentials.",
+			e
+		)
 	}
 }

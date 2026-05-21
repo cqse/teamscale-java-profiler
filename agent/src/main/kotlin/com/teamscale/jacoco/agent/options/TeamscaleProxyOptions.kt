@@ -38,7 +38,10 @@ class TeamscaleProxyOptions(private val protocol: ProxySystemProperties.Protocol
 			proxyPort = proxySystemProperties.proxyPort
 		} catch (e: ProxySystemProperties.IncorrectPortFormatException) {
 			proxyPort = -1
-			logger.warn(e.message!!)
+			logger.warn(
+				"Ignoring invalid proxy port from system properties for protocol $protocol: ${e.message}." +
+						" The agent will continue without using the proxy until a valid port is configured."
+			)
 		}
 		proxyUser = proxySystemProperties.proxyUser
 		proxyPassword = proxySystemProperties.proxyPassword
@@ -108,7 +111,8 @@ class TeamscaleProxyOptions(private val protocol: ProxySystemProperties.Protocol
 			TeamscaleProxySystemProperties(protocol).proxyPassword = proxyPassword
 		} catch (e: IOException) {
 			logger.error(
-				"Unable to open file containing proxy password. Please make sure the file exists and the user has the permissions to read the file.",
+				"Unable to read proxy password from $proxyPasswordFilePath." +
+						" Verify the file exists and is readable by the user running the JVM.",
 				e
 			)
 		}

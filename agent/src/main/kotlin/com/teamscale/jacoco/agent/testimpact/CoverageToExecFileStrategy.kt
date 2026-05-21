@@ -36,7 +36,12 @@ class CoverageToExecFileStrategy(
 				testExecutionWriter?.append(testExecution)
 				logger.debug("Successfully wrote test execution for {}", test)
 			} catch (e: IOException) {
-				logger.error("Failed to store test execution: {}", e.message, e)
+				logger.error(
+					"Failed to append test execution for test '{}' to the testwise report: {}." +
+							" This test will be missing from the final report." +
+							" Check that the agent's 'out' directory is writable.",
+					test, e.message, e
+				)
 			}
 		}
 		return null

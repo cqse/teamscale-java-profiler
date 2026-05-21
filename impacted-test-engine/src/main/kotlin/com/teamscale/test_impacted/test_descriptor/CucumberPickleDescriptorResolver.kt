@@ -16,7 +16,9 @@ class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
 		LOG.fine { "Resolved feature: $featurePath" }
 		if (!featurePath.isPresent) {
 			LOG.severe {
-				"Cannot resolve the feature classpath for ${descriptor}. This is probably a bug. Please report to CQSE"
+				"Cannot resolve the feature classpath for Cucumber test descriptor '${descriptor.displayName}'." +
+						" Please report a bug" +
+						" including the full descriptor: $descriptor"
 			}
 			return Optional.empty()
 		}
@@ -24,7 +26,9 @@ class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
 		LOG.fine { "Resolved pickle name: $pickleName" }
 		if (!pickleName.isPresent) {
 			LOG.severe {
-				"Cannot resolve the pickle name for ${descriptor}. This is probably a bug. Please report to CQSE"
+				"Cannot resolve the pickle name for Cucumber test descriptor '${descriptor.displayName}'." +
+						" Please report a bug to CQSE" +
+						" including the full descriptor: $descriptor"
 			}
 			return Optional.empty()
 		}

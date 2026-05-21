@@ -33,12 +33,20 @@ class ImpactedTestsSorter(private val impactedTestsProvider: ImpactedTestsProvid
 		allTests.forEach { test ->
 			val uniqueId = availableTests.convertToUniqueId(test)
 			if (!uniqueId.isPresent) {
-				ImpactedTestEngine.LOG.severe { "Falling back to execute all..." }
+				ImpactedTestEngine.LOG.warning {
+					"Could not map impacted test '${test.testName}' (from Teamscale) to a local unique ID." +
+							" Falling back to executing all tests." +
+							" Check that the local test set matches the one indexed in Teamscale for this commit."
+				}
 				return
 			}
 			val availableTest = testDescriptor.findByUniqueId(uniqueId.get())
 			if (!availableTest.isPresent) {
-				ImpactedTestEngine.LOG.severe { "Falling back to execute all..." }
+				ImpactedTestEngine.LOG.warning {
+					"Impacted test '${test.testName}' was mapped to a unique ID" +
+							" but no matching test descriptor exists in the current test hierarchy." +
+							" Falling back to executing all tests."
+				}
 				return
 			}
 			val descriptor = availableTest.get()

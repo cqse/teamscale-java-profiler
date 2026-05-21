@@ -55,9 +55,15 @@ open class ImpactedTestsProvider(
 				LOG.severe("""
 					Teamscale was not able to determine impacted tests:
 					${response.body()}
+					The test engine will fall back to executing all tests.
+					Verify the configured project, branch/timestamp, and partition exist in Teamscale.
 					""".trimIndent())
 			} else {
-				LOG.severe("Retrieval of impacted tests failed: ${response.code()} ${response.message()}\n${getErrorBody(response)}")
+				LOG.severe(
+					"Retrieval of impacted tests failed: ${response.code()} ${response.message()}" +
+							"\n${getErrorBody(response)}" +
+							"\nThe test engine will fall back to executing all tests."
+				)
 			}
 		} catch (e: IOException) {
 			LOG.log(
@@ -86,7 +92,10 @@ open class ImpactedTestsProvider(
 			return true
 		} else {
 			LOG.severe {
-				"Retrieved $returnedTests tests from Teamscale, but expected ${availableTestDetails.size}."
+				"Retrieved $returnedTests tests from Teamscale, but expected ${availableTestDetails.size}." +
+						" The test selection will fall back to executing all tests." +
+						" This usually indicates a mismatch between the local test set and what Teamscale knows" +
+						" — verify the project/branch/timestamp configuration."
 			}
 			return false
 		}

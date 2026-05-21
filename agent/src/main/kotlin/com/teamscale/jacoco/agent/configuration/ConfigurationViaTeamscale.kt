@@ -61,8 +61,10 @@ class ConfigurationViaTeamscale(
 		try {
 			val response = teamscaleClient.sendHeartbeat(profilerId!!, profilerInfo).execute()
 			if (!response.isSuccessful) {
-				LoggingUtils.getLogger(this)
-					.error("Failed to send heartbeat. Teamscale responded with: ${response.errorBody()?.string()}")
+				LoggingUtils.getLogger(this).error(
+					"Failed to send heartbeat to Teamscale: HTTP ${response.code()} ${response.errorBody()?.string()}." +
+							" If heartbeats keep failing, Teamscale will mark this profiler as offline."
+				)
 			}
 		} catch (e: IOException) {
 			LoggingUtils.getLogger(this).error("Failed to send heartbeat to Teamscale!", e)
@@ -78,11 +80,17 @@ class ConfigurationViaTeamscale(
 				response = teamscaleClient.unregisterProfilerLegacy(profilerId).execute()
 			}
 			if (!response.isSuccessful) {
-				LoggingUtils.getLogger(this)
-					.error("Failed to unregister profiler. Teamscale responded with: ${response.errorBody()?.string()}")
+				LoggingUtils.getLogger(this).error(
+					"Failed to unregister profiler with Teamscale: HTTP ${response.code()} ${response.errorBody()?.string()}." +
+							" The profiler will be marked offline automatically after the heartbeat timeout."
+				)
 			}
 		} catch (e: IOException) {
-			LoggingUtils.getLogger(this).error("Failed to unregister profiler!", e)
+			LoggingUtils.getLogger(this).error(
+				"Failed to unregister profiler with Teamscale (network error)." +
+						" The profiler will be marked offline automatically after the heartbeat timeout.",
+				e
+			)
 		}
 	}
 
@@ -122,12 +130,10 @@ class ConfigurationViaTeamscale(
 				val body = response.body()
 				return parseProfilerRegistration(body!!, response, teamscaleClient, processInformation)
 			} catch (e: IOException) {
-				// we include the causing error message in this exception's message since this causes it to be printed
-				// to stderr which is much more helpful than just saying "something didn't work"
 				throw AgentOptionReceiveException(
-					"Failed to retrieve profiler configuration from Teamscale due to network error: ${
-						LoggingUtils.getStackTraceAsString(e)
-					}", e
+					"Failed to retrieve profiler configuration from Teamscale due to network error: ${e.message}." +
+							" Verify the Teamscale URL ($url) is reachable from this machine and the configured user has access.",
+					e
 				)
 			}
 		}

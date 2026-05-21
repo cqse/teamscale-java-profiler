@@ -57,13 +57,22 @@ object TestEngineOptionUtils {
 		}
 	}
 
-	private fun PrefixingPropertyReader.createServerOptions() =
-		ServerOptions(
-			getString("server.url") ?: throw AssertionError("server url is required"),
-			getString("server.project") ?: throw AssertionError("project is required"),
-			getString("server.userName") ?: throw AssertionError("username is required"),
-			getString("server.userAccessToken") ?: throw AssertionError("access token is required")
-		)
+	private fun PrefixingPropertyReader.createServerOptions(): ServerOptions {
+		val url = getString("server.url")
+			?: throw IllegalArgumentException(missingServerOptionMessage("server.url"))
+		val project = getString("server.project")
+			?: throw IllegalArgumentException(missingServerOptionMessage("server.project"))
+		val userName = getString("server.userName")
+			?: throw IllegalArgumentException(missingServerOptionMessage("server.userName"))
+		val userAccessToken = getString("server.userAccessToken")
+			?: throw IllegalArgumentException(missingServerOptionMessage("server.userAccessToken"))
+		return ServerOptions(url, project, userName, userAccessToken)
+	}
+
+	private fun missingServerOptionMessage(suffix: String) =
+		"Missing Teamscale option 'teamscale.test.impacted.$suffix'." +
+				" Set it via JUnit Platform configuration parameters" +
+				" (e.g. junit-platform.properties or via the build tool plugin)."
 
 	private class PrefixingPropertyReader(
 		private val prefix: String,

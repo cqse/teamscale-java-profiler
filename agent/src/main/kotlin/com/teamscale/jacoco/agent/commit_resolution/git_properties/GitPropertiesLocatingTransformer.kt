@@ -69,7 +69,11 @@ class GitPropertiesLocatingTransformer(
 		} catch (e: Throwable) {
 			// we catch Throwable to be sure that we log all errors as anything thrown from this method is
 			// silently discarded by the JVM
-			logger.error("Failed to process class {} in search of git.properties", className, e)
+			logger.error(
+				"Failed to process class {} while searching for git.properties. This class will be skipped" +
+						" — coverage detection should still work via other classes from the same JAR.",
+				className, e
+			)
 		}
 		return null
 	}

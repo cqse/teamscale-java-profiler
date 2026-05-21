@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [security fix] _agent_: The Azure shared-key error messages no longer include the configured `azure-key` value in the exception text (previously leaked the access key into stack traces and logs)
 
 # 36.5.2
 - [security fix] _agent_: The Teamscale access token was logged in clear text in DEBUG-level logs (e.g., when `debug=true` was set) and in the WARN-level log emitted when multiple `-javaagent` arguments are present. The token is now obfuscated in those logs as well, matching INFO-level behavior.

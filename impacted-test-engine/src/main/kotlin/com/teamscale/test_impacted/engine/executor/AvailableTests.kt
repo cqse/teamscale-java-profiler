@@ -37,8 +37,11 @@ class AvailableTests {
 	fun convertToUniqueId(test: PrioritizableTest): Optional<UniqueId> {
 		val clusterUniqueId = uniformPathToUniqueIdMapping[test.testName]
 		if (clusterUniqueId == null) {
-			LOG.severe { "Retrieved invalid test '${test.testName}' from Teamscale server!" }
-			LOG.severe { "The following seem related:" }
+			LOG.severe {
+				"Teamscale returned the impacted test '${test.testName}' which does not match any local test." +
+						" This test will be skipped. Please report a bug."
+			}
+			LOG.severe { "The following local tests seem related:" }
 			uniformPathToUniqueIdMapping.keys
 				.sortedBy { test.testName.levenshteinDistance(it) }
 				.take(5)

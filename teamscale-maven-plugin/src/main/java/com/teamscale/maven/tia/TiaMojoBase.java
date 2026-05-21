@@ -233,15 +233,15 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 	 * Automatically find an available port.
 	 */
 	private String findAvailablePort() {
-		try (ServerSocket socket = new ServerSocket(0)) {
-			int port = socket.getLocalPort();
-			getLog().info("Automatically set server port to " + port);
-			return String.valueOf(port);
-		} catch (IOException e) {
-			getLog().error("Port blocked, trying again.", e);
-			return findAvailablePort();
+			try (ServerSocket socket = new ServerSocket(0)) {
+				int port = socket.getLocalPort();
+				getLog().info("Automatically set server port to " + port);
+				return String.valueOf(port);
+			} catch (IOException e) {
+				getLog().warn("Could not allocate a free port for the TIA agent, retrying.", e);
+				return findAvailablePort();
+			}
 		}
-	}
 
 	/**
 	 * Sets the teamscale-test-impacted engine as only includedEngine and passes all previous engine configuration to
@@ -358,7 +358,10 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 			}
 			Files.createDirectories(targetDirectory);
 		} catch (IOException e) {
-			throw new MojoFailureException("Could not create target directory " + targetDirectory, e);
+			throw new MojoFailureException(
+					"Could not create target directory " + targetDirectory + " (" + e.getMessage() + ")."
+							+ " Check that the parent directory is writable and there is enough disk space.",
+					e);
 		}
 	}
 

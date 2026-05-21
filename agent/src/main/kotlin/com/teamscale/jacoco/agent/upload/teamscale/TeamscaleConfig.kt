@@ -86,7 +86,10 @@ class TeamscaleConfig(
 	private fun parseCommit(commit: String): CommitDescriptor {
 		val split = commit.split(":".toRegex()).dropLastWhile { it.isEmpty() }
 		if (split.size != 2) {
-			throw AgentOptionParseException("Invalid commit given $commit")
+			throw AgentOptionParseException(
+				"Invalid value '$commit' for option 'teamscale-commit'." +
+						" Expected format is 'branch:timestamp'."
+			)
 		}
 		return CommitDescriptor(split[0], split[1])
 	}
@@ -101,9 +104,15 @@ class TeamscaleConfig(
 		val branch = manifest.mainAttributes.getValue("Branch")
 		val timestamp = manifest.mainAttributes.getValue("Timestamp")
 		if (branch.isNullOrEmpty()) {
-			throw AgentOptionParseException("No entry 'Branch' in MANIFEST")
+			throw AgentOptionParseException(
+				"No 'Branch' entry in MANIFEST.MF of $jarFile (configured via 'teamscale-commit-manifest-jar')." +
+						" Add 'Branch: <branch-name>' and 'Timestamp: <commit-timestamp>' to the JAR's manifest."
+			)
 		} else if (timestamp.isNullOrEmpty()) {
-			throw AgentOptionParseException("No entry 'Timestamp' in MANIFEST")
+			throw AgentOptionParseException(
+				"No 'Timestamp' entry in MANIFEST.MF of $jarFile (configured via 'teamscale-commit-manifest-jar')." +
+						" Add 'Timestamp: <commit-timestamp>' to the JAR's manifest."
+			)
 		}
 		logger.debug("Found commit $branch:$timestamp in file $jarFile")
 		return CommitDescriptor(branch, timestamp)
@@ -123,7 +132,11 @@ class TeamscaleConfig(
 			}
 
 			if (revision.isNullOrEmpty()) {
-				throw AgentOptionParseException("No entry 'Revision' in MANIFEST")
+				throw AgentOptionParseException(
+					"No 'Revision' entry in MANIFEST.MF of $jarFile" +
+							" (configured via 'teamscale-revision-manifest-jar')." +
+							" Add 'Revision: <git-commit-hash>' to the JAR's manifest."
+				)
 			}
 		}
 		logger.debug("Found revision $revision in file $jarFile")

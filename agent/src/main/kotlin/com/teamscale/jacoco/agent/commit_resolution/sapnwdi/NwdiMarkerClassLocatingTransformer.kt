@@ -64,7 +64,9 @@ class NwdiMarkerClassLocatingTransformer(
 			// we catch Throwable to be sure that we log all errors as anything thrown from this method is
 			// silently discarded by the JVM
 			logger.error(
-				"Failed to process class {} trying to determine its last modification timestamp.", className, e
+				"Failed to determine the last-modified timestamp of class {} for SAP NWDI commit auto-detection." +
+						" This class will be skipped; auto-detection should still succeed via other marker classes.",
+				className, e
 			)
 		}
 		return null

@@ -102,7 +102,10 @@ object TestDescriptorUtils {
 			.forEach { testDescriptor ->
 				val engineId = testDescriptor.uniqueId.engineId
 				if (!engineId.isPresent) {
-					LOG.severe { "Unable to determine engine ID for $testDescriptor!" }
+					LOG.severe {
+						"Could not determine the JUnit engine for test descriptor '${testDescriptor.displayName}'." +
+								" This test will not be considered for impact analysis."
+					}
 					return@forEach
 				}
 
@@ -111,12 +114,18 @@ object TestDescriptorUtils {
 				val uniformPath = testDescriptorResolver.getUniformPath(testDescriptor)
 
 				if (!uniformPath.isPresent) {
-					LOG.severe { "Unable to determine uniform path for test descriptor: $testDescriptor" }
+					LOG.severe {
+						"Could not determine a uniform path for test descriptor '${testDescriptor.displayName}'." +
+								" This test will be skipped during impact analysis."
+					}
 					return@forEach
 				}
 
 				if (!clusterId.isPresent) {
-					LOG.severe { "Unable to determine cluster id path for test descriptor: $testDescriptor" }
+					LOG.severe {
+						"Could not determine an impact-analysis cluster ID for test descriptor '${testDescriptor.displayName}'." +
+								" This test will be skipped during impact analysis."
+					}
 					return@forEach
 				}
 

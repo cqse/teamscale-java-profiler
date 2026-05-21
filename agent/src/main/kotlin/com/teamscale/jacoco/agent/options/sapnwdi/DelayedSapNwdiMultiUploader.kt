@@ -32,7 +32,12 @@ class DelayedSapNwdiMultiUploader(
 	private fun registerShutdownHook() {
 		Runtime.getRuntime().addShutdownHook(Thread {
 			if (wrappedUploaders.isEmpty()) {
-				logger.error("The application was shut down before a commit could be found. The recorded coverage is lost.")
+				logger.error(
+					"The application was shut down before any commit could be found for the SAP NWDI marker classes." +
+							" The recorded coverage is lost." +
+							" Ensure every NWDI marker class is present in a JAR with a valid git.properties," +
+							" and enable debug logging via the 'logging-config' option to see which classes were inspected."
+				)
 			}
 		})
 	}

@@ -17,7 +17,10 @@ abstract class DelayedMultiUploaderBase : IUploader {
 		val wrappedUploaders = this.wrappedUploaders
 		wrappedUploaders.forEach { _ -> coverageFile.acquireReference() }
 		if (wrappedUploaders.isEmpty()) {
-			logger.warn("No commits have been found yet to which coverage should be uploaded. Discarding coverage")
+			logger.warn(
+				"No commits have been resolved yet — discarding this coverage dump." +
+						" Provide a 'git.properties' file in the profiled JARs or set 'teamscale-commit'/'teamscale-revision' to avoid this."
+			)
 		} else {
 			wrappedUploaders.forEach { wrappedUploader ->
 				wrappedUploader.upload(coverageFile)

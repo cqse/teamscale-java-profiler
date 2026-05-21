@@ -55,7 +55,12 @@ abstract class CompactCoverageReport : JaCoCoBasedReportTaskBase<CompactCoverage
 				reportContainer.compactCoverage.outputLocation.get().asFile
 			)
 		} catch (e: EmptyReportException) {
-			logger.warn("Converted report was empty.")
+			logger.warn(
+				"Compact coverage report for task '{}' was empty —" +
+						" no covered lines in the provided execution data." +
+						" Verify the test task actually ran and that the include/exclude patterns match your classes.",
+				path
+			)
 		}
 	}
 

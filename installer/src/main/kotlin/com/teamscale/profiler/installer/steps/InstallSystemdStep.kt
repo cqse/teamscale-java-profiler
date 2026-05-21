@@ -32,7 +32,11 @@ class InstallSystemdStep(
 			try {
 				Files.createDirectories(systemdSystemConfDDirectory)
 			} catch (e: IOException) {
-				throw PermissionError("Cannot create system.conf.d directory: $systemdSystemConfDDirectory", e)
+				throw PermissionError(
+					"Cannot create the systemd 'system.conf.d' directory at $systemdSystemConfDDirectory" +
+							" (${e.message}). Run the installer as root.",
+					e
+				)
 			}
 		}
 
@@ -53,7 +57,11 @@ class InstallSystemdStep(
 		try {
 			Files.writeString(systemdConfigFile, content)
 		} catch (e: IOException) {
-			throw PermissionError("Could not create $systemdConfigFile", e)
+			throw PermissionError(
+				"Could not create the systemd configuration file at $systemdConfigFile (${e.message})." +
+						" Run the installer as root and ensure /etc/systemd/system.conf.d is writable.",
+				e
+			)
 		}
 
 		daemonReload()

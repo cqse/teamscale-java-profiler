@@ -22,18 +22,22 @@ abstract class ServerConfiguration : Serializable {
 
 	fun validate() {
 		if (url.get().isBlank()) {
-			throw GradleException("Teamscale server url must not be empty!")
+			throw GradleException(missingServerPropertyMessage("url", "https://teamscale.example.com/"))
 		}
 		if (project.get().isBlank()) {
-			throw GradleException("Teamscale project name must not be empty!")
+			throw GradleException(missingServerPropertyMessage("project", "my-project-id"))
 		}
 		if (userName.get().isBlank()) {
-			throw GradleException("Teamscale user name must not be empty!")
+			throw GradleException(missingServerPropertyMessage("userName", "alice"))
 		}
 		if (userAccessToken.get().isBlank()) {
-			throw GradleException("Teamscale user access token must not be empty!")
+			throw GradleException(missingServerPropertyMessage("userAccessToken", "<your-Teamscale-access-key>"))
 		}
 	}
+
+	private fun missingServerPropertyMessage(property: String, example: String) =
+		"Teamscale server '$property' must not be empty." +
+				" Set it via 'teamscale { server { $property.set(\"$example\") } }' in your build.gradle.kts."
 
 	fun toClient() = TeamscaleClient(
 		url.get(), userName.get(), userAccessToken.get(), project.get(),

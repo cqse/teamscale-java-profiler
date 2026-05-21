@@ -67,7 +67,10 @@ public class FilePatternResolver {
 		try {
 			return Collections.singletonList(workingDirectory.toPath().resolve(Paths.get(pattern)).toFile());
 		} catch (InvalidPathException e) {
-			throw new IOException("Invalid path given for option " + optionName + ": " + pattern, e);
+			throw new IOException(
+					"Invalid path given for option '" + optionName + "': '" + pattern + "' (" + e.getMessage()
+							+ "). Use a normal file system path or an Ant-style pattern.",
+					e);
 		}
 	}
 
@@ -86,7 +89,10 @@ public class FilePatternResolver {
 		try {
 			return workingDirectory.toPath().resolve(Paths.get(pattern));
 		} catch (InvalidPathException e) {
-			throw new IOException("Invalid path given for option " + optionName + ": " + pattern, e);
+			throw new IOException(
+					"Invalid path given for option '" + optionName + "': '" + pattern + "' (" + e.getMessage()
+							+ "). Use a normal file system path or an Ant-style pattern.",
+					e);
 		}
 	}
 
@@ -193,8 +199,8 @@ public class FilePatternResolver {
 		private List<Path> getAllMatchingPaths() {
 			if (this.matchingPaths.isEmpty()) {
 				logger.warn(
-						"The pattern " + this.suffixPattern + " in " + this.basePath
-								.toString() + " for option " + optionName + " did not match any file!");
+						"The pattern '" + this.suffixPattern + "' under '" + this.basePath
+								+ "' (option '" + optionName + "') matched no files. Check the pattern and the working directory.");
 			}
 			logger.info("Resolved " + pattern + " to " + this.matchingPaths.size() + " for option " + optionName);
 			return this.matchingPaths;

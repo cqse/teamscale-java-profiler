@@ -247,7 +247,10 @@ object PreMain {
 		if (FileSystemUtils.isValidPath(logDirectory.toString()) && Files.isWritable(logDirectory)) {
 			logger.info("Logging to $logDirectory")
 		} else {
-			logger.warn("Could not create $logDirectory. Logging to console only.")
+			logger.warn(
+				"Could not create debug log directory '$logDirectory'" +
+						" (check permissions and free disk space). Falling back to console-only logging."
+			)
 		}
 	}
 

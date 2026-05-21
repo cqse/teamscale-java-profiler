@@ -46,7 +46,11 @@ class Converter
 				generator.convertExecFilesToReport(jacocoExecutionDataList, Paths.get(arguments.outputFile).toFile())
 			}
 		} catch (e: EmptyReportException) {
-			logger.warn("Converted report was empty.", e)
+			logger.warn(
+				"Converted report was empty — no coverage in the input .exec files." +
+						" If you set 'class-dir', verify it points to compiled classes matching the recorded coverage.",
+				e
+			)
 		}
 	}
 

@@ -162,8 +162,10 @@ abstract class TeamscaleUpload : DefaultTask() {
 			server.toClient().uploadReports(reports)
 		} catch (e: Exception) {
 			if (ignoreFailures.get()) {
-				logger.warn("Ignoring failure during upload:")
-				logger.warn(e.message, e)
+				logger.warn(
+					"Ignoring failure during upload to Teamscale at {} (ignoreFailures=true): {}",
+					server.url.get(), e.message, e
+				)
 			} else {
 				throw e
 			}
@@ -207,7 +209,12 @@ abstract class TeamscaleUpload : DefaultTask() {
 				)
 			}
 		} catch (e: IOException) {
-			throw GradleException("Upload failed (${e.message})", e)
+			throw GradleException(
+				"Uploading reports to Teamscale failed: ${e.message}." +
+						" Verify network connectivity, credentials," +
+						" and that the project/branch/timestamp exist in Teamscale.",
+				e
+			)
 		}
 	}
 

@@ -117,7 +117,10 @@ object FileSystemUtils {
 	@Throws(IOException::class)
 	fun ensureDirectoryExists(directory: File) {
 		if (!directory.exists() && !directory.mkdirs()) {
-			throw IOException("Couldn't create directory: $directory")
+			throw IOException(
+				"Could not create directory '$directory'." +
+						" Verify that the parent directory is writable."
+			)
 		}
 		if (directory.exists() && directory.canWrite()) {
 			return
@@ -135,10 +138,16 @@ object FileSystemUtils {
 			}
 		}
 		if (!directory.exists()) {
-			throw IOException("Temp directory $directory could not be created.")
+			throw IOException(
+				"Temp directory $directory could not be created." +
+						" Verify java.io.tmpdir is set to a writable location."
+			)
 		}
 		if (!directory.canWrite()) {
-			throw IOException("Temp directory $directory exists, but is not writable.")
+			throw IOException(
+				"Temp directory $directory exists, but is not writable." +
+						" Set java.io.tmpdir to a writable location or grant write permissions to the current user."
+			)
 		}
 	}
 

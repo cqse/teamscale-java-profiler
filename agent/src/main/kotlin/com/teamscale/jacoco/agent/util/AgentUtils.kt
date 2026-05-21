@@ -1,5 +1,6 @@
 package com.teamscale.jacoco.agent.util
 
+import com.teamscale.client.BugReportMessages
 import com.teamscale.client.FileSystemUtils
 import com.teamscale.client.TeamscaleServiceGenerator
 import com.teamscale.jacoco.agent.PreMain
@@ -31,7 +32,12 @@ object AgentUtils {
 				"teamscale-java-profiler-${FileSystemUtils.toSafeFilename(ProcessInformationRetriever.pID)}-"
 			)
 		} catch (e: IOException) {
-			throw RuntimeException("Failed to create temporary directory for agent files", e)
+			throw RuntimeException(
+				"Failed to create the agent's temporary directory under java.io.tmpdir" +
+						" (${System.getProperty("java.io.tmpdir")})." +
+						" Ensure the directory exists, is writable, and has free space.",
+				e
+			)
 		}
 	}
 
@@ -43,7 +49,11 @@ object AgentUtils {
 			val jarDirectory = Paths.get(jarFileUri).parent
 			jarDirectory.parent ?: jarDirectory // happens when the jar file is stored in the root directory
 		} catch (e: URISyntaxException) {
-			throw RuntimeException("Failed to obtain agent directory. This is a bug, please report it.", e)
+			throw RuntimeException(
+				"Failed to obtain the agent's installation directory from its JAR URL." +
+						" ${BugReportMessages.REPORT_TO_CQSE}",
+				e
+			)
 		}
 	}
 

@@ -34,8 +34,10 @@ public class ClasspathUtils {
 		try {
 			filePaths = FileSystemUtils.readLinesUTF8(txtFile);
 		} catch (IOException e) {
-			throw new IOException("Failed read class path entries from the provided " + txtFile +
-					" in the `" + key + "` option.", e);
+			throw new IOException(
+					"Failed to read class-path entries from " + txtFile + " (configured via option '" + key + "')."
+							+ " Verify the file exists and is readable by the user running the JVM.",
+					e);
 		}
 		List<File> resolvedFiles = new ArrayList<>();
 		for (String filePath : filePaths) {

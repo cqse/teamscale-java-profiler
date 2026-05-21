@@ -1,5 +1,6 @@
 package com.teamscale.jacoco.agent.upload.delay
 
+import com.teamscale.client.BugReportMessages
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
 import com.teamscale.jacoco.agent.upload.IUploader
 import com.teamscale.jacoco.agent.util.DaemonThreadFactory
@@ -81,7 +82,8 @@ class DelayedUploader<T> internal constructor(
 			executor.execute { uploadCachedXmls() }
 		} else {
 			logger.error(
-				"Tried to set upload commit multiple times (old uploader: {}, new commit: {}). This is a programming error. Please report a bug.",
+				"Tried to set the upload commit multiple times (old uploader: {}, new commit: {})." +
+						" ${BugReportMessages.REPORT_TO_CQSE}",
 				wrappedUploader?.describe(), information
 			)
 		}

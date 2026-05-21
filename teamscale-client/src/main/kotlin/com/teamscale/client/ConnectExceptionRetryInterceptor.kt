@@ -56,7 +56,10 @@ class ConnectExceptionRetryInterceptor(private val timeout: Duration) : Intercep
 		}
 
 		// If we reach here, we've timed out without a successful response
-		throw lastException ?: IOException("Failed to execute request after 1 minute of retries")
+		throw lastException ?: IOException(
+			"Failed to execute request to Teamscale after $timeoutMillis ms of connect retries." +
+					" Verify network connectivity and that the Teamscale host is reachable."
+		)
 	}
 
 	/**

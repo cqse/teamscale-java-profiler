@@ -60,7 +60,11 @@ class RunningTest(private val uniformPath: String, private val api: ITestwiseCov
 		try {
 			return body.string()
 		} catch (e: IOException) {
-			throw AgentHttpRequestFailedException("Unable to read agent HTTP response body string", e)
+			throw AgentHttpRequestFailedException(
+				"Unable to read the response body returned by the Teamscale Java profiler (HTTP I/O error)." +
+						" The profiler may have closed the connection — check its log for errors.",
+				e
+			)
 		}
 	}
 
