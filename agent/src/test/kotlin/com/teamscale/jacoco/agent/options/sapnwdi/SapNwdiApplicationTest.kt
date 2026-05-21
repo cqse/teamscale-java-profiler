@@ -12,13 +12,19 @@ class SapNwdiApplicationTest {
 		Assertions.assertThatThrownBy { parseApplications("") }
 			.hasMessage("Application definition is expected not to be empty.")
 		Assertions.assertThatThrownBy { parseApplications(";") }
-			.hasMessage("Application definition is expected not to be empty.")
+			.hasMessage(
+				"Empty entry in option 'sap-nwdi-applications'." +
+						" Provide entries in the form 'com.your.MarkerClass:teamscale-project-id', separated by ';'."
+			)
 	}
 
 	@Test
 	fun testIncompleteMarkerClassConfig() {
 		Assertions.assertThatThrownBy { parseApplications(":alias") }
-			.hasMessage("Marker class is not given for :alias!")
+			.hasMessage(
+				"Option 'sap-nwdi-applications': no marker class given in entry ':alias'." +
+						" Use the form 'com.your.MarkerClass:teamscale-project-id'."
+			)
 	}
 
 	@Test

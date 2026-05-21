@@ -79,6 +79,6 @@ class TeamscaleUploadValidationTest : TeamscalePluginTestBase() {
 		)
 
 		val result = runExpectingError("uploadTestResults")
-		assertThat(result.output).contains("Teamscale user access token must not be empty!")
+		assertThat(result.output).contains("Teamscale server 'userAccessToken' must not be empty.")
 	}
 }

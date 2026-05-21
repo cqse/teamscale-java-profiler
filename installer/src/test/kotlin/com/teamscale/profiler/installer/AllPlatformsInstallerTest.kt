@@ -108,7 +108,7 @@ internal class AllPlatformsInstallerTest {
 	@Throws(IOException::class)
 	fun profilerAlreadyInstalled() {
 		Files.createDirectories(targetDirectory)
-		Assertions.assertThatThrownBy { install() }.hasMessageContaining("Path already exists")
+		Assertions.assertThatThrownBy { install() }.hasMessageContaining("the path already exists")
 	}
 
 	@Test
