@@ -311,6 +311,10 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 				options.mode = parseEnumValue(key, value)
 				return true
 			}
+			"report-format" -> {
+				options.normalModeReportFormat = parseEnumValue(key, value)
+				return true
+			}
 			"includes" -> {
 				options.jacocoIncludes = value.replace(";".toRegex(), ":")
 				return true

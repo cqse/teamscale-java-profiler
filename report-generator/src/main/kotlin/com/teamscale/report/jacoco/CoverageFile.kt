@@ -52,6 +52,10 @@ data class CoverageFile(private val coverageFile: File) {
 	val name: String
 		get() = coverageFile.name
 
+	/** Get the filename extension of the coverage file (without leading dot, lowercase).  */
+	val extension: String
+		get() = coverageFile.extension.lowercase()
+
 	/**
 	 * Delete the coverage file from disk
 	 */

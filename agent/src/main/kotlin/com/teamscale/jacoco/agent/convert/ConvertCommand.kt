@@ -18,8 +18,10 @@ import java.io.IOException
  * Encapsulates all command line options for the convert command for parsing with [JCommander].
  */
 @Parameters(
-	commandNames = ["convert"], commandDescription = "Converts a binary .exec coverage file to XML. " +
-			"Note that the XML report will only contain source file coverage information, but no class coverage."
+	commandNames = ["convert"], commandDescription = "Converts a binary .exec coverage file to a coverage report. " +
+			"The output format is selected by the extension of --out: .xml for JaCoCo XML, .json for Teamscale " +
+			"Compact Coverage. Note that the report will only contain source file coverage information, but no " +
+			"class coverage."
 )
 class ConvertCommand : ICommand {
 	/** The directories and/or zips that contain all class files being profiled.  */
@@ -65,11 +67,13 @@ class ConvertCommand : ICommand {
 	)
 	var inputFiles = mutableListOf<String>()
 
-	/** The directory to write the XML traces to.  */
+	/** The output file. The extension selects the format: .xml = JaCoCo XML, .json = Teamscale Compact Coverage.  */
 	@JvmField
 	@Parameter(
 		names = ["--out", "-o"], required = true, description = (""
-				+ "The file to write the generated XML report to.")
+				+ "The file to write the generated coverage report to. The file extension selects the format: "
+				+ ".xml for JaCoCo XML, .json for Teamscale Compact Coverage. When --testwise-coverage is set, "
+				+ "testwise JSON is produced regardless of the extension.")
 	)
 	var outputFile = ""
 
@@ -86,7 +90,8 @@ class ConvertCommand : ICommand {
 	@Parameter(
 		names = ["--ignore-uncovered-classes"], required = false, arity = 1, description = (""
 				+ "Whether to ignore uncovered classes."
-				+ " These classes will not be part of the XML report at all, making it considerably smaller in some cases. Defaults to false.")
+				+ " These classes will not be part of the JaCoCo XML report at all, making it considerably smaller in some cases. Defaults to false. "
+				+ "Has no effect when the output format is Teamscale Compact Coverage, which never includes uncovered classes.")
 	)
 	var shouldIgnoreUncoveredClasses = false
 

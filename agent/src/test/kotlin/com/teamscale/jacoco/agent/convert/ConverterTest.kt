@@ -32,6 +32,53 @@ class ConverterTest {
 			.contains("TestClass")
 	}
 
+	/**
+	 * Ensures that running the converter with a `.json` output file produces a Teamscale Compact Coverage report.
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun testCompactCoverageSmokeTest(@TempDir tempDir: File?) {
+		val execFile = File(javaClass.getResource("coverage.exec")!!.toURI())
+		val classFile = File(javaClass.getResource("TestClass.class")!!.toURI())
+		val outputFile = File(tempDir, "coverage.json")
+
+		val arguments = ConvertCommand()
+		arguments.inputFiles = mutableListOf(execFile.absolutePath)
+		arguments.outputFile = outputFile.absolutePath
+		arguments.classDirectoriesOrZips = mutableListOf(classFile.absolutePath)
+
+		Converter(arguments).runJaCoCoReportGeneration()
+
+		val json = outputFile.readText()
+		Assertions.assertThat(json).isNotEmpty()
+			.contains("\"version\"")
+			.contains("\"coverage\"")
+			.contains("\"filePath\"")
+			.contains("TestClass")
+			.contains("\"fullyCoveredLines\":\"2,5-7,10-11\"")
+	}
+
+	/**
+	 * Ensures that the converter rejects unknown output file extensions with a helpful error.
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun testRejectsUnknownOutputExtension(@TempDir tempDir: File?) {
+		val execFile = File(javaClass.getResource("coverage.exec")!!.toURI())
+		val classFile = File(javaClass.getResource("TestClass.class")!!.toURI())
+		val outputFile = File(tempDir, "coverage.txt")
+
+		val arguments = ConvertCommand()
+		arguments.inputFiles = mutableListOf(execFile.absolutePath)
+		arguments.outputFile = outputFile.absolutePath
+		arguments.classDirectoriesOrZips = mutableListOf(classFile.absolutePath)
+
+		Assertions.assertThatThrownBy { Converter(arguments).runJaCoCoReportGeneration() }
+			.hasMessageContaining("Unsupported output file extension")
+			.hasMessageContaining(".xml")
+			.hasMessageContaining(".json")
+	}
+
 	@Test
 	@Throws(Exception::class)
 	fun testNestedJar(@TempDir tempDir: File?) {

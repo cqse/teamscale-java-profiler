@@ -30,7 +30,8 @@ import java.util.regex.Pattern
 /** Uploads the coverage archive to a provided azure file storage.  */
 class AzureFileStorageUploader(
 	config: AzureFileStorageConfig,
-	additionalMetaDataFiles: List<Path>
+	additionalMetaDataFiles: List<Path>,
+	private val reportFormat: EReportFormat
 ) : HttpZipUploaderBase<IAzureUploadApi>(
 	config.url!!,
 	additionalMetaDataFiles,
@@ -139,7 +140,7 @@ class AzureFileStorageUploader(
 
 	/** Creates a file name for the zip-archive containing the coverage.  */
 	private fun createFileName() =
-		"${EReportFormat.JACOCO.name.lowercase(Locale.getDefault())}-${System.currentTimeMillis()}.zip"
+		"${reportFormat.name.lowercase(Locale.getDefault())}-${System.currentTimeMillis()}.zip"
 
 	/** Checks if the file with the given name exists  */
 	@Throws(IOException::class, UploaderException::class)
