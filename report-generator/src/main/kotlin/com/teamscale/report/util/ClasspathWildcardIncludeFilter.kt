@@ -5,6 +5,7 @@ import com.teamscale.client.StringUtils
 import org.jacoco.core.runtime.WildcardMatcher
 import org.jacoco.report.JavaNames
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 
 /***
@@ -47,23 +48,29 @@ open class ClasspathWildcardIncludeFilter(
 	 */
 	fun isIncluded(path: String): Boolean {
 		val className = getClassName(path)
-		// first check includes
 		if (locationIncludeFilters != null && locationIncludeFilters?.matches(className) == false) {
 			return false
 		}
-		// if they match, check excludes
 		return locationExcludeFilters == null || locationExcludeFilters?.matches(className) == false
 	}
 
 
 	companion object {
+		private val AT_REGEX = "@".toRegex()
+		private val JAVA_NAMES = JavaNames()
+
+		private val classNameCache = ConcurrentHashMap<String, String>(1024)
+
 		/**
 		 * Returns the normalized class name of the given class file's path. I.e. turns something like
 		 * "/opt/deploy/some.jar@com/teamscale/Class.class" into something like "com.teamscale.Class".
 		 */
-		fun getClassName(path: String): String {
+		fun getClassName(path: String): String =
+			classNameCache.computeIfAbsent(path) { computeClassName(it) }
+
+		private fun computeClassName(path: String): String {
 			val parts = FileSystemUtils.normalizeSeparators(path)
-				.split("@".toRegex()).dropLastWhile { it.isEmpty() }
+				.split(AT_REGEX).dropLastWhile { it.isEmpty() }
 				.toTypedArray()
 			if (parts.isEmpty()) {
 				return ""
@@ -73,7 +80,7 @@ open class ClasspathWildcardIncludeFilter(
 			if (path.lowercase(Locale.getDefault()).endsWith(".class")) {
 				pathInsideJar = StringUtils.removeLastPart(pathInsideJar, '.')
 			}
-			return JavaNames().getQualifiedClassName(pathInsideJar)
+			return JAVA_NAMES.getQualifiedClassName(pathInsideJar)
 		}
 	}
 }

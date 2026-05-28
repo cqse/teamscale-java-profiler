@@ -25,6 +25,8 @@ class LenientCoverageTransformer(
 	// We want to show our more specific error message instead, so we only log this for debugging at trace.
 	IExceptionLogger { logger.trace(it.message, it) }
 ) {
+	private val useFastPathExclusion = options.includes.isNullOrBlank()
+
 	override fun transform(
 		loader: ClassLoader?,
 		classname: String,
@@ -32,6 +34,9 @@ class LenientCoverageTransformer(
 		protectionDomain: ProtectionDomain?,
 		classfileBuffer: ByteArray
 	): ByteArray? {
+		if (useFastPathExclusion && isDefaultExcluded(classname)) {
+			return null
+		}
 		try {
 			return super.transform(loader, classname, classBeingRedefined, protectionDomain, classfileBuffer)
 		} catch (e: IllegalClassFormatException) {
@@ -45,6 +50,21 @@ class LenientCoverageTransformer(
 	}
 
 	companion object {
+		/**
+		 * Derived from [com.teamscale.jacoco.agent.options.AgentOptions.DEFAULT_EXCLUDES].
+		 */
+		private val DEFAULT_EXCLUDED_PREFIXES = setOf(
+			"java/", "javax/", "jakarta/", "sun/", "junit/", "shadow/",
+			"com/sun/", "com/fasterxml/",
+			"org/eclipse/", "org/junit/", "org/apache/", "org/slf4j/",
+			"org/gradle/", "org/jboss/", "org/wildfly/", "org/springframework/",
+			"org/aspectj/", "org/h2/", "org/hibernate/", "org/assertj/",
+			"org/mockito/", "org/thymeleaf/"
+		)
+
+		private fun isDefaultExcluded(classname: String): Boolean =
+			DEFAULT_EXCLUDED_PREFIXES.any { classname.startsWith(it) }
+
 		private fun getRootCauseMessage(e: Throwable): String? =
 			e.cause?.let { getRootCauseMessage(it) } ?: e.message
 	}

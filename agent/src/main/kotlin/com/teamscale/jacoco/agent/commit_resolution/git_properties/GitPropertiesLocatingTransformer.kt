@@ -5,6 +5,7 @@ import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import java.io.File
 import java.lang.instrument.ClassFileTransformer
 import java.security.ProtectionDomain
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListSet
 
 /**
@@ -17,6 +18,7 @@ class GitPropertiesLocatingTransformer(
 ) : ClassFileTransformer {
 	private val logger = getLogger(this)
 	private val seenJars = ConcurrentSkipListSet<String>()
+	private val classIncludedCache = ConcurrentHashMap<String, Boolean>()
 
 	override fun transform(
 		classLoader: ClassLoader?,
@@ -26,12 +28,17 @@ class GitPropertiesLocatingTransformer(
 		classFileContent: ByteArray?
 	): ByteArray? {
 		if (protectionDomain == null) {
-			// happens for e.g. java.lang. We can ignore these classes
 			return null
 		}
 
-		if (className.isNullOrEmpty() || !locationIncludeFilter.isIncluded(className)) {
-			// only search in jar files of included classes
+		if (className.isNullOrEmpty()) {
+			return null
+		}
+
+		val isIncluded = classIncludedCache.computeIfAbsent(className) {
+			locationIncludeFilter.isIncluded(className)
+		}
+		if (!isIncluded) {
 			return null
 		}
 
