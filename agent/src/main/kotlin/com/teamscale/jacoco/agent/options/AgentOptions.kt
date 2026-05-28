@@ -639,8 +639,9 @@ open class AgentOptions(private val logger: ILogger) {
 	/** Returns whether the config indicates to use Test Impact mode.  */
 	fun useTestwiseCoverageMode() = mode == EMode.TESTWISE
 
-	val locationIncludeFilter: ClasspathWildcardIncludeFilter
-		get() = ClasspathWildcardIncludeFilter(jacocoIncludes, jacocoExcludes)
+	val locationIncludeFilter: ClasspathWildcardIncludeFilter by lazy {
+		ClasspathWildcardIncludeFilter(jacocoIncludes, jacocoExcludes)
+	}
 
 	/** Whether coverage should be dumped in regular intervals.  */
 	fun shouldDumpInIntervals() = dumpIntervalInMinutes > 0
@@ -695,7 +696,7 @@ open class AgentOptions(private val logger: ILogger) {
 		 * debugging traces easier and reduces trace size and warnings about unmatched classes in Teamscale.
 		 */
 		const val DEFAULT_EXCLUDES =
-			"shadow.*:com.sun.*:sun.*:org.eclipse.*:org.junit.*:junit.*:org.apache.*:org.slf4j.*:javax.*:org.gradle.*:java.*:org.jboss.*:org.wildfly.*:org.springframework.*:com.fasterxml.*:jakarta.*:org.aspectj.*:org.h2.*:org.hibernate.*:org.assertj.*:org.mockito.*:org.thymeleaf.*"
+			"com.teamscale.*:kotlin.*:shadow.*:com.sun.*:sun.*:org.eclipse.*:org.junit.*:junit.*:org.apache.*:org.slf4j.*:javax.*:org.gradle.*:java.*:org.jboss.*:org.wildfly.*:org.springframework.*:com.fasterxml.*:jakarta.*:org.aspectj.*:org.h2.*:org.hibernate.*:org.assertj.*:org.mockito.*:org.thymeleaf.*"
 
 		/** Option name that allows to specify a jar file that contains the git commit hash in a git.properties file.  */
 		const val GIT_PROPERTIES_JAR_OPTION = "git-properties-jar"
