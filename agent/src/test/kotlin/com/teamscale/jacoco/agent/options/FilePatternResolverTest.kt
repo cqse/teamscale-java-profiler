@@ -13,7 +13,7 @@ import java.io.IOException
 /** Tests the [AgentOptions].  */
 class FilePatternResolverTest {
 	@TempDir
-	protected var testFolder: File? = null
+	lateinit var testFolder: File
 
 	@BeforeEach
 	@Throws(IOException::class)
@@ -28,7 +28,7 @@ class FilePatternResolverTest {
 	@Test
 	@Throws(IOException::class)
 	fun testPathResolutionForAbsolutePath() {
-		assertInputInWorkingDirectoryMatches(".", testFolder!!.absolutePath, "")
+		assertInputInWorkingDirectoryMatches(".", testFolder.absolutePath, "")
 	}
 
 	/** Tests path resolution with relative paths.  */
@@ -54,14 +54,15 @@ class FilePatternResolverTest {
 	@Throws(IOException::class)
 	fun testPathResolutionWithPatternsAndAbsolutePaths() {
 		assertInputInWorkingDirectoryMatches(
-			"plugins", testFolder!!.getAbsolutePath() + "/plugins/file_*.jar",
+			"plugins", testFolder.absolutePath + "/plugins/file_*.jar",
 			"plugins/file_with_manifest2.jar"
 		)
 	}
 
 	@Throws(IOException::class)
 	private fun assertInputInWorkingDirectoryMatches(
-		workingDir: String, input: String?,
+		workingDir: String,
+		input: String,
 		expected: String
 	) {
 		val workingDirectory = File(testFolder, workingDir)

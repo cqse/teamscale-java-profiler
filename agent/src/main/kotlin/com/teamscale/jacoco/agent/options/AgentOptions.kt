@@ -84,7 +84,7 @@ open class AgentOptions(private val logger: ILogger) {
 	 * should be dumped to a temporary directory which should be used as the class-dir.
 	 */
 	@JvmField
-	var classDirectoriesOrZips = mutableListOf<File>()
+	var classDirectoriesOrZips = listOf<File>()
 
 	/**
 	 * The logging configuration file.
@@ -231,7 +231,7 @@ open class AgentOptions(private val logger: ILogger) {
 	 * we produce a string with obfuscation:
 	 * "config-file=jacocoagent.properties,teamscale-access-token=************mNHn"
 	 */
-	val obfuscatedOptionsString: String?
+	val obfuscatedOptionsString: String
 		get() = obfuscateAccessToken(originalOptionsString)
 
 	/**
