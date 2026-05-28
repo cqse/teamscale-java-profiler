@@ -2,19 +2,17 @@ package com.teamscale.test_impacted.test_descriptor
 
 import com.teamscale.test_impacted.test_descriptor.TestDescriptorUtils.getUniqueIdSegment
 import org.junit.platform.engine.TestDescriptor
-import java.util.*
 
 /** Test default test descriptor resolver for the JUnit jupiter [TestEngine].  */
 class JUnitJupiterTestDescriptorResolver : JUnitClassBasedTestDescriptorResolverBase() {
-	override fun TestDescriptor.getClassName(): Optional<String> {
-		val classSegment = getUniqueIdSegment(CLASS_SEGMENT_TYPE)
-		if (!classSegment.isPresent) return classSegment
+	override fun TestDescriptor.getClassName(): String? {
+		val classSegment = getUniqueIdSegment(CLASS_SEGMENT_TYPE).orElse(null) ?: return null
 
 		val nestedClassNames = uniqueId.segments
 			.filter { it.type == NESTED_CLASS_SEGMENT_TYPE }
 			.joinToString("") { "\$${it.value}" }
 
-		return Optional.of(classSegment.get() + nestedClassNames)
+		return classSegment + nestedClassNames
 	}
 
 	override val engineId: String

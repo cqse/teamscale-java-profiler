@@ -13,18 +13,9 @@ import javax.ws.rs.core.Response
 /**
  * The resource of the Jersey + Jetty http server holding all the endpoints specific for the [AgentBase].
  */
-abstract class ResourceBase {
+abstract class ResourceBase(protected val agentBase: AgentBase) {
 	/** The logger.  */
 	protected val logger: Logger = LoggingUtils.getLogger(this)
-
-	companion object {
-		/**
-		 * The agentBase inject via [AgentResource.setAgent] or
-		 * [com.teamscale.jacoco.agent.testimpact.TestwiseCoverageResource.setAgent].
-		 */
-		@JvmStatic
-		protected lateinit var agentBase: AgentBase
-	}
 
 	@get:Path("/partition")
 	@get:GET
@@ -119,7 +110,7 @@ abstract class ResourceBase {
 		/** Returns revision information for the Teamscale upload.  */
 		get() {
 			val server = agentBase.options.teamscaleServer
-			return RevisionInfo(server.commit, server.revision)
+			return RevisionInfo.of(server.commit, server.revision)
 		}
 
 	/**

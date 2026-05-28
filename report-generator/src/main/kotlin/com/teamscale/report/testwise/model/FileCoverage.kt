@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /** Holds coverage of a single file.  */
-class FileCoverage @JsonCreator constructor(
+data class FileCoverage @JsonCreator constructor(
 	/** The name of the file.  */
 	@JvmField @param:JsonProperty("fileName") val fileName: String,
 	/** A list of line ranges that have been covered.  */

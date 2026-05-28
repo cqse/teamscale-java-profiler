@@ -6,7 +6,6 @@ import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.jacoco.agent.logging.LoggingUtils.wrap
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.jacoco.agent.options.ETestwiseCoverageMode
-import com.teamscale.jacoco.agent.testimpact.TestwiseCoverageResource.Companion.setAgent
 import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator
 import org.glassfish.jersey.server.ResourceConfig
 import org.glassfish.jersey.server.ServerProperties
@@ -41,8 +40,8 @@ class TestwiseCoverageAgent(
 	override fun initResourceConfig(): ResourceConfig? {
 		val resourceConfig = ResourceConfig()
 		resourceConfig.property(ServerProperties.WADL_FEATURE_DISABLE, Boolean.TRUE.toString())
-		setAgent(this)
-		return resourceConfig.register(TestwiseCoverageResource::class.java)
+		return resourceConfig
+			.register(TestwiseCoverageResource(this))
 			.register(GenericExceptionMapper::class.java)
 	}
 

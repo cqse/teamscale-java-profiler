@@ -99,8 +99,9 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 	override fun initResourceConfig(): ResourceConfig? {
 		val resourceConfig = ResourceConfig()
 		resourceConfig.property(ServerProperties.WADL_FEATURE_DISABLE, true.toString())
-		AgentResource.setAgent(this)
-		return resourceConfig.register(AgentResource::class.java).register(GenericExceptionMapper::class.java)
+		return resourceConfig
+			.register(AgentResource(this))
+			.register(GenericExceptionMapper::class.java)
 	}
 
 	override fun prepareShutdown() {

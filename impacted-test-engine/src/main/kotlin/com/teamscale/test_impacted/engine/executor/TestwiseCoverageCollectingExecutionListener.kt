@@ -12,7 +12,6 @@ import org.junit.platform.engine.UniqueId
 import org.junit.platform.engine.reporting.ReportEntry
 import java.io.PrintWriter
 import java.io.StringWriter
-import java.util.*
 
 /**
  * An implementation of [EngineExecutionListener] that collects test-wise coverage information during
@@ -55,7 +54,7 @@ class TestwiseCoverageCollectingExecutionListener(
 			return
 		}
 
-		testDescriptorResolver.getUniformPath(testDescriptor).ifPresent { testUniformPath ->
+		testDescriptorResolver.getUniformPath(testDescriptor)?.let { testUniformPath ->
 			testExecutions.add(
 				TestExecution(
 					testUniformPath,
@@ -70,7 +69,7 @@ class TestwiseCoverageCollectingExecutionListener(
 
 	override fun executionStarted(testDescriptor: TestDescriptor) {
 		if (testDescriptor.isRepresentative()) {
-			testDescriptorResolver.getUniformPath(testDescriptor).ifPresent { testUniformPath ->
+			testDescriptorResolver.getUniformPath(testDescriptor)?.let { testUniformPath ->
 				teamscaleAgentNotifier.startTest(testUniformPath)
 			}
 			executionStartTime = System.currentTimeMillis()
@@ -80,18 +79,15 @@ class TestwiseCoverageCollectingExecutionListener(
 
 	override fun executionFinished(testDescriptor: TestDescriptor, testExecutionResult: TestExecutionResult) {
 		if (testDescriptor.isRepresentative()) {
-			val uniformPath = testDescriptorResolver.getUniformPath(testDescriptor)
-			if (!uniformPath.isPresent) {
-				return
-			}
+			val uniformPath = testDescriptorResolver.getUniformPath(testDescriptor) ?: return
 
 			val testExecution = getTestExecution(
-				testDescriptor, testExecutionResult, uniformPath.get()
+				testDescriptor, testExecutionResult, uniformPath
 			)
 			if (testExecution != null) {
 				testExecutions.add(testExecution)
 			}
-			teamscaleAgentNotifier.endTest(uniformPath.get(), testExecution)
+			teamscaleAgentNotifier.endTest(uniformPath, testExecution)
 		} else if (testDescriptor.parent.isPresent) {
 			val testExecutionResults = testResultCache.computeIfAbsent(
 				testDescriptor.parent.get().uniqueId
@@ -117,7 +113,7 @@ class TestwiseCoverageCollectingExecutionListener(
 			if (message.isNotEmpty()) {
 				message.append("\n\n")
 			}
-			message.append(executionResult.throwable.buildStacktrace())
+			message.append(executionResult.throwable.orElse(null).buildStacktrace())
 			// Aggregate status here to most severe status according to SUCCESSFUL < ABORTED < FAILED
 			if (status.ordinal < executionResult.status.ordinal) {
 				status = executionResult.status
@@ -162,12 +158,12 @@ class TestwiseCoverageCollectingExecutionListener(
 	}
 
 	/** Extracts the stacktrace from the given [Throwable] into a string or returns null if no throwable is given.  */
-	private fun Optional<Throwable>.buildStacktrace(): String? {
-		if (!isPresent) return null
+	private fun Throwable?.buildStacktrace(): String? {
+		this ?: return null
 
 		val sw = StringWriter()
 		val pw = PrintWriter(sw)
-		get().printStackTrace(pw)
+		printStackTrace(pw)
 		return sw.toString()
 	}
 

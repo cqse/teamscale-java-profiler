@@ -12,11 +12,11 @@ import java.net.ConnectException
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.BiConsumer
 
 /**
  * Custom log appender that sends logs to Teamscale; it buffers log that were not sent due to connection issues and
@@ -27,41 +27,31 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 	private var profilerId: String? = null
 
 	/**
-	 * Buffer for unsent logs. We use a set here to allow for removing entries fast after sending them to Teamscale was
-	 * successful.
+	 * Thread-safe buffer for unsent logs. Using [ConcurrentLinkedQueue] for lock-free producer-consumer access.
 	 */
-	private val logBuffer = LinkedHashSet<ProfilerLogEntry>()
+	private val logBuffer = ConcurrentLinkedQueue<ProfilerLogEntry>()
 
 	/** Scheduler for sending logs after the configured time interval  */
 	private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1) { r ->
-		// Make the thread a daemon so that it does not prevent the JVM from terminating.
 		val t = Executors.defaultThreadFactory().newThread(r)
 		t.setDaemon(true)
 		t
 	}
 
-	/** Active log flushing threads  */
-	private val activeLogFlushes: MutableSet<CompletableFuture<Void>> =
-		Collections.newSetFromMap(IdentityHashMap())
-
-	/** Is there a flush going on right now?  */
-	private val isFlusing = AtomicBoolean(false)
+	/** Active log flushing futures, tracked so [stop] can wait for them to finish.  */
+	private val activeLogFlushes = CopyOnWriteArrayList<CompletableFuture<Void>>()
 
 	override fun start() {
 		super.start()
-		scheduler.scheduleAtFixedRate({
-			synchronized(activeLogFlushes) {
-				activeLogFlushes.removeIf { it.isDone }
-				if (activeLogFlushes.isEmpty()) flush()
-			}
-		}, FLUSH_INTERVAL.toMillis(), FLUSH_INTERVAL.toMillis(), TimeUnit.MILLISECONDS)
+		scheduler.scheduleAtFixedRate(
+			{ flush() },
+			FLUSH_INTERVAL.toMillis(), FLUSH_INTERVAL.toMillis(), TimeUnit.MILLISECONDS
+		)
 	}
 
 	override fun append(eventObject: ILoggingEvent) {
-		synchronized(logBuffer) {
-			logBuffer.add(formatLog(eventObject))
-			if (logBuffer.size >= BATCH_SIZE) flush()
-		}
+		logBuffer.add(formatLog(eventObject))
+		if (logBuffer.size >= BATCH_SIZE) flush()
 	}
 
 	private fun formatLog(eventObject: ILoggingEvent): ProfilerLogEntry {
@@ -73,50 +63,35 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 	}
 
 	private fun flush() {
-		sendLogs()
-	}
-
-	/** Send logs in a separate thread  */
-	private fun sendLogs() {
-		synchronized(activeLogFlushes) {
-			activeLogFlushes.add(CompletableFuture.runAsync {
-				if (isFlusing.compareAndSet(false, true)) {
-					try {
-						val client = teamscaleClient ?: return@runAsync // There might be no connection configured.
-
-						val logsToSend: MutableList<ProfilerLogEntry>
-						synchronized(logBuffer) {
-							logsToSend = logBuffer.toMutableList()
-						}
-
-						val call = client.postProfilerLog(profilerId!!, logsToSend)
-						val response = call.execute()
-						check(response.isSuccessful) { "Failed to send log: HTTP error code : ${response.code()}" }
-
-						synchronized(logBuffer) {
-							// Removing the logs that have been sent after the fact.
-							// This handles problems with lost network connections.
-							logBuffer.removeAll(logsToSend.toSet())
-						}
-					} catch (e: Exception) {
-						// We do not report on exceptions here.
-						if (e !is ConnectException) {
-							addStatus(ErrorStatus("Sending logs to Teamscale failed: ${e.message}", this, e))
-						}
-					} finally {
-						isFlusing.set(false)
-					}
-				}
-			}.whenComplete(BiConsumer { _, _ ->
-				synchronized(activeLogFlushes) {
-					activeLogFlushes.removeIf { it.isDone }
-				}
-			}))
+		val batch = mutableListOf<ProfilerLogEntry>()
+		var count = 0
+		while (count < BATCH_SIZE) {
+			val entry = logBuffer.poll() ?: break
+			batch.add(entry)
+			count++
 		}
+		if (batch.isEmpty()) return
+
+		val future = CompletableFuture.runAsync {
+			val client = teamscaleClient ?: return@runAsync
+
+			try {
+				val response = client.postProfilerLog(profilerId!!, batch).execute()
+				check(response.isSuccessful) { "Failed to send log: HTTP error code : ${response.code()}" }
+			} catch (e: Exception) {
+				if (e is ConnectException) {
+					logBuffer.addAll(batch)
+				} else {
+					addStatus(ErrorStatus("Sending logs to Teamscale failed: ${e.message}", this, e))
+					logBuffer.addAll(batch)
+				}
+			}
+		}
+		future.whenComplete { _, _ -> activeLogFlushes.remove(future) }
+		activeLogFlushes.add(future)
 	}
 
 	override fun stop() {
-		// Already flush here once to make sure that we do not miss too much.
 		flush()
 
 		scheduler.shutdown()
@@ -128,10 +103,8 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 			scheduler.shutdownNow()
 		}
 
-		// A final flush after the scheduler has been shut down.
 		flush()
 
-		// Block until all flushes are done
 		CompletableFuture.allOf(*activeLogFlushes.toTypedArray()).join()
 
 		super.stop()

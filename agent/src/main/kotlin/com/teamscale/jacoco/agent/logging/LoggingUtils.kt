@@ -39,8 +39,7 @@ object LoggingUtils {
 	/**
 	 * Returns the logger context.
 	 */
-	val loggerContext: LoggerContext
-		get() = LoggerFactory.getILoggerFactory() as LoggerContext
+	val loggerContext: LoggerContext by lazy { LoggerFactory.getILoggerFactory() as LoggerContext }
 
 	/**
 	 * Extracts the stack trace from an ILoggingEvent using ThrowableProxyUtil.

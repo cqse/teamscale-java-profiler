@@ -5,7 +5,6 @@ import com.teamscale.test_impacted.commons.IndentingWriter
 import com.teamscale.test_impacted.commons.LoggerUtils.createLogger
 import com.teamscale.test_impacted.engine.executor.AvailableTests
 import org.junit.platform.engine.TestDescriptor
-import org.junit.platform.engine.UniqueId
 import org.junit.platform.engine.support.descriptor.ClassSource
 import org.junit.platform.engine.support.descriptor.MethodSource
 import java.util.*
@@ -45,8 +44,7 @@ object TestDescriptorUtils {
 	/**
 	 * Returns true if a [TestDescriptor] represents a test template or a test factory.
 	 *
-	 *
-	 * An example of a [UniqueId] of the [TestDescriptor] is:
+	 * An example of a [org.junit.platform.engine.UniqueId] of the [TestDescriptor] is:
 	 *
 	 *
 	 * `[engine:junit-jupiter]/[class:com.example.project.JUnit5Test]/[test-template:withValueSource(java.lang.String)]`
@@ -78,9 +76,7 @@ object TestDescriptorUtils {
 	 * be found.
 	 */
 	fun TestDescriptor.getUniqueIdSegment(type: String): Optional<String> =
-		uniqueId.segments.stream()
-			.filter { it.type == type }
-			.findFirst().map { it.value }
+		Optional.ofNullable(uniqueId.segments.firstOrNull { it.type == type }?.value)
 
 	/** Returns [com.teamscale.client.TestDetails.sourcePath] for a [TestDescriptor].  */
 	private fun TestDescriptor.source(): String? {
@@ -110,21 +106,21 @@ object TestDescriptorUtils {
 				val clusterId = testDescriptorResolver!!.getClusterId(testDescriptor)
 				val uniformPath = testDescriptorResolver.getUniformPath(testDescriptor)
 
-				if (!uniformPath.isPresent) {
+				if (uniformPath == null) {
 					LOG.severe { "Unable to determine uniform path for test descriptor: $testDescriptor" }
 					return@forEach
 				}
 
-				if (!clusterId.isPresent) {
+				if (clusterId == null) {
 					LOG.severe { "Unable to determine cluster id path for test descriptor: $testDescriptor" }
 					return@forEach
 				}
 
 				val testDetails = ClusteredTestDetails(
-					uniformPath.get(),
+					uniformPath,
 					testDescriptor.source(),
 					null,
-					clusterId.get()
+					clusterId
 				)
 				availableTests.add(testDescriptor.uniqueId, testDetails)
 			}

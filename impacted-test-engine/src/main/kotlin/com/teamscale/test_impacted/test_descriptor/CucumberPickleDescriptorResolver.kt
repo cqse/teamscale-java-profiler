@@ -4,48 +4,42 @@ import com.teamscale.test_impacted.commons.LoggerUtils.createLogger
 import com.teamscale.test_impacted.test_descriptor.TestDescriptorUtils.getUniqueIdSegment
 import org.junit.platform.engine.TestDescriptor
 import java.lang.reflect.Field
-import java.util.*
 
 /**
  * Test descriptor resolver for Cucumber. For details how we extract the uniform path, see comment in
  * [getPickleName]. The cluster id is the .feature file in which the tests are defined.
  */
 class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
-	override fun getUniformPath(descriptor: TestDescriptor): Optional<String> {
-		val featurePath = descriptor.featurePath()
-		LOG.fine { "Resolved feature: $featurePath" }
-		if (!featurePath.isPresent) {
+	override fun getUniformPath(descriptor: TestDescriptor): String? {
+		val featurePath = descriptor.featurePath() ?: run {
 			LOG.severe {
 				"Cannot resolve the feature classpath for ${descriptor}. This is probably a bug. Please report to CQSE"
 			}
-			return Optional.empty()
+			return null
 		}
-		val pickleName = descriptor.getPickleName()
-		LOG.fine { "Resolved pickle name: $pickleName" }
-		if (!pickleName.isPresent) {
+		val pickleName = descriptor.getPickleName() ?: run {
 			LOG.severe {
 				"Cannot resolve the pickle name for ${descriptor}. This is probably a bug. Please report to CQSE"
 			}
-			return Optional.empty()
+			return null
 		}
 
-		// Add an index to the end of the name in case multiple tests have the same name in the same feature file
 		val featureDescriptor = descriptor.getFeatureFileTestDescriptor()
-		val indexSuffix = if (!featureDescriptor.isPresent) {
+		val indexSuffix = if (featureDescriptor == null) {
 			""
 		} else {
-			val testsWithTheSameName = featureDescriptor.get().childrenWithPickleName(pickleName.get())
+			val testsWithTheSameName = featureDescriptor.childrenWithPickleName(pickleName)
 			" #${testsWithTheSameName.indexOf(descriptor) + 1}"
 		}
 
-		val picklePath = "${featurePath.get()}/${pickleName.get()}"
+		val picklePath = "$featurePath/$pickleName"
 		val uniformPath = (picklePath + indexSuffix).removeDuplicatedSlashes()
 		LOG.fine { "Resolved uniform path: $uniformPath" }
-		return Optional.of(uniformPath)
+		return uniformPath
 	}
 
-	override fun getClusterId(descriptor: TestDescriptor): Optional<String> =
-		descriptor.featurePath().map { it.removeDuplicatedSlashes() }
+	override fun getClusterId(descriptor: TestDescriptor): String? =
+		descriptor.featurePath()?.removeDuplicatedSlashes()
 
 	override val engineId = CUCUMBER_ENGINE_ID
 
@@ -54,14 +48,14 @@ class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
 	 * [feature:classpath%3Ahellocucumber%2Fcalculator.feature]/[scenario:11]/[examples:16]/[example:21] to
 	 * hellocucumber/calculator.feature/11/16/21
 	 */
-	private fun TestDescriptor.featurePath(): Optional<String> {
+	private fun TestDescriptor.featurePath(): String? {
 		LOG.fine { "Unique ID of cucumber test descriptor: $uniqueId" }
-		val featureSegment = getUniqueIdSegment(FEATURE_SEGMENT_TYPE)
+		val featureSegment = getUniqueIdSegment(FEATURE_SEGMENT_TYPE).orElse(null)
 		LOG.fine { "Resolved feature segment: $featureSegment" }
-		return featureSegment.map { it.replace("classpath:".toRegex(), "") }
+		return featureSegment?.replace("classpath:".toRegex(), "")
 	}
 
-	private fun TestDescriptor.getPickleName(): Optional<String> {
+	private fun TestDescriptor.getPickleName(): String? {
 		// The PickleDescriptor test descriptor class is not public, so we can't import and use it to get access to the pickle attribute containing the name => reflection
 		// https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-junit-platform-engine/src/main/java/io/cucumber/junit/platform/engine/NodeDescriptor.java#L90
 		// We want to use the name, though, because the unique id of the test descriptor can easily result in inconsistencies,
@@ -104,21 +98,20 @@ class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
 				// getName() is required by the pickle interface
 				val getNameMethod = pickle.javaClass.getDeclaredMethod("getName")
 				getNameMethod.isAccessible = true
-				val name = getNameMethod.invoke(pickle).toString()
-				Optional.of(name)
-					.map { it.escapeSlashes() }
-			} ?: Optional.empty()
-		}.getOrNull() ?: Optional.empty()
+				getNameMethod.invoke(pickle).toString()
+					.escapeSlashes()
+			}
+		}.getOrNull()
 	}
 
-	private fun TestDescriptor.getFeatureFileTestDescriptor(): Optional<TestDescriptor> {
+	private fun TestDescriptor.getFeatureFileTestDescriptor(): TestDescriptor? {
 		if (!isFeatureFileTestDescriptor()) {
 			if (!parent.isPresent) {
-				return Optional.empty()
+				return null
 			}
 			return parent.get().getFeatureFileTestDescriptor()
 		}
-		return Optional.of(this)
+		return this
 	}
 
 	private fun TestDescriptor.isFeatureFileTestDescriptor() =
@@ -127,7 +120,7 @@ class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
 	private fun TestDescriptor.childrenWithPickleName(pickleName: String): List<TestDescriptor> {
 		if (children.isEmpty()) {
 			val pickleId = getPickleName()
-			if (pickleId.isPresent && pickleName == pickleId.get()) {
+			if (pickleId != null && pickleName == pickleId) {
 				return listOf(this)
 			}
 			return emptyList()
@@ -146,22 +139,19 @@ class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
 		/** Type of the unique id segment of a test descriptor representing a cucumber feature file  */
 		const val FEATURE_SEGMENT_TYPE = "feature"
 
+		private val ESCAPE_SLASHES_REGEX = """(?<!\\)/""".toRegex()
+		private val DUPLICATED_SLASHES_REGEX = """(?<!\\)/+""".toRegex()
+
 		/**
 		 * Escapes slashes (/) in a given input (usually a scenario name) with a backslash (\).
-		 * <br></br><br></br>
-		 * If a slash is already escaped, no additional escaping is done.
-		 *
 		 *  * `/ -> \/`
 		 *  * `\/ -> \/`
-		 *
 		 */
-		fun String.escapeSlashes() =
-			replace("(?<!\\\\)/".toRegex(), "\\\\/")
+		fun String.escapeSlashes() = replace(ESCAPE_SLASHES_REGEX, "\\\\/")
 
 		/**
 		 * Remove duplicated "/" with one (due to [TS-39915](https://cqse.atlassian.net/browse/TS-39915))
 		 */
-		fun String.removeDuplicatedSlashes() =
-			replace("(?<!\\\\)/+".toRegex(), "/")
+		fun String.removeDuplicatedSlashes() = replace(DUPLICATED_SLASHES_REGEX, "/")
 	}
 }
