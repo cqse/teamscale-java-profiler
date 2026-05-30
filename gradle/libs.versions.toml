@@ -90,5 +90,5 @@ mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version 
 shadow = { id = "com.gradleup.shadow", version = "9.4.2" }
 oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.27.0" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.21" }
-jlink = { id = "org.beryx.jlink", version = "4.0.1" }
+jlink = { id = "org.beryx.jlink", version = "4.0.2" }
 testRetry = { id = "org.gradle.test-retry", version = "1.6.5" }
