@@ -13,11 +13,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.time.withTimeoutOrNull
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.ConnectException
@@ -33,7 +36,7 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 	private var profilerId: String? = null
 
 	/** Lock-free channel for log entries. [Channel.trySend] is called from Logback threads, [Channel.receive] from the collector coroutine. */
-	private val logChannel = Channel<ProfilerLogEntry>(Channel.UNLIMITED)
+	private val logChannel = Channel<ProfilerLogEntry>(capacity = BUFFER_CAPACITY, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
 	/** Structured concurrency scope backing the collector coroutine. */
 	private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -58,42 +61,56 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 	)
 
 	/**
-	 * Collector coroutine: receives entries from [logChannel], batches them up to [BATCH_SIZE], and sends them
-	 * via [sendBatch]. If no entries arrive within [FLUSH_INTERVAL], a new cycle begins (no empty batch is sent).
-	 * Exits when the scope is cancelled or the channel is closed and empty.
+	 * Collector coroutine: drains [logChannel] into batches, sends them to Teamscale, and retries with backoff on
+	 * failure.
 	 */
 	private suspend fun collectAndSend() {
+		val batch = mutableListOf<ProfilerLogEntry>()
+
 		while (currentCoroutineContext().isActive) {
-			val batch = buildList {
+			if (batch.isEmpty()) {
 				val entry = withTimeoutOrNull(FLUSH_INTERVAL) {
 					logChannel.receive()
-				} ?: return@buildList
-				add(entry)
-				repeat(BATCH_SIZE - 1) {
-					logChannel.tryReceive().getOrNull()?.let { add(it) } ?: return@buildList
+				} ?: continue
+				batch.add(entry)
+			}
+
+			while (batch.size < BATCH_SIZE) {
+				logChannel.tryReceive().getOrNull()?.let { batch.add(it) } ?: break
+			}
+
+			if (batch.isNotEmpty()) {
+				if (sendBatch(batch)) {
+					batch.clear()
+				} else {
+					delay(RETRY_BACKOFF)
 				}
 			}
-			if (batch.isNotEmpty()) sendBatch(batch)
 		}
 	}
 
-	/** Posts the given [batch] to Teamscale. On failure, re-enqueues entries back into [logChannel]. */
-	private fun sendBatch(batch: List<ProfilerLogEntry>) {
-		val client = teamscaleClient ?: return
-		try {
+	/**
+	 * Posts the given [batch] to Teamscale.
+	 *
+	 * @return `true` if the batch was sent successfully, `false` if it should be retried.
+	 */
+	private fun sendBatch(batch: List<ProfilerLogEntry>): Boolean {
+		val client = teamscaleClient ?: return true
+		return try {
 			val response = client.postProfilerLog(profilerId!!, batch).execute()
 			check(response.isSuccessful) { "Failed to send log: HTTP error code : ${response.code()}" }
+			true
 		} catch (e: Exception) {
 			if (e !is ConnectException) {
 				addStatus(ErrorStatus("Sending logs to Teamscale failed: ${e.message}", this, e))
 			}
-			batch.forEach { logChannel.trySend(it) }
+			false
 		}
 	}
 
 	override fun stop() {
 		logChannel.close()
-		runBlocking { collectorJob?.join() }
+		runBlocking { withTimeoutOrNull(SHUTDOWN_TIMEOUT) { collectorJob?.join() } }
 		scope.cancel()
 		super.stop()
 	}
@@ -107,11 +124,20 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 	}
 
 	companion object {
+		/** Maximum number of log entries held in memory. Older entries are dropped on overflow. */
+		private const val BUFFER_CAPACITY = 10_000
+
 		/** Flush the logs after N elements are in the queue. */
 		private const val BATCH_SIZE = 50
 
 		/** Flush the logs in the given time interval. */
 		private val FLUSH_INTERVAL: Duration = Duration.ofSeconds(3)
+
+		/** Backoff duration before retrying a failed batch. */
+		private val RETRY_BACKOFF: Duration = Duration.ofSeconds(5)
+
+		/** Maximum time to wait for the collector to drain during shutdown. */
+		private val SHUTDOWN_TIMEOUT: Duration = Duration.ofSeconds(3)
 
 		/** The service client for sending logs to Teamscale. */
 		private var teamscaleClient: ITeamscaleService? = null
