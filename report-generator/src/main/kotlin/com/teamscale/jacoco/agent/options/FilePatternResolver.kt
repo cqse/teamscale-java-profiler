@@ -5,12 +5,10 @@ import com.teamscale.client.FileSystemUtils.normalizeSeparators
 import com.teamscale.report.util.ILogger
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.function.Predicate
-import java.util.stream.Collectors
+import kotlin.io.path.PathWalkOption
 import kotlin.io.path.walk
 
 /** Helper class to support resolving file paths which may contain Ant patterns.  */
@@ -149,7 +147,7 @@ class FilePatternResolver(private val logger: ILogger) {
 			val pathRegex = AntPatternUtils.convertPattern(suffixPattern, false)
 
 			try {
-				matchingPaths = basePath.walk().filter {
+				matchingPaths = basePath.walk(PathWalkOption.INCLUDE_DIRECTORIES).filter {
 					pathRegex.matcher(normalizeSeparators(basePath.relativize(it).toString())).matches()
 				}.sorted().toList()
 			} catch (e: IOException) {

@@ -28,6 +28,7 @@ class GitPropertiesLocatingTransformer(
 		classFileContent: ByteArray?
 	): ByteArray? {
 		if (protectionDomain == null) {
+			// happens for e.g. java.lang. We can ignore these classes
 			return null
 		}
 

@@ -2,6 +2,7 @@ package com.teamscale.jacoco.agent
 
 import org.jacoco.agent.rt.internal_29a6edd.CoverageTransformer
 import org.jacoco.agent.rt.internal_29a6edd.IExceptionLogger
+import org.jacoco.agent.rt.internal_29a6edd.core.runtime.AgentOptions
 import org.jacoco.agent.rt.internal_29a6edd.core.runtime.IRuntime
 import org.slf4j.Logger
 import java.lang.instrument.IllegalClassFormatException
@@ -15,7 +16,7 @@ import java.security.ProtectionDomain
  */
 class LenientCoverageTransformer(
 	runtime: IRuntime?,
-	options: org.jacoco.agent.rt.internal_29a6edd.core.runtime.AgentOptions,
+	options: AgentOptions,
 	private val logger: Logger
 ) : CoverageTransformer(
 	runtime, options,
