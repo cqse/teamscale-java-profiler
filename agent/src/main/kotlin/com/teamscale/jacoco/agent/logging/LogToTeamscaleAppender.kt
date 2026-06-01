@@ -8,112 +8,93 @@ import ch.qos.logback.core.status.ErrorStatus
 import com.teamscale.client.ITeamscaleService
 import com.teamscale.client.ProfilerLogEntry
 import com.teamscale.jacoco.agent.options.AgentOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.time.withTimeoutOrNull
+import kotlinx.coroutines.withTimeoutOrNull
 import java.net.ConnectException
 import java.time.Duration
-import java.util.*
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ConcurrentLinkedDeque
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.coroutineContext
 
 /**
- * Custom log appender that sends logs to Teamscale; it buffers log that were not sent due to connection issues and
- * sends them later.
+ * Custom log appender that sends logs to Teamscale; it buffers logs that were not sent due to connection issues and
+ * sends them later. Uses a [Channel] as a lock-free producer-consumer buffer with a coroutine collector for batching.
  */
 class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
-	/** The unique ID of the profiler  */
+	/** The unique ID of the profiler. */
 	private var profilerId: String? = null
 
-	/**
-	 * Thread-safe buffer for unsent logs. Using [ConcurrentLinkedDeque] for lock-free producer-consumer access.
-	 */
-	private val logBuffer = ConcurrentLinkedDeque<ProfilerLogEntry>()
+	/** Lock-free channel for log entries. [Channel.trySend] is called from Logback threads, [Channel.receive] from the collector coroutine. */
+	private val logChannel = Channel<ProfilerLogEntry>(Channel.UNLIMITED)
 
-	/** Approximate count of entries in [logBuffer], avoiding O(n) [ConcurrentLinkedDeque.size] calls. */
-	private val logBufferSize = AtomicInteger(0)
+	/** Structured concurrency scope backing the collector coroutine. */
+	private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-	/** Scheduler for sending logs after the configured time interval  */
-	private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1) { r ->
-		// Make the thread a daemon so that it does not prevent the JVM from terminating.
-		val t = Executors.defaultThreadFactory().newThread(r)
-		t.setDaemon(true)
-		t
-	}
-
-	/** Active log flushing futures, tracked so [stop] can wait for them to finish.  */
-	private val activeLogFlushes = CopyOnWriteArrayList<CompletableFuture<Void>>()
+	/** The collector coroutine job, tracked so [stop] can wait for it to finish. */
+	private var collectorJob: Job? = null
 
 	override fun start() {
 		super.start()
-		scheduler.scheduleAtFixedRate(
-			{ flush() },
-			FLUSH_INTERVAL.toMillis(), FLUSH_INTERVAL.toMillis(), TimeUnit.MILLISECONDS
-		)
+		collectorJob = scope.launch { collectAndSend() }
 	}
 
 	override fun append(eventObject: ILoggingEvent) {
-		logBuffer.add(formatLog(eventObject))
-		if (logBufferSize.incrementAndGet() >= BATCH_SIZE) flush()
+		logChannel.trySend(formatLog(eventObject))
 	}
 
-	private fun formatLog(eventObject: ILoggingEvent): ProfilerLogEntry {
-		val trace = LoggingUtils.getStackTraceFromEvent(eventObject)
-		val timestamp = eventObject.timeStamp
-		val message = eventObject.formattedMessage
-		val severity = eventObject.level.toString()
-		return ProfilerLogEntry(timestamp, message, trace, severity)
-	}
+	private fun formatLog(eventObject: ILoggingEvent) = ProfilerLogEntry(
+		eventObject.timeStamp,
+		eventObject.formattedMessage,
+		LoggingUtils.getStackTraceFromEvent(eventObject),
+		eventObject.level.toString()
+	)
 
-	private fun flush() {
-		val batch = mutableListOf<ProfilerLogEntry>()
-		var count = 0
-		while (count < BATCH_SIZE) {
-			val entry = logBuffer.poll() ?: break
-			batch.add(entry)
-			count++
-			logBufferSize.decrementAndGet()
-		}
-		if (batch.isEmpty()) return
-
-		val future = CompletableFuture.runAsync {
-			val client = teamscaleClient ?: return@runAsync
-
-			try {
-				val response = client.postProfilerLog(profilerId!!, batch).execute()
-				check(response.isSuccessful) { "Failed to send log: HTTP error code : ${response.code()}" }
-			} catch (e: Exception) {
-				if (e !is ConnectException) {
-					addStatus(ErrorStatus("Sending logs to Teamscale failed: ${e.message}", this, e))
+	/**
+	 * Collector coroutine: receives entries from [logChannel], batches them up to [BATCH_SIZE], and sends them
+	 * via [sendBatch]. If no entries arrive within [FLUSH_INTERVAL], a new cycle begins (no empty batch is sent).
+	 * Exits when the scope is cancelled or the channel is closed and empty.
+	 */
+	private suspend fun collectAndSend() {
+		while (currentCoroutineContext().isActive) {
+			val batch = buildList {
+				val entry = withTimeoutOrNull(FLUSH_INTERVAL) {
+					logChannel.receive()
+				} ?: return@buildList
+				add(entry)
+				repeat(BATCH_SIZE - 1) {
+					logChannel.tryReceive().getOrNull()?.let { add(it) } ?: return@buildList
 				}
-				batch.asReversed().forEach { entry ->
-					logBuffer.push(entry)
-				}
-				logBufferSize.addAndGet(batch.size)
 			}
+			if (batch.isNotEmpty()) sendBatch(batch)
 		}
-		activeLogFlushes.add(future)
-		future.whenComplete { _, _ -> activeLogFlushes.remove(future) }
+	}
+
+	/** Posts the given [batch] to Teamscale. On failure, re-enqueues entries back into [logChannel]. */
+	private fun sendBatch(batch: List<ProfilerLogEntry>) {
+		val client = teamscaleClient ?: return
+		try {
+			val response = client.postProfilerLog(profilerId!!, batch).execute()
+			check(response.isSuccessful) { "Failed to send log: HTTP error code : ${response.code()}" }
+		} catch (e: Exception) {
+			if (e !is ConnectException) {
+				addStatus(ErrorStatus("Sending logs to Teamscale failed: ${e.message}", this, e))
+			}
+			batch.forEach { logChannel.trySend(it) }
+		}
 	}
 
 	override fun stop() {
-		flush()
-
-		scheduler.shutdown()
-		try {
-			if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-				scheduler.shutdownNow()
-			}
-		} catch (_: InterruptedException) {
-			scheduler.shutdownNow()
-		}
-
-		flush()
-
-		CompletableFuture.allOf(*activeLogFlushes.toTypedArray()).join()
-
+		logChannel.close()
+		runBlocking { collectorJob?.join() }
+		scope.cancel()
 		super.stop()
 	}
 
@@ -126,13 +107,13 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 	}
 
 	companion object {
-		/** Flush the logs after N elements are in the queue  */
+		/** Flush the logs after N elements are in the queue. */
 		private const val BATCH_SIZE = 50
 
-		/** Flush the logs in the given time interval  */
+		/** Flush the logs in the given time interval. */
 		private val FLUSH_INTERVAL: Duration = Duration.ofSeconds(3)
 
-		/** The service client for sending logs to Teamscale  */
+		/** The service client for sending logs to Teamscale. */
 		private var teamscaleClient: ITeamscaleService? = null
 
 		/**
