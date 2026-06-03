@@ -16,16 +16,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.time.withTimeoutOrNull
-import kotlinx.coroutines.withTimeoutOrNull
 import java.net.ConnectException
 import java.time.Duration
-import kotlin.coroutines.coroutineContext
 
 /**
  * Custom log appender that sends logs to Teamscale; it buffers logs that were not sent due to connection issues and
@@ -69,9 +66,10 @@ class LogToTeamscaleAppender : AppenderBase<ILoggingEvent>() {
 
 		while (currentCoroutineContext().isActive) {
 			if (batch.isEmpty()) {
-				val entry = withTimeoutOrNull(FLUSH_INTERVAL) {
-					logChannel.receive()
+				val receiveResult = withTimeoutOrNull(FLUSH_INTERVAL) {
+					logChannel.receiveCatching()
 				} ?: continue
+				val entry = receiveResult.getOrNull() ?: break
 				batch.add(entry)
 			}
 
