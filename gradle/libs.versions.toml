@@ -26,7 +26,7 @@ jersey-containerServletCore = { module = "org.glassfish.jersey.containers:jersey
 jersey-mediaJsonJackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackson" }
 jersey-hk2 = { module = "org.glassfish.jersey.inject:jersey-hk2" }
 
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.21.3" }
+jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.21.4" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 
 jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version = "1.2.2" }
@@ -55,7 +55,7 @@ okio = { module = "com.squareup.okio:okio", version = "3.17.0" }
 
 picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
-jna-platform = { module = "net.java.dev.jna:jna-platform", version = "5.18.1" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version = "5.19.0" }
 
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version = "2.26.0" }
 
@@ -87,10 +87,10 @@ coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", ve
 [plugins]
 nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 pluginPublish = { id = "com.gradle.plugin-publish", version = "2.1.1" }
-gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "3.0.3" }
+gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "4.0.1" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
 shadow = { id = "com.gradleup.shadow", version = "9.4.2" }
 oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.27.0" }
-kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.20" }
-jlink = { id = "org.beryx.jlink", version = "4.0.1" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.0" }
+jlink = { id = "org.beryx.jlink", version = "4.0.2" }
 testRetry = { id = "org.gradle.test-retry", version = "1.6.5" }
