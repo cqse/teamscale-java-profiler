@@ -9,7 +9,7 @@ import java.lang.instrument.IllegalClassFormatException
 import java.security.ProtectionDomain
 
 /**
- * A class file transformer which delegates to the JaCoCo [org.jacoco.agent.rt.internal_bac9136.CoverageTransformer] to do the actual instrumentation,
+ * A class file transformer which delegates to the JaCoCo [CoverageTransformer] to do the actual instrumentation,
  * but treats instrumentation errors e.g. due to unsupported class file versions more lenient by only logging them, but
  * not bailing out completely. Those unsupported classes will not be instrumented and will therefore not be contained in
  * the collected coverage report.
@@ -19,8 +19,7 @@ class LenientCoverageTransformer(
 	options: AgentOptions,
 	private val logger: Logger
 ) : CoverageTransformer(
-	runtime,
-	options,
+	runtime, options,
 	// The coverage transformer only uses the logger to print an error when the instrumentation fails.
 	// We want to show our more specific error message instead, so we only log this for debugging at trace.
 	IExceptionLogger { logger.trace(it.message, it) }

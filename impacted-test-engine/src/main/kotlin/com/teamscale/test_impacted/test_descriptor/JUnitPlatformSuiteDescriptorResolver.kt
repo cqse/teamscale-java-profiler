@@ -3,7 +3,6 @@ package com.teamscale.test_impacted.test_descriptor
 import com.teamscale.test_impacted.commons.LoggerUtils.createLogger
 import org.junit.platform.engine.TestDescriptor
 import org.junit.platform.engine.UniqueId
-import java.util.*
 
 /**
  * Test descriptor resolver for JUnit Platform Suite test (c.f.
@@ -31,14 +30,14 @@ class JUnitPlatformSuiteDescriptorResolver : ITestDescriptorResolver {
 
 		private fun TestDescriptor.extractUniformPathOrClusterId(
 			nameOfValueToExtractForLogs: String,
-			uniformPathOrClusterIdExtractor: (ITestDescriptorResolver) -> Optional<String>
-		): Optional<String> {
+			uniformPathOrClusterIdExtractor: (ITestDescriptorResolver) -> String?
+		): String? {
 			val segments = uniqueId.segments
 			if (verifySegments(segments)) {
 				LOG.severe {
 					"Assuming structure [engine:junit-platform-suite]/[suite:mySuite]/[engine:anotherEngine] for junit-platform-suite tests. Using $uniqueId as $nameOfValueToExtractForLogs as fallback."
 				}
-				return Optional.of(uniqueId.toString())
+				return uniqueId.toString()
 			}
 
 			val suite = segments[1].value.replace('.', '/')
@@ -51,18 +50,18 @@ class JUnitPlatformSuiteDescriptorResolver : ITestDescriptorResolver {
 				LOG.severe {
 					"Cannot find a secondary engine nested under the junit-platform-suite engine (assuming structure [engine:junit-platform-suite]/[suite:mySuite]/[engine:anotherEngine]). Using $uniqueId as $nameOfValueToExtractForLogs as fallback."
 				}
-				return Optional.of(uniqueId.toString())
+				return uniqueId.toString()
 			}
 
 			val idOrUniformPath = uniformPathOrClusterIdExtractor(descriptorResolver)
-			if (!idOrUniformPath.isPresent) {
+			if (idOrUniformPath == null) {
 				LOG.severe {
 					"Secondary test descriptor resolver for engine ${secondaryEngineSegments.first().value} was not able to resolve the $nameOfValueToExtractForLogs. Using $uniqueId as fallback."
 				}
-				return Optional.of(uniqueId.toString())
+				return uniqueId.toString()
 			}
 
-			return Optional.of("$suite/${idOrUniformPath.get()}")
+			return "$suite/$idOrUniformPath"
 		}
 
 		private fun verifySegments(segments: List<UniqueId.Segment>) =

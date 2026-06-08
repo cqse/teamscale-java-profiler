@@ -56,6 +56,7 @@ abstract class Commit @Inject constructor(
 	/**
 	 * Provides a combined provider that resolves to the branch and timestamp if given or to the revision otherwise.
 	 */
+	@Suppress("DEPRECATION")
 	internal val combined: Provider<CommitInfo> by lazy {
 		val commitProvider: Provider<CommitInfo> =
 			providers.zip(branchName, timestamp) { branch, timestamp ->

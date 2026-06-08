@@ -63,6 +63,7 @@ gradlePlugin {
 dependencies {
 	implementation(project(":teamscale-client"))
 	implementation(project(":report-generator"))
+	implementation(libs.jacoco.core)
 	implementation(gradleApi())
 	implementation(libs.jgit)
 	implementation(libs.jackson.databind)

@@ -1,9 +1,3 @@
-pluginManagement {
-    plugins {
-        kotlin("jvm") version "2.4.0"
-    }
-}
-
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
     id("io.github.sgtsilvio.gradle.oci") version("0.27.0")

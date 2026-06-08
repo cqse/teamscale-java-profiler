@@ -53,7 +53,7 @@ class TeamscaleConfig(
 				return true
 			}
 			TEAMSCALE_COMMIT_MANIFEST_JAR_OPTION -> {
-				val path = AgentOptionsParser.parsePath(filePatternResolver, key, value) ?: return false
+				val path = AgentOptionsParser.parsePath(filePatternResolver, key, value)
 				teamscaleServer.commit = getCommitFromManifest(path.toFile())
 				return true
 			}
@@ -70,7 +70,7 @@ class TeamscaleConfig(
 				return true
 			}
 			TEAMSCALE_REVISION_MANIFEST_JAR_OPTION -> {
-				val path = AgentOptionsParser.parsePath(filePatternResolver, key, value) ?: return false
+				val path = AgentOptionsParser.parsePath(filePatternResolver, key, value)
 				teamscaleServer.revision = getRevisionFromManifest(path.toFile())
 				return true
 			}

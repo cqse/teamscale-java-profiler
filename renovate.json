@@ -75,6 +75,12 @@
         "com.teamscale:teamscale-client"
       ],
       "enabled": false
+    },
+    {
+      "matchPackageNames": [
+        "org.jetbrains.kotlin.jvm"
+      ],
+      "enabled": false
     }
   ]
 }

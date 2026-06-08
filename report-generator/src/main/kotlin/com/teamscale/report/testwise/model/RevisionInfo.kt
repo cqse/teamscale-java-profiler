@@ -1,35 +1,35 @@
 package com.teamscale.report.testwise.model
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.teamscale.client.CommitDescriptor
 import java.io.Serializable
 
 /** Revision information necessary for uploading reports to Teamscale.  */
-class RevisionInfo : Serializable {
-	/** The type of revision information.  */
-	val type: ERevisionType
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+	JsonSubTypes.Type(value = RevisionInfo.Commit::class, name = "COMMIT"),
+	JsonSubTypes.Type(value = RevisionInfo.Revision::class, name = "REVISION")
+)
+sealed class RevisionInfo : Serializable {
+	/** Commit descriptor in the format branch:timestamp.  */
+	data class Commit(
+		@JsonProperty("value") val value: String
+	) : RevisionInfo()
 
-	/** The value. Either a commit descriptor or a source control revision, depending on [type].  */
-	val value: String?
+	/** Source control revision, e.g. SVN revision or Git hash.  */
+	data class Revision(
+		@JsonProperty("value") val value: String?
+	) : RevisionInfo()
 
-	@JsonCreator
-	constructor(@JsonProperty("type") type: ERevisionType, @JsonProperty("value") value: String) {
-		this.type = type
-		this.value = value
-	}
-
-	/**
-	 * Constructor in case you have both fields, and either may be null. If both are set, the commit wins. If both are
-	 * null, [type] will be [ERevisionType.REVISION] and [value] will be null.
-	 */
-	constructor(commit: CommitDescriptor?, revision: String?) {
-		if (commit == null) {
-			type = ERevisionType.REVISION
-			value = revision
-		} else {
-			type = ERevisionType.COMMIT
-			value = commit.toString()
-		}
+	companion object {
+		/**
+		 * Creates a [RevisionInfo] from a commit descriptor or a revision string.
+		 * If both are set, the commit wins. If both are null, returns [Revision] with null value.
+		 */
+		fun of(commit: CommitDescriptor?, revision: String?): RevisionInfo =
+			if (commit != null) Commit(commit.toString())
+			else Revision(revision)
 	}
 }

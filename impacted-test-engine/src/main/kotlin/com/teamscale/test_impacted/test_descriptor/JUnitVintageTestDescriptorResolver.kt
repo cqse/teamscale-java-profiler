@@ -6,7 +6,7 @@ import org.junit.platform.engine.TestDescriptor
 /** Test default test descriptor resolver for the JUnit vintage [org.junit.platform.engine.TestEngine].  */
 class JUnitVintageTestDescriptorResolver : JUnitClassBasedTestDescriptorResolverBase() {
 	override fun TestDescriptor.getClassName() =
-		getUniqueIdSegment(RUNNER_SEGMENT_TYPE)
+		getUniqueIdSegment(RUNNER_SEGMENT_TYPE).orElse(null)
 
 	override val engineId: String
 		get() = "junit-vintage"

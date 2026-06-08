@@ -12,6 +12,7 @@ mockitoKotlin = "6.3.0"
 picocli = "4.7.7"
 maven = "3.9.16"
 asm = "9.10.1"
+coroutines = "1.10.2"
 
 [libraries]
 jetty-bom = { module = "org.eclipse.jetty:jetty-bom", version = "9.4.58.v20250814" }
@@ -81,6 +82,7 @@ asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
 asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
 
 jetbrains-annotations = { module = "org.jetbrains:annotations", version = "26.1.0" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 
 [plugins]
 nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }

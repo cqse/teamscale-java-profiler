@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [breaking] _report-generator_: `RevisionInfo` is now a sealed class with polymorphic Jackson serialization (`@JsonTypeInfo` / `@JsonSubTypes`). The JSON representation now uses "COMMIT" and "REVISION" as type discriminator values instead of the previous `ERevisionType` enum names.
 - [feature] _agent_: Added official support for Java 26 and experimental support for Java 27 (via JaCoCo 0.8.15)
 
 # 36.5.2
