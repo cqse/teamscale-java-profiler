@@ -2,7 +2,7 @@
 # When upgrading JaCoCo to a newer version, make sure to
 # check the comment in the OpenAnalyzer.java, JaCoCoPreMain.java and CachingInstructionsBuilder.java
 # and update the internal_xxxxxx hash included in the imports in LenientCoverageTransformer.java and JaCoCoPreMain.java.
-jacoco = "0.8.14"
+jacoco = "0.8.15"
 # We need to stay on the 1.3.x release line as 1.4.x requires Java 11
 logback = "1.3.16"
 retrofit = "3.0.0"
@@ -26,7 +26,7 @@ jersey-containerServletCore = { module = "org.glassfish.jersey.containers:jersey
 jersey-mediaJsonJackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackson" }
 jersey-hk2 = { module = "org.glassfish.jersey.inject:jersey-hk2" }
 
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.21.4" }
+jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.22.0" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 
 jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version = "1.2.2" }

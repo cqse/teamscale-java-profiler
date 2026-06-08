@@ -9,7 +9,10 @@ import kotlin.io.path.pathString
 
 /**
  * Reverts the transformation from "kotlin" to "shadow/kotlin" within strings of
- * "org/jacoco/core/internal/analysis/filter" to make JaCoCo correctly process Kotlin class files.
+ * "org/jacoco/core/internal/analysis" (including the "filter" subpackage) to make JaCoCo correctly
+ * process Kotlin class files. Since JaCoCo 0.8.15 the kotlin.Metadata descriptor literal is also
+ * inlined into ClassAnalyzer (in the parent "analysis" package), so the filter subpackage alone is
+ * not enough.
  */
 fun revertKotlinPackageChanges(archiveFile: Provider<RegularFile>) {
 	val zip = archiveFile.get().asFile.toPath()
@@ -37,7 +40,7 @@ private fun transformClass(file: Path) {
 }
 
 private fun shouldTransform(path: String): Boolean {
-	return path.contains("org/jacoco/core/internal/analysis/filter")
+	return path.contains("org/jacoco/core/internal/analysis")
 }
 
 private class StringReplacerClassVisitor(classNode: ClassVisitor?) : ClassVisitor(Opcodes.ASM9, classNode) {
