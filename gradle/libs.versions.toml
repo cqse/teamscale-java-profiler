@@ -12,7 +12,7 @@ mockitoKotlin = "6.3.0"
 picocli = "4.7.7"
 maven = "3.9.16"
 asm = "9.10.1"
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 
 [libraries]
 jetty-bom = { module = "org.eclipse.jetty:jetty-bom", version = "9.4.58.v20250814" }
