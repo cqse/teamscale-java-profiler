@@ -113,7 +113,7 @@ public class OpenAnalyzer {
 		if ((reader.getAccess() & Opcodes.ACC_MODULE) != 0) {
 			return;
 		}
-		if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
+		if (reader.getClassName().endsWith("/package-info")) {
 			return;
 		}
 		final ClassVisitor visitor = createAnalyzingVisitor(classId,

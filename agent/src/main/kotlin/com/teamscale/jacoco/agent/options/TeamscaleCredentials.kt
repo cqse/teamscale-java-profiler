@@ -3,7 +3,7 @@ package com.teamscale.jacoco.agent.options
 import okhttp3.HttpUrl
 
 /** Credentials for accessing a Teamscale instance.  */
-class TeamscaleCredentials(
+data class TeamscaleCredentials(
 	/** The URL of the Teamscale server.  */
 	@JvmField val url: HttpUrl?,
 	/** The user name used to authenticate against Teamscale.  */

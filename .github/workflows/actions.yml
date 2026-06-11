@@ -58,7 +58,7 @@ jobs:
           ORG_GRADLE_PROJECT_dockerHubPassword: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Upload coverage to Teamscale
         if: always() && github.event_name == 'push'
-        uses: cqse/teamscale-upload-action@v9.2.1
+        uses: cqse/teamscale-upload-action@v2.10.0
         with:
           server: 'https://cqse.teamscale.io'
           project: 'teamscale-jacoco-agent'
@@ -83,7 +83,7 @@ jobs:
         run: ./gradlew build --max-workers=2
       - name: Upload coverage to Teamscale
         if: always() && github.event_name == 'push'
-        uses: cqse/teamscale-upload-action@v9.2.1
+        uses: cqse/teamscale-upload-action@v2.10.0
         with:
           server: 'https://cqse.teamscale.io'
           project: 'teamscale-jacoco-agent'

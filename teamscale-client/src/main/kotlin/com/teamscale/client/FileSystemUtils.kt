@@ -207,13 +207,6 @@ object FileSystemUtils {
 	}
 
 	/**
-	 * Read file content into a list of lines (strings) using UTF-8 encoding.
-	 */
-	@JvmStatic
-	@Throws(IOException::class)
-	fun readLinesUTF8(file: File) = file.readLines()
-
-	/**
 	 * Copy all files specified by a file filter from one directory to another. This
 	 * automatically creates all necessary directories.
 	 *

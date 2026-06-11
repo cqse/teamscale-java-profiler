@@ -16,12 +16,12 @@ import javax.ws.rs.core.Response
  * [TestwiseCoverageAgent].
  */
 @Path("/")
-class TestwiseCoverageResource : ResourceBase() {
+class TestwiseCoverageResource(private val testwiseCoverageAgent: TestwiseCoverageAgent) : ResourceBase(testwiseCoverageAgent) {
 	@get:Path("/test")
 	@get:GET
 	val test: String?
 		/** Returns the session ID of the current test.  */
-		get() = testwiseCoverageAgent?.controller?.sessionId
+		get() = testwiseCoverageAgent.controller.sessionId
 
 	/** Handles the start of a new test case by setting the session ID.  */
 	@POST
@@ -31,7 +31,7 @@ class TestwiseCoverageResource : ResourceBase() {
 
 		logger.debug("Start test {}", testId)
 
-		testwiseCoverageAgent?.testEventHandler?.testStart(testId!!)
+		testwiseCoverageAgent.testEventHandler.testStart(testId!!)
 		return Response.noContent().build()
 	}
 
@@ -48,7 +48,7 @@ class TestwiseCoverageResource : ResourceBase() {
 
 		logger.debug("End test {}", testId)
 
-		return testwiseCoverageAgent?.testEventHandler?.testEnd(testId!!, testExecution)
+		return testwiseCoverageAgent.testEventHandler.testEnd(testId!!, testExecution)
 	}
 
 	/** Handles the start of a new testrun.  */
@@ -63,7 +63,7 @@ class TestwiseCoverageResource : ResourceBase() {
 		@QueryParam("baseline") baseline: String?,
 		@QueryParam("baseline-revision") baselineRevision: String?,
 		availableTests: List<ClusteredTestDetails>?
-	) = testwiseCoverageAgent?.testEventHandler?.testRunStart(
+	) = testwiseCoverageAgent.testEventHandler.testRunStart(
 		availableTests,
 		includeNonImpactedTests, includeAddedTests,
 		includeFailedAndSkipped, baseline, baselineRevision
@@ -76,22 +76,12 @@ class TestwiseCoverageResource : ResourceBase() {
 	fun handleTestRunEnd(
 		@DefaultValue("false") @QueryParam("partial") partial: Boolean
 	): Response? {
-		testwiseCoverageAgent?.testEventHandler?.testRunEnd(partial)
+		testwiseCoverageAgent.testEventHandler.testRunEnd(partial)
 		return Response.noContent().build()
 	}
 
 	companion object {
 		/** Path parameter placeholder used in the HTTP requests.  */
 		private const val TEST_ID_PARAMETER = "testId"
-
-		private var testwiseCoverageAgent: TestwiseCoverageAgent? = null
-
-		/**
-		 * Static setter to inject the [TestwiseCoverageAgent] to the resource.
-		 */
-		fun setAgent(agent: TestwiseCoverageAgent) {
-			testwiseCoverageAgent = agent
-			agentBase = agent
-		}
 	}
 }

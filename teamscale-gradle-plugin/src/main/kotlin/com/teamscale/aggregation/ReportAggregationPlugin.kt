@@ -48,6 +48,7 @@ abstract class ReportAggregationPlugin : Plugin<Project> {
 	@get:Inject
 	protected abstract val jvmPluginServices: JvmPluginServices
 
+	@Suppress("DEPRECATION")
 	override fun apply(project: Project) {
 		val configurations = project.configurations
 		val reportAggregation =

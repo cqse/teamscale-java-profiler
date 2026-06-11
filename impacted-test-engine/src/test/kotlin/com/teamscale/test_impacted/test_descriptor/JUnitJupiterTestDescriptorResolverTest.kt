@@ -19,7 +19,7 @@ internal class JUnitJupiterTestDescriptorResolverTest {
 			.append(METHOD_SEGMENT_TYPE, "myMethod()")
 
 		val descriptor = SimpleTestDescriptor.testCase(methodId)
-		assertThat(resolver.getUniformPath(descriptor)).hasValue("com/example/MyTest/myMethod()")
+		assertThat(resolver.getUniformPath(descriptor)).isEqualTo("com/example/MyTest/myMethod()")
 	}
 
 	@Test
@@ -30,7 +30,7 @@ internal class JUnitJupiterTestDescriptorResolverTest {
 			.append(METHOD_SEGMENT_TYPE, "testMethod()")
 
 		val descriptor = SimpleTestDescriptor.testCase(methodId)
-		assertThat(resolver.getUniformPath(descriptor)).hasValue("com/example/OuterTest\$Inner/testMethod()")
+		assertThat(resolver.getUniformPath(descriptor)).isEqualTo("com/example/OuterTest\$Inner/testMethod()")
 	}
 
 	@Test
@@ -42,6 +42,6 @@ internal class JUnitJupiterTestDescriptorResolverTest {
 			.append(METHOD_SEGMENT_TYPE, "test()")
 
 		val descriptor = SimpleTestDescriptor.testCase(methodId)
-		assertThat(resolver.getUniformPath(descriptor)).hasValue("com/example/A\$B\$C/test()")
+		assertThat(resolver.getUniformPath(descriptor)).isEqualTo("com/example/A\$B\$C/test()")
 	}
 }

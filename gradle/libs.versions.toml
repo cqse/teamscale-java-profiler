@@ -2,16 +2,17 @@
 # When upgrading JaCoCo to a newer version, make sure to
 # check the comment in the OpenAnalyzer.java, JaCoCoPreMain.java and CachingInstructionsBuilder.java
 # and update the internal_xxxxxx hash included in the imports in LenientCoverageTransformer.java and JaCoCoPreMain.java.
-jacoco = "0.8.14"
+jacoco = "0.8.15"
 # We need to stay on the 1.3.x release line as 1.4.x requires Java 11
 logback = "1.3.16"
 retrofit = "3.0.0"
-okhttp = "5.3.2"
+okhttp = "5.4.0"
 mockito = "5.23.0"
 mockitoKotlin = "6.3.0"
 picocli = "4.7.7"
 maven = "3.9.16"
 asm = "9.10.1"
+coroutines = "1.11.0"
 
 [libraries]
 jetty-bom = { module = "org.eclipse.jetty:jetty-bom", version = "9.4.58.v20250814" }
@@ -25,7 +26,7 @@ jersey-containerServletCore = { module = "org.glassfish.jersey.containers:jersey
 jersey-mediaJsonJackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackson" }
 jersey-hk2 = { module = "org.glassfish.jersey.inject:jersey-hk2" }
 
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.21.3" }
+jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.22.0" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 
 jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version = "1.2.2" }
@@ -49,12 +50,12 @@ commonsCodec = { module = "commons-codec:commons-codec", version = "1.22.0" }
 commonsLang = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 commonsIo = { module = "commons-io:commons-io", version = "2.22.0" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.18" }
-jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version = "7.6.0.202603022253-r" }
+jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version = "7.7.0.202606012155-r" }
 okio = { module = "com.squareup.okio:okio", version = "3.17.0" }
 
 picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
-jna-platform = { module = "net.java.dev.jna:jna-platform", version = "5.18.1" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version = "5.19.0" }
 
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version = "2.26.0" }
 
@@ -81,14 +82,15 @@ asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
 asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
 
 jetbrains-annotations = { module = "org.jetbrains:annotations", version = "26.1.0" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 
 [plugins]
 nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 pluginPublish = { id = "com.gradle.plugin-publish", version = "2.1.1" }
-gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "3.0.3" }
+gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "4.0.1" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
-shadow = { id = "com.gradleup.shadow", version = "9.4.1" }
+shadow = { id = "com.gradleup.shadow", version = "9.4.2" }
 oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.27.0" }
-kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.21" }
-jlink = { id = "org.beryx.jlink", version = "4.0.1" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.0" }
+jlink = { id = "org.beryx.jlink", version = "4.0.2" }
 testRetry = { id = "org.gradle.test-retry", version = "1.6.5" }

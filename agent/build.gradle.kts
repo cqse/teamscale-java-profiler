@@ -60,6 +60,7 @@ dependencies {
 
 	implementation(libs.jackson.databind)
 	implementation(libs.jetbrains.annotations)
+	implementation(libs.coroutines.core)
 
 	testImplementation(project(":tia-client"))
 	testImplementation(libs.retrofit.converter.jackson)

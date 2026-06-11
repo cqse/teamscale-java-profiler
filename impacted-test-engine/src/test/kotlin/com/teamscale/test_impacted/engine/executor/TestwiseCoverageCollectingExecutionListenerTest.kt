@@ -9,7 +9,6 @@ import org.junit.platform.engine.EngineExecutionListener
 import org.junit.platform.engine.TestExecutionResult
 import org.junit.platform.engine.UniqueId
 import org.mockito.kotlin.*
-import java.util.*
 
 /** Tests for [TestwiseCoverageCollectingExecutionListener].  */
 internal class TestwiseCoverageCollectingExecutionListenerTest {
@@ -38,13 +37,13 @@ internal class TestwiseCoverageCollectingExecutionListenerTest {
 		val testRoot = SimpleTestDescriptor.testContainer(rootId, testClass)
 
 		whenever(resolver.getUniformPath(impactedTestCase))
-			.thenReturn(Optional.of("MyClass/impactedTestCase()"))
+			.thenReturn("MyClass/impactedTestCase()")
 		whenever(resolver.getClusterId(impactedTestCase))
-			.thenReturn(Optional.of("MyClass"))
+			.thenReturn("MyClass")
 		whenever(resolver.getUniformPath(regularSkippedTestCase))
-			.thenReturn(Optional.of("MyClass/regularSkippedTestCase()"))
+			.thenReturn("MyClass/regularSkippedTestCase()")
 		whenever(resolver.getClusterId(regularSkippedTestCase))
-			.thenReturn(Optional.of("MyClass"))
+			.thenReturn("MyClass")
 
 		// Start engine and class.
 		executionListener.executionStarted(testRoot)
@@ -96,13 +95,13 @@ internal class TestwiseCoverageCollectingExecutionListenerTest {
 		val testRoot = SimpleTestDescriptor.testContainer(rootId, testClass)
 
 		whenever(resolver.getUniformPath(testCase1))
-			.thenReturn(Optional.of("MyClass/testCase1()"))
+			.thenReturn("MyClass/testCase1()")
 		whenever(resolver.getClusterId(testCase1))
-			.thenReturn(Optional.of("MyClass"))
+			.thenReturn("MyClass")
 		whenever(resolver.getUniformPath(testCase2))
-			.thenReturn(Optional.of("MyClass/testCase2()"))
+			.thenReturn("MyClass/testCase2()")
 		whenever(resolver.getClusterId(testCase2))
-			.thenReturn(Optional.of("MyClass"))
+			.thenReturn("MyClass")
 
 		// Start engine and class.
 		executionListener.executionStarted(testRoot)

@@ -231,6 +231,8 @@ open class Reports<T : Report>(objectFactory: ObjectFactory, clazz: Class<T>) : 
 		return reports.collectionSchema
 	}
 
+	@Deprecated("Gradle API has changed", ReplaceWith("findAll(spec)"))
+	@Suppress("DEPRECATION")
 	override fun findAll(spec: Closure<Any>): MutableSet<T> {
 		return reports.findAll(spec)
 	}

@@ -6,6 +6,7 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.the
 import java.io.Serializable
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 /**
@@ -14,8 +15,7 @@ import javax.inject.Inject
  */
 abstract class SystemTestPorts : BuildService<BuildServiceParameters.None> {
 
-	private var nextFreePort = 6000
-	private val lock = Object()
+	private val nextFreePort = AtomicInteger(6000)
 
 	/**
 	 * Used ports should be unique for each system test to avoid collisions during parallel execution.
@@ -23,13 +23,7 @@ abstract class SystemTestPorts : BuildService<BuildServiceParameters.None> {
 	 * Since tests may run in different workers that don't share the #nextFreePort variable, we use the worker number
 	 * to avoid collisions (given that we don't have more than 100 system tests per worker).
 	 */
-	fun pickFreePort(): Int {
-		synchronized(lock) {
-			val pickedPort = nextFreePort
-			nextFreePort += 1
-			return pickedPort
-		}
-	}
+	fun pickFreePort(): Int = nextFreePort.getAndIncrement()
 
 	companion object {
 
