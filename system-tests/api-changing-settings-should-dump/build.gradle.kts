@@ -15,6 +15,7 @@ tasks.test {
 			"teamscale-partition" to "partition_before_change",
 			"teamscale-commit" to "master:12345",
 			"includes" to "*SystemUnderTest*",
+			"report-format" to "JACOCO",
 		)
 	)
 }

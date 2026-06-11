@@ -10,7 +10,6 @@ import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader
 import com.teamscale.jacoco.agent.util.AgentUtils
 import com.teamscale.report.jacoco.CoverageFile
 import com.teamscale.report.jacoco.EmptyReportException
-import com.teamscale.report.jacoco.JaCoCoXmlReportGenerator
 import com.teamscale.report.jacoco.dump.Dump
 import org.glassfish.jersey.server.ResourceConfig
 import org.glassfish.jersey.server.ServerProperties
@@ -149,22 +148,17 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 			return
 		}
 
-		val generator = JaCoCoXmlReportGenerator(
-			options.classDirectoriesOrZips,
-			options.locationIncludeFilter,
-			options.duplicateClassFileBehavior,
-			options.ignoreUncoveredClasses,
-			LoggingUtils.wrap(logger)
-		)
+		val format = options.normalModeReportFormat
+		val generator = options.createReportGenerator(LoggingUtils.wrap(logger))
 
 		try {
-			benchmark("Generating the XML report") {
-				val outputFile = options.createNewFileInOutputDirectory("jacoco", "xml")
+			benchmark("Generating the coverage report") {
+				val outputFile = options.createNewFileInOutputDirectory(format.fileNamePrefix, format.fileExtension)
 				val coverageFile = generator.convertSingleDumpToReport(dump, outputFile)
 				uploader.upload(coverageFile)
 			}
 		} catch (e: IOException) {
-			logger.error("Converting binary dump to XML failed", e)
+			logger.error("Converting binary dump to coverage report failed", e)
 		} catch (e: EmptyReportException) {
 			logger.error("No coverage was collected. ${e.message}", e)
 		}

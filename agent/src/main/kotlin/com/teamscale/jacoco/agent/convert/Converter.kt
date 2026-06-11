@@ -4,10 +4,10 @@ import com.teamscale.client.TestDetails
 import com.teamscale.jacoco.agent.benchmark
 import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.jacoco.agent.options.AgentOptionParseException
+import com.teamscale.jacoco.agent.options.EAgentReportFormat
 import com.teamscale.report.ReportUtils
 import com.teamscale.report.ReportUtils.listFiles
 import com.teamscale.report.jacoco.EmptyReportException
-import com.teamscale.report.jacoco.JaCoCoXmlReportGenerator
 import com.teamscale.report.testwise.ETestArtifactFormat
 import com.teamscale.report.testwise.TestwiseCoverageReportWriter
 import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator
@@ -28,11 +28,20 @@ class Converter
 	/** The command line arguments.  */
 	private val arguments: ConvertCommand
 ) {
-	/** Converts one .exec binary coverage file to XML.  */
-	@Throws(IOException::class)
+	/**
+	 * Converts one .exec binary coverage file to a coverage report. The output format is selected based on the output
+	 * file extension: `.xml` produces a JaCoCo XML report, `.json` produces a Teamscale Compact Coverage report.
+	 */
+	@Throws(IOException::class, AgentOptionParseException::class)
 	fun runJaCoCoReportGeneration() {
 		val logger = LoggingUtils.getLogger(this)
-		val generator = JaCoCoXmlReportGenerator(
+		val outputFile = Paths.get(arguments.outputFile).toFile()
+		val format = EAgentReportFormat.fromFileExtension(outputFile.extension)
+			?: throw AgentOptionParseException(
+				"Unsupported output file extension '${outputFile.extension}' for '${arguments.outputFile}'. " +
+						"Use .xml for JaCoCo XML or .json for Teamscale Compact Coverage."
+			)
+		val generator = format.createGenerator(
 			arguments.getClassDirectoriesOrZips(),
 			wildcardIncludeExcludeFilter,
 			arguments.duplicateClassFileBehavior,
@@ -42,8 +51,8 @@ class Converter
 
 		val jacocoExecutionDataList = listFiles(ETestArtifactFormat.JACOCO, arguments.getInputFiles())
 		try {
-			benchmark("Generating the XML report") {
-				generator.convertExecFilesToReport(jacocoExecutionDataList, Paths.get(arguments.outputFile).toFile())
+			benchmark("Generating the coverage report") {
+				generator.convertExecFilesToReport(jacocoExecutionDataList, outputFile)
 			}
 		} catch (e: EmptyReportException) {
 			logger.warn("Converted report was empty.", e)

@@ -1,6 +1,7 @@
 package com.teamscale.jacoco.agent.upload.teamscale
 
 import com.teamscale.client.CommitDescriptor.Companion.parse
+import com.teamscale.client.EReportFormat
 import com.teamscale.client.TeamscaleServer
 import com.teamscale.jacoco.agent.options.TestAgentOptionsBuilder
 import com.teamscale.jacoco.agent.upload.UploadTestBase
@@ -30,7 +31,7 @@ class TeamscaleAutomaticUploadRetryTest : UploadTestBase() {
 		server.commit = parse("master:HEAD")
 		server.userName = "Foo"
 		server.userAccessToken = "Token"
-		uploader = TeamscaleUploader(server)
+		uploader = TeamscaleUploader(server, EReportFormat.JACOCO)
 		mockWebServer!!.enqueue(MockResponse().setResponseCode(400))
 		// This is expected to fail and leave the coverage on disk.
 		uploader!!.upload(coverageFile!!)
