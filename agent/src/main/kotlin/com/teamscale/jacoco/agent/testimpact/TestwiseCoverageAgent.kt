@@ -37,7 +37,7 @@ class TestwiseCoverageAgent(
 		controller.sessionId = ""
 	}
 
-	override fun initResourceConfig(): ResourceConfig? {
+	override fun initResourceConfig(): ResourceConfig {
 		val resourceConfig = ResourceConfig()
 		resourceConfig.property(ServerProperties.WADL_FEATURE_DISABLE, Boolean.TRUE.toString())
 		return resourceConfig

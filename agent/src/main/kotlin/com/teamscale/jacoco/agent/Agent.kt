@@ -95,7 +95,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 		}
 	}
 
-	override fun initResourceConfig(): ResourceConfig? {
+	override fun initResourceConfig(): ResourceConfig {
 		val resourceConfig = ResourceConfig()
 		resourceConfig.property(ServerProperties.WADL_FEATURE_DISABLE, true.toString())
 		return resourceConfig
