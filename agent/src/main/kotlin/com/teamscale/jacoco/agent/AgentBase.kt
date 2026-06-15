@@ -2,16 +2,15 @@ package com.teamscale.jacoco.agent
 
 import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.jacoco.agent.options.AgentOptions
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.servlet.ServletHolder
-import org.eclipse.jetty.util.thread.QueuedThreadPool
+import com.sun.net.httpserver.HttpServer
+import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory
 import org.glassfish.jersey.server.ResourceConfig
-import org.glassfish.jersey.servlet.ServletContainer
 import org.jacoco.agent.rt.RT
 import org.slf4j.Logger
 import java.lang.management.ManagementFactory
+import java.net.URI
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * Base class for agent implementations. Handles logger shutdown, store creation and instantiation of the
@@ -30,7 +29,10 @@ abstract class AgentBase(
 	/** Controls the JaCoCo runtime. */
 	val controller: JacocoRuntimeController
 
-	private lateinit var server: Server
+	private lateinit var server: HttpServer
+
+	/** Daemon thread pool that handles incoming HTTP requests. */
+	private var serverExecutor: ExecutorService? = null
 
 	/**
 	 * Lazily generated string representation of the command line arguments to print to the log.
@@ -76,35 +78,29 @@ abstract class AgentBase(
 
 		logger.info("Listening for test events on port {}.", port)
 
-		// Jersey Implementation
-		val handler = buildUsingResourceConfig()
-		val threadPool = QueuedThreadPool()
-		threadPool.maxThreads = 10
-		threadPool.isDaemon = true
+		// start = false so we can attach a daemon executor and start it from a daemon thread.
+		val baseUri = URI.create("http://localhost:$port/")
+		server = JdkHttpServerFactory.createHttpServer(baseUri, initResourceConfig(), false)
 
-		// Create a server instance and set the thread pool
-		server = Server(threadPool)
-		// Create a server connector, set the port and add it to the server
-		val connector = ServerConnector(server)
-		connector.port = port
-		server.addConnector(connector)
-		server.handler = handler
-		server.start()
-	}
+		// Use daemon threads to handle requests so they never block JVM shutdown.
+		val executor = Executors.newFixedThreadPool(10) { runnable ->
+			Thread(runnable).apply { isDaemon = true }
+		}
+		serverExecutor = executor
+		server.executor = executor
 
-	private fun buildUsingResourceConfig(): ServletContextHandler {
-		val handler = ServletContextHandler(ServletContextHandler.NO_SESSIONS)
-		handler.contextPath = "/"
-
-		val resourceConfig = initResourceConfig()
-		handler.addServlet(ServletHolder(ServletContainer(resourceConfig)), "/*")
-		return handler
+		// The HttpServer's internal dispatcher thread inherits its daemon flag from the thread that
+		// calls start(). premain runs on a non-daemon thread, so we start the server from a daemon
+		// thread to avoid keeping the profiled JVM alive (see HttpServerShutdownSystemTest).
+		val starter = Thread { server.start() }.apply { isDaemon = true }
+		starter.start()
+		starter.join()
 	}
 
 	/**
-	 * Initializes the [ResourceConfig] needed for the Jetty + Jersey Server
+	 * Initializes the [ResourceConfig] used by the embedded Jersey HTTP server.
 	 */
-	protected abstract fun initResourceConfig(): ResourceConfig?
+	protected abstract fun initResourceConfig(): ResourceConfig
 
 	/**
 	 * Registers a shutdown hook that stops the timer and dumps coverage a final time.
@@ -129,11 +125,12 @@ abstract class AgentBase(
 	fun stopServer() {
 		options.httpServerPort?.let {
 			try {
-				server.stop()
+				// stop without delay (0 seconds) since we don't need to wait for in-flight exchanges to finish
+				server.stop(0)
 			} catch (e: Exception) {
 				logger.error("Could not stop server so it is killed now.", e)
 			} finally {
-				server.destroy()
+				serverExecutor?.shutdownNow()
 			}
 		}
 	}
