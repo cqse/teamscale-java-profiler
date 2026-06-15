@@ -9,6 +9,7 @@ We use [semantic versioning](http://semver.org/):
 - [breaking feature] _agent_: Coverage is now reported in the Teamscale Compact Coverage format by default in NORMAL mode, which is significantly smaller and faster to upload. Set `report-format=JACOCO` in the agent options to keep the previous JaCoCo XML behavior. The `convert` CLI now picks the format from the output file extension (`.xml` for JaCoCo XML, `.json` for Teamscale Compact Coverage).
 - [breaking] _report-generator_: `RevisionInfo` is now a sealed class with polymorphic Jackson serialization (`@JsonTypeInfo` / `@JsonSubTypes`). The JSON representation now uses "COMMIT" and "REVISION" as type discriminator values instead of the previous `ERevisionType` enum names.
 - [feature] _agent_: Added official support for Java 26 and experimental support for Java 27 (via JaCoCo 0.8.15)
+- [breaking] _impacted-test-engine_, _gradle-plugin_, _maven-plugin_: The minimum supported version for the test execution is now Java 17
 
 # 36.5.2
 - [security fix] _agent_: The Teamscale access token was logged in clear text in DEBUG-level logs (e.g., when `debug=true` was set) and in the WARN-level log emitted when multiple `-javaagent` arguments are present. The token is now obfuscated in those logs as well, matching INFO-level behavior.
