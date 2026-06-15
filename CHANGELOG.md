@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 37.0.0
 - [security fix] _agent_: Removed embedded Jetty addressing CVE-2026-2332, CVE-2024-6763
 - [breaking feature] _agent_: Coverage is now reported in the Teamscale Compact Coverage format by default in NORMAL mode, which is significantly smaller and faster to upload. Set `report-format=JACOCO` in the agent options to keep the previous JaCoCo XML behavior. The `convert` CLI now picks the format from the output file extension (`.xml` for JaCoCo XML, `.json` for Teamscale Compact Coverage).
 - [breaking] _report-generator_: `RevisionInfo` is now a sealed class with polymorphic Jackson serialization (`@JsonTypeInfo` / `@JsonSubTypes`). The JSON representation now uses "COMMIT" and "REVISION" as type discriminator values instead of the previous `ERevisionType` enum names.
