@@ -125,6 +125,7 @@ abstract class AgentBase(
 	fun stopServer() {
 		options.httpServerPort?.let {
 			try {
+				// stop without delay (0 seconds) since we don't need to wait for in-flight exchanges to finish
 				server.stop(0)
 			} catch (e: Exception) {
 				logger.error("Could not stop server so it is killed now.", e)
