@@ -2,6 +2,7 @@ package com.teamscale.jacoco.agent.upload.delay
 
 import com.teamscale.client.BugReportMessages
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
+import com.teamscale.jacoco.agent.options.EAgentReportFormat
 import com.teamscale.jacoco.agent.upload.IUploader
 import com.teamscale.jacoco.agent.util.DaemonThreadFactory
 import com.teamscale.report.jacoco.CoverageFile
@@ -92,17 +93,19 @@ class DelayedUploader<T> internal constructor(
 	private fun uploadCachedXmls() {
 		try {
 			if (!cacheDir.isDirectory()) {
-				// Found data before XML was dumped
+				// Found data before any coverage was dumped
 				return
 			}
-			val xmlFiles = cacheDir.listDirectoryEntries().filter { path ->
+			val coverageFiles = cacheDir.listDirectoryEntries().filter { path ->
 				val fileName = path.fileName.toString()
-				fileName.startsWith("jacoco-") && fileName.endsWith(".xml")
+				EAgentReportFormat.entries.any { format ->
+					fileName.startsWith("${format.fileNamePrefix}-") && fileName.endsWith(".${format.fileExtension}")
+				}
 			}
-			xmlFiles.forEach { path -> wrappedUploader?.upload(CoverageFile(path.toFile())) }
-			logger.debug("Finished upload of cached XMLs to {}", wrappedUploader?.describe())
+			coverageFiles.forEach { path -> wrappedUploader?.upload(CoverageFile(path.toFile())) }
+			logger.debug("Finished upload of cached coverage files to {}", wrappedUploader?.describe())
 		} catch (e: IOException) {
-			logger.error("Failed to list cached coverage XML files in {}", cacheDir.toAbsolutePath(), e)
+			logger.error("Failed to list cached coverage files in {}", cacheDir.toAbsolutePath(), e)
 		}
 	}
 }

@@ -34,6 +34,7 @@ import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader
 import com.teamscale.jacoco.agent.util.AgentUtils
 import com.teamscale.jacoco.agent.util.AgentUtils.mainTempDirectory
 import com.teamscale.report.EDuplicateClassFileBehavior
+import com.teamscale.report.jacoco.JaCoCoBasedReportGenerator
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.report.util.ILogger
 import java.io.File
@@ -84,7 +85,7 @@ open class AgentOptions(private val logger: ILogger) {
 	 * should be dumped to a temporary directory which should be used as the class-dir.
 	 */
 	@JvmField
-	var classDirectoriesOrZips = mutableListOf<File>()
+	var classDirectoriesOrZips = listOf<File>()
 
 	/**
 	 * The logging configuration file.
@@ -110,6 +111,13 @@ open class AgentOptions(private val logger: ILogger) {
 	/** Whether the agent should be run in testwise coverage mode or normal mode.  */
 	@JvmField
 	var mode = EMode.NORMAL
+
+	/**
+	 * The report format the agent produces in NORMAL mode.
+	 * Has no effect in TESTWISE mode, which always produces a testwise coverage JSON.
+	 */
+	@JvmField
+	var normalModeReportFormat = EAgentReportFormat.TEAMSCALE_COMPACT_COVERAGE
 
 	/** The interval in minutes for dumping XML data. */
 	@JvmField
@@ -231,7 +239,7 @@ open class AgentOptions(private val logger: ILogger) {
 	 * we produce a string with obfuscation:
 	 * "config-file=jacocoagent.properties,teamscale-access-token=************mNHn"
 	 */
-	val obfuscatedOptionsString: String?
+	val obfuscatedOptionsString: String
 		get() = obfuscateAccessToken(originalOptionsString)
 
 	/**
@@ -419,7 +427,8 @@ open class AgentOptions(private val logger: ILogger) {
 		EUploadMethod.ARTIFACTORY -> createArtifactoryUploader(instrumentation)
 		EUploadMethod.AZURE_FILE_STORAGE -> AzureFileStorageUploader(
 			azureFileStorageConfig,
-			additionalMetaDataFiles
+			additionalMetaDataFiles,
+			reportFormat
 		)
 		EUploadMethod.SAP_NWDI_TEAMSCALE -> {
 			logger.info("NWDI configuration detected. The Agent will try and auto-detect commit information by searching all profiled Jar/War/Ear/... files.")
@@ -452,7 +461,7 @@ open class AgentOptions(private val logger: ILogger) {
 
 	private fun createTeamscaleSingleProjectUploader(instrumentation: Instrumentation?): IUploader {
 		if (teamscaleServer.hasCommitOrRevision()) {
-			return TeamscaleUploader(teamscaleServer)
+			return TeamscaleUploader(teamscaleServer, reportFormat)
 		}
 
 		val uploader = createDelayedSingleProjectTeamscaleUploader()
@@ -478,7 +487,7 @@ open class AgentOptions(private val logger: ILogger) {
 	private fun createTeamscaleMultiProjectUploader(
 		instrumentation: Instrumentation?
 	): DelayedTeamscaleMultiProjectUploader {
-		val uploader = DelayedTeamscaleMultiProjectUploader { project, commitInfo ->
+		val uploader = DelayedTeamscaleMultiProjectUploader(reportFormat) { project, commitInfo ->
 			if (commitInfo!!.preferCommitDescriptorOverRevision || isEmpty(commitInfo.revision)) {
 				return@DelayedTeamscaleMultiProjectUploader teamscaleServer.withProjectAndCommit(
 					project!!,
@@ -544,7 +553,7 @@ open class AgentOptions(private val logger: ILogger) {
 			} else {
 				teamscaleServer.revision = projectAndCommit.commitInfo.revision
 			}
-			TeamscaleUploader(teamscaleServer)
+			TeamscaleUploader(teamscaleServer, reportFormat)
 		}
 
 	private fun startMultiGitPropertiesFileSearchInJarFile(
@@ -585,7 +594,8 @@ open class AgentOptions(private val logger: ILogger) {
 	private fun createNwdiTeamscaleUploader(instrumentation: Instrumentation?): IUploader {
 		val uploader = DelayedSapNwdiMultiUploader { commit, application ->
 			TeamscaleUploader(
-				teamscaleServer.withProjectAndCommit(application.teamscaleProject, commit)
+				teamscaleServer.withProjectAndCommit(application.teamscaleProject, commit),
+				reportFormat
 			)
 		}
 		instrumentation?.addTransformer(
@@ -599,7 +609,17 @@ open class AgentOptions(private val logger: ILogger) {
 	private val reportFormat: EReportFormat
 		get() = if (useTestwiseCoverageMode()) {
 			EReportFormat.TESTWISE_COVERAGE
-		} else EReportFormat.JACOCO
+		} else normalModeReportFormat.reportFormat
+
+	/** Creates the report generator used by the agent in NORMAL mode based on [normalModeReportFormat]. */
+	fun createReportGenerator(logger: ILogger): JaCoCoBasedReportGenerator<*> =
+		normalModeReportFormat.createGenerator(
+			classDirectoriesOrZips,
+			locationIncludeFilter,
+			duplicateClassFileBehavior,
+			ignoreUncoveredClasses,
+			logger
+		)
 
 	/**
 	 * Creates a new file with the given prefix, extension and current timestamp and ensures that the parent folder
@@ -639,8 +659,9 @@ open class AgentOptions(private val logger: ILogger) {
 	/** Returns whether the config indicates to use Test Impact mode.  */
 	fun useTestwiseCoverageMode() = mode == EMode.TESTWISE
 
-	val locationIncludeFilter: ClasspathWildcardIncludeFilter
-		get() = ClasspathWildcardIncludeFilter(jacocoIncludes, jacocoExcludes)
+	val locationIncludeFilter: ClasspathWildcardIncludeFilter by lazy {
+		ClasspathWildcardIncludeFilter(jacocoIncludes, jacocoExcludes)
+	}
 
 	/** Whether coverage should be dumped in regular intervals.  */
 	fun shouldDumpInIntervals() = dumpIntervalInMinutes > 0
@@ -695,7 +716,7 @@ open class AgentOptions(private val logger: ILogger) {
 		 * debugging traces easier and reduces trace size and warnings about unmatched classes in Teamscale.
 		 */
 		const val DEFAULT_EXCLUDES =
-			"shadow.*:com.sun.*:sun.*:org.eclipse.*:org.junit.*:junit.*:org.apache.*:org.slf4j.*:javax.*:org.gradle.*:java.*:org.jboss.*:org.wildfly.*:org.springframework.*:com.fasterxml.*:jakarta.*:org.aspectj.*:org.h2.*:org.hibernate.*:org.assertj.*:org.mockito.*:org.thymeleaf.*"
+			"kotlin.*:shadow.*:com.sun.*:sun.*:org.eclipse.*:org.junit.*:junit.*:org.apache.*:org.slf4j.*:javax.*:org.gradle.*:java.*:org.jboss.*:org.wildfly.*:org.springframework.*:com.fasterxml.*:jakarta.*:org.aspectj.*:org.h2.*:org.hibernate.*:org.assertj.*:org.mockito.*:org.thymeleaf.*"
 
 		/** Option name that allows to specify a jar file that contains the git commit hash in a git.properties file.  */
 		const val GIT_PROPERTIES_JAR_OPTION = "git-properties-jar"

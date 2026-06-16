@@ -15,6 +15,7 @@ tasks.test {
             "teamscale-partition" to "part",
             "teamscale-commit" to "master:12345",
             "includes" to "*foo*",
+            "report-format" to "JACOCO",
         )
     )
 }

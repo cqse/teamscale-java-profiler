@@ -81,9 +81,9 @@ open class ImpactedTestsProvider(
 		testClusters: List<PrioritizableTestCluster>,
 		availableTestDetails: List<TestWithClusterId>
 	): Boolean {
-		val returnedTests = testClusters.stream().mapToLong {
+		val returnedTests = testClusters.sumOf {
 			it.tests?.size?.toLong() ?: 0
-		}.sum()
+		}
 		if (!includeNonImpacted) {
 			LOG.info { "Received $returnedTests impacted tests of ${availableTestDetails.size} available tests." }
 			return true

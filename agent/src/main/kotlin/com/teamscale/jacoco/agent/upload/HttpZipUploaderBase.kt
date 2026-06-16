@@ -141,6 +141,6 @@ abstract class HttpZipUploaderBase<T>
 	}
 
 	protected open fun getZipEntryCoverageFileName(coverageFile: CoverageFile): String {
-		return "coverage.xml"
+		return coverageFile.name
 	}
 }

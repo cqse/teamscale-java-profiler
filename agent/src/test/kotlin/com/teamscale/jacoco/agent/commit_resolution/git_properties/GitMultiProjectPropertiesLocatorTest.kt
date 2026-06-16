@@ -1,6 +1,7 @@
 package com.teamscale.jacoco.agent.commit_resolution.git_properties
 
 import com.teamscale.client.CommitDescriptor
+import com.teamscale.client.EReportFormat
 import com.teamscale.client.TeamscaleServer
 import com.teamscale.jacoco.agent.options.ProjectAndCommit
 import com.teamscale.jacoco.agent.upload.teamscale.DelayedTeamscaleMultiProjectUploader
@@ -13,7 +14,7 @@ internal class GitMultiProjectPropertiesLocatorTest {
 	fun testNoErrorIsThrownWhenGitPropertiesFileDoesNotHaveAProject() {
 		val projectAndCommits = mutableListOf<ProjectAndCommit>()
 		val locator = GitMultiProjectPropertiesLocator(
-			DelayedTeamscaleMultiProjectUploader { project, revision ->
+			DelayedTeamscaleMultiProjectUploader(EReportFormat.JACOCO) { project, revision ->
 				projectAndCommits.add(ProjectAndCommit(project, revision))
 				TeamscaleServer()
 			}, true, null
@@ -26,7 +27,7 @@ internal class GitMultiProjectPropertiesLocatorTest {
 
 	@Test
 	fun testNoMultipleUploadsToSameProjectAndRevision() {
-		val delayedTeamscaleMultiProjectUploader = DelayedTeamscaleMultiProjectUploader { project, revision ->
+		val delayedTeamscaleMultiProjectUploader = DelayedTeamscaleMultiProjectUploader(EReportFormat.JACOCO) { project, revision ->
 			val server = TeamscaleServer()
 			server.project = project
 			server.revision = revision!!.revision

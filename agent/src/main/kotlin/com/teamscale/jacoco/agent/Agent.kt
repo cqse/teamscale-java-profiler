@@ -10,7 +10,6 @@ import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader
 import com.teamscale.jacoco.agent.util.AgentUtils
 import com.teamscale.report.jacoco.CoverageFile
 import com.teamscale.report.jacoco.EmptyReportException
-import com.teamscale.report.jacoco.JaCoCoXmlReportGenerator
 import com.teamscale.report.jacoco.dump.Dump
 import org.glassfish.jersey.server.ResourceConfig
 import org.glassfish.jersey.server.ServerProperties
@@ -99,11 +98,12 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 		}
 	}
 
-	override fun initResourceConfig(): ResourceConfig? {
+	override fun initResourceConfig(): ResourceConfig {
 		val resourceConfig = ResourceConfig()
 		resourceConfig.property(ServerProperties.WADL_FEATURE_DISABLE, true.toString())
-		AgentResource.setAgent(this)
-		return resourceConfig.register(AgentResource::class.java).register(GenericExceptionMapper::class.java)
+		return resourceConfig
+			.register(AgentResource(this))
+			.register(GenericExceptionMapper::class.java)
 	}
 
 	override fun prepareShutdown() {
@@ -154,23 +154,18 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 			return
 		}
 
-		val generator = JaCoCoXmlReportGenerator(
-			options.classDirectoriesOrZips,
-			options.locationIncludeFilter,
-			options.duplicateClassFileBehavior,
-			options.ignoreUncoveredClasses,
-			LoggingUtils.wrap(logger)
-		)
+		val format = options.normalModeReportFormat
+		val generator = options.createReportGenerator(LoggingUtils.wrap(logger))
 
 		try {
-			benchmark("Generating the XML report") {
-				val outputFile = options.createNewFileInOutputDirectory("jacoco", "xml")
+			benchmark("Generating the coverage report") {
+				val outputFile = options.createNewFileInOutputDirectory(format.fileNamePrefix, format.fileExtension)
 				val coverageFile = generator.convertSingleDumpToReport(dump, outputFile)
 				uploader.upload(coverageFile)
 			}
 		} catch (e: IOException) {
 			logger.error(
-				"Converting the binary JaCoCo dump to XML failed. This dump's coverage will be skipped." +
+				"Converting the binary JaCoCo dump to a coverage report failed. This dump's coverage will be skipped." +
 						" If you set 'class-dir', ensure it points to your compiled classes and they are readable.", e
 			)
 		} catch (e: EmptyReportException) {

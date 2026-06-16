@@ -236,7 +236,7 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 				return true
 			}
 			CONFIG_FILE_OPTION -> {
-				readConfigFromFile(options, parsePath(filePatternResolver, key, value)!!.toFile())
+				readConfigFromFile(options, parsePath(filePatternResolver, key, value).toFile())
 				return true
 			}
 			LOGGING_CONFIG_OPTION -> {
@@ -252,7 +252,7 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 				return true
 			}
 			"out" -> {
-				options.setParentOutputDirectory(parsePath(filePatternResolver, key, value)!!)
+				options.setParentOutputDirectory(parsePath(filePatternResolver, key, value))
 				return true
 			}
 			"upload-metadata" -> {
@@ -312,6 +312,10 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 			}
 			"mode" -> {
 				options.mode = parseEnumValue(key, value)
+				return true
+			}
+			"report-format" -> {
+				options.normalModeReportFormat = parseEnumValue(key, value)
 				return true
 			}
 			"includes" -> {
@@ -504,8 +508,8 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 		fun parsePath(
 			filePatternResolver: FilePatternResolver,
 			optionName: String?,
-			pattern: String?
-		): Path? {
+			pattern: String
+		): Path {
 			try {
 				return filePatternResolver.parsePath(optionName, pattern)
 			} catch (e: IOException) {

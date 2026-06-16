@@ -1,5 +1,6 @@
 package com.teamscale.jacoco.agent.upload.teamscale
 
+import com.teamscale.client.EReportFormat
 import com.teamscale.client.TeamscaleServer
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.CommitInfo
 import com.teamscale.jacoco.agent.options.ProjectAndCommit
@@ -9,6 +10,7 @@ import java.io.File
 
 /** Wrapper for [TeamscaleUploader] that allows to upload the same coverage file to multiple Teamscale projects.  */
 class DelayedTeamscaleMultiProjectUploader(
+	private val reportFormat: EReportFormat,
 	private val teamscaleServerFactory: (String?, CommitInfo?) -> TeamscaleServer
 ) : DelayedMultiUploaderBase(), IUploader {
 	@JvmField
@@ -31,7 +33,7 @@ class DelayedTeamscaleMultiProjectUploader(
 			)
 			return
 		}
-		teamscaleUploaders.add(TeamscaleUploader(teamscaleServer))
+		teamscaleUploaders.add(TeamscaleUploader(teamscaleServer, reportFormat))
 	}
 
 	override val wrappedUploaders: MutableCollection<IUploader>

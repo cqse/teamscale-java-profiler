@@ -318,6 +318,34 @@ class AgentOptionsParserTest {
 
 	@Test
 	@Throws(Exception::class)
+	fun reportFormatDefaultsToCompact() {
+		Assertions.assertThat(parseAndThrow("").normalModeReportFormat)
+			.isEqualTo(EAgentReportFormat.TEAMSCALE_COMPACT_COVERAGE)
+	}
+
+	@Test
+	@Throws(Exception::class)
+	fun reportFormatCanBeOverriddenToJacoco() {
+		Assertions.assertThat(parseAndThrow("report-format=JACOCO").normalModeReportFormat)
+			.isEqualTo(EAgentReportFormat.JACOCO)
+		// Lowercase and dash-normalized values are accepted.
+		Assertions.assertThat(parseAndThrow("report-format=jacoco").normalModeReportFormat)
+			.isEqualTo(EAgentReportFormat.JACOCO)
+		Assertions.assertThat(parseAndThrow("report-format=teamscale-compact-coverage").normalModeReportFormat)
+			.isEqualTo(EAgentReportFormat.TEAMSCALE_COMPACT_COVERAGE)
+	}
+
+	@Test
+	@Throws(Exception::class)
+	fun reportFormatRejectsUnknownValue() {
+		Assertions.assertThatThrownBy { parseAndThrow("report-format=xml") }
+			.hasMessageContaining("Invalid value for option `report-format`")
+			.hasMessageContaining("TEAMSCALE_COMPACT_COVERAGE")
+			.hasMessageContaining("JACOCO")
+	}
+
+	@Test
+	@Throws(Exception::class)
 	fun notGivingAnyOptionsShouldBeOK() {
 		parseAndThrow("")
 		parseAndThrow(null)

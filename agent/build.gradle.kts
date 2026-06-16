@@ -28,14 +28,9 @@ val jacocoVersion = libs.versions.jacoco.get()
 val outputVersion = "$appVersion-jacoco-$jacocoVersion"
 
 dependencies {
-	implementation(platform(libs.jetty.bom))
-	implementation(libs.jetty.server)
-	implementation(libs.jetty.servlet)
-
 	implementation(platform(libs.jersey.bom))
 	implementation(libs.jersey.server)
-	implementation(libs.jersey.containerServletCore)
-	implementation(libs.jersey.containerJettyHttp)
+	implementation(libs.jersey.containerJdkHttp)
 	implementation(libs.jersey.mediaJsonJackson)
 	implementation(libs.jersey.hk2)
 	runtimeOnly(libs.jakarta.activation.api)
@@ -60,6 +55,7 @@ dependencies {
 
 	implementation(libs.jackson.databind)
 	implementation(libs.jetbrains.annotations)
+	implementation(libs.coroutines.core)
 
 	testImplementation(project(":tia-client"))
 	testImplementation(libs.retrofit.converter.jackson)

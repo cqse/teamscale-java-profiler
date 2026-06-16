@@ -8,6 +8,7 @@ import com.teamscale.client.StringUtils.emptyToNull
 import com.teamscale.client.StringUtils.nullToEmpty
 import com.teamscale.jacoco.agent.benchmark
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
+import com.teamscale.jacoco.agent.options.EAgentReportFormat
 import com.teamscale.jacoco.agent.upload.IUploadRetry
 import com.teamscale.jacoco.agent.upload.IUploader
 import com.teamscale.jacoco.agent.util.AgentUtils
@@ -19,14 +20,15 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.*
 
-/** Uploads XML Coverage to a Teamscale instance.  */
+/** Uploads coverage reports to a Teamscale instance.  */
 class TeamscaleUploader(
-	@JvmField val teamscaleServer: TeamscaleServer
+	@JvmField val teamscaleServer: TeamscaleServer,
+	private val reportFormat: EReportFormat
 ) : IUploader, IUploadRetry {
 	private val logger = getLogger(this)
 
 	override fun upload(coverageFile: CoverageFile) {
-		doUpload(coverageFile, teamscaleServer)
+		doUpload(coverageFile, teamscaleServer, reportFormat)
 	}
 
 	override fun reupload(coverageFile: CoverageFile, properties: Properties) {
@@ -40,12 +42,17 @@ class TeamscaleUploader(
 		server.userName = teamscaleServer.userName
 		server.url = teamscaleServer.url
 		server.message = properties.getProperty(ETeamscaleServerProperties.MESSAGE.name)
-		doUpload(coverageFile, server)
+		// Infer the format from the on-disk file extension so retries survive a change in the
+		// agent's default report format between runs. Fall back to JACOCO for legacy files
+		// without one of the known coverage extensions.
+		val retryFormat = EAgentReportFormat.fromFileExtension(coverageFile.extension)?.reportFormat
+			?: EReportFormat.JACOCO
+		doUpload(coverageFile, server, retryFormat)
 	}
 
-	private fun doUpload(coverageFile: CoverageFile, teamscaleServer: TeamscaleServer) {
+	private fun doUpload(coverageFile: CoverageFile, teamscaleServer: TeamscaleServer, format: EReportFormat) {
 		benchmark("Uploading report to Teamscale") {
-			if (tryUploading(coverageFile, teamscaleServer)) {
+			if (tryUploading(coverageFile, teamscaleServer, format)) {
 				deleteCoverageFile(coverageFile)
 			} else {
 				logger.warn(
@@ -111,8 +118,12 @@ class TeamscaleUploader(
 	}
 
 	/** Performs the upload and returns `true` if successful.  */
-	private fun tryUploading(coverageFile: CoverageFile, teamscaleServer: TeamscaleServer): Boolean {
-		logger.debug("Uploading JaCoCo artifact to {}", teamscaleServer)
+	private fun tryUploading(
+		coverageFile: CoverageFile,
+		teamscaleServer: TeamscaleServer,
+		format: EReportFormat
+	): Boolean {
+		logger.debug("Uploading {} report to {}", format.readableName, teamscaleServer)
 
 		try {
 			// Cannot be executed in the constructor as this causes issues in WildFly server
@@ -126,7 +137,7 @@ class TeamscaleUploader(
 				teamscaleServer.project!!,
 				teamscaleServer.commit,
 				teamscaleServer.revision,
-				teamscaleServer.repository, teamscaleServer.partition!!, EReportFormat.JACOCO,
+				teamscaleServer.repository, teamscaleServer.partition!!, format,
 				teamscaleServer.message!!, coverageFile.createFormRequestBody()
 			)
 			return true

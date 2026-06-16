@@ -21,7 +21,7 @@ class JacocoAgentOptionsBuilder(private val agentOptions: AgentOptions) {
 			builder.append(",includes=").append(agentOptions.jacocoIncludes)
 		}
 
-		logger.debug("Using default excludes: ${AgentOptions.DEFAULT_EXCLUDES}")
+		logger.info("Excluding ${AgentOptions.DEFAULT_EXCLUDES.split(":").size} package prefixes from instrumentation: ${AgentOptions.DEFAULT_EXCLUDES}")
 		builder.append(",excludes=").append(agentOptions.jacocoExcludes)
 
 		// Don't dump class files in testwise mode when coverage is written to an exec file
