@@ -199,7 +199,7 @@ public class CachingInstructionsBuilder extends InstructionsBuilder {
 			throw new RuntimeException(
 					"Reflection failed to access internal Instruction.predecessor field."
 							+ " This usually means the bundled JaCoCo version was upgraded without updating this class."
-							+ " Please report a bug.",
+							+ " Please report a bug to CQSE.",
 					e);
 		}
 		return instruction;

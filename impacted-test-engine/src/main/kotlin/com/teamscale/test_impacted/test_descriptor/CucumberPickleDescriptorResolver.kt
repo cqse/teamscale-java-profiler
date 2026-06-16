@@ -17,7 +17,7 @@ class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
 		if (!featurePath.isPresent) {
 			LOG.severe {
 				"Cannot resolve the feature classpath for Cucumber test descriptor '${descriptor.displayName}'." +
-						" Please report a bug" +
+						" Please report a bug to CQSE" +
 						" including the full descriptor: $descriptor"
 			}
 			return Optional.empty()
