@@ -30,7 +30,7 @@ open class CachingExecutionDataReader(
 	fun analyzeClassDirs() {
 		if (classesDirectories.isEmpty()) {
 			logger.warn(
-				"No class directories provided — testwise coverage will be calculated with out caching."
+				"No class directories provided — testwise coverage will be calculated without caching."
 			)
 			return
 		}

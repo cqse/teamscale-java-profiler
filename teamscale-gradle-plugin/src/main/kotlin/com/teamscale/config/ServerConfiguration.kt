@@ -37,7 +37,7 @@ abstract class ServerConfiguration : Serializable {
 
 	private fun missingServerPropertyMessage(property: String, example: String) =
 		"Teamscale server '$property' must not be empty." +
-				" Set it via 'teamscale { server { $property.set(\"$example\") } }' in your build.gradle.kts."
+				" Set it via 'teamscale { server { $property = \"$example\" } }' in your build.gradle.kts."
 
 	fun toClient() = TeamscaleClient(
 		url.get(), userName.get(), userAccessToken.get(), project.get(),
