@@ -259,7 +259,10 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 				try {
 					options.additionalMetaDataFiles = splitMultiOptionValue(value).map { path -> Paths.get(path) }
 				} catch (e: InvalidPathException) {
-					throw AgentOptionParseException("Invalid path given for option 'upload-metadata'", e)
+					throw AgentOptionParseException(
+						"Invalid path given for option 'upload-metadata': '$value' (${e.message})." +
+								" Use a semicolon-separated list of file paths.", e
+					)
 				}
 				return true
 			}
@@ -330,7 +333,9 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 						key, filePatternResolver, list
 					)
 				} catch (e: IOException) {
-					throw AgentOptionParseException(e)
+					throw AgentOptionParseException(
+						"Failed to resolve class directories for option 'class-dir': ${e.message}", e
+					)
 				}
 				return true
 			}
@@ -508,7 +513,9 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 			try {
 				return filePatternResolver.parsePath(optionName, pattern)
 			} catch (e: IOException) {
-				throw AgentOptionParseException(e)
+				throw AgentOptionParseException(
+					"Invalid path or pattern given for option '$optionName': '$pattern' (${e.message})", e
+				)
 			}
 		}
 
@@ -537,7 +544,10 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 
 		@Throws(AgentOptionParseException::class)
 		private fun getUrl(key: String?, value: String) =
-			value.toHttpUrlOrNull() ?: throw AgentOptionParseException("Invalid URL given for option '$key'")
+			value.toHttpUrlOrNull() ?: throw AgentOptionParseException(
+				"Invalid URL given for option '$key': '$value'." +
+						" The URL must be of the form http(s)://host[:port]/."
+			)
 
 		/**
 		 * Splits the given value at semicolons.

@@ -290,7 +290,9 @@ class TeamscaleMockServer(val port: Int) {
 			val authHeader = request.headers("Authorization")
 			if (authHeader == null || authHeader != buildBasicAuthHeader(username, accessToken)) {
 				response.status(401)
-				throw IllegalArgumentException("Unauthorized")
+				throw IllegalArgumentException(
+					"Unauthorized: the request was missing the expected Basic auth header for user '$username'."
+				)
 			}
 		}
 	}

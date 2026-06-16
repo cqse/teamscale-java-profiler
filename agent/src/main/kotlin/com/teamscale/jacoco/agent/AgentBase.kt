@@ -62,8 +62,11 @@ abstract class AgentBase(
 			try {
 				initServer()
 			} catch (e: Exception) {
-				logger.error("Could not start http server on port $port. Please check if the port is blocked.")
-				throw IllegalStateException("Control server not started.", e)
+				throw IllegalStateException(
+					"Could not start the agent control HTTP server on port $port." +
+							" Check that the port is not already in use and try a different value for the" +
+							" 'http-server-port' option.", e
+				)
 			}
 		}
 	}
@@ -113,7 +116,11 @@ abstract class AgentBase(
 				prepareShutdown()
 				logger.info("Teamscale Java Profiler successfully shut down.")
 			} catch (e: Exception) {
-				logger.error("Exception during profiler shutdown.", e)
+				logger.error(
+					"Error while shutting down the Teamscale Java Profiler. Coverage may not have been flushed;" +
+							" check the log for details. If this keeps happening, report a bug.",
+					e
+				)
 			} finally {
 				// Try to flush logging resources also in case of an exception during shutdown
 				PreMain.closeLoggingResources()
@@ -128,7 +135,10 @@ abstract class AgentBase(
 				// stop without delay (0 seconds) since we don't need to wait for in-flight exchanges to finish
 				server.stop(0)
 			} catch (e: Exception) {
-				logger.error("Could not stop server so it is killed now.", e)
+				logger.error(
+					"Could not gracefully stop the agent control HTTP server on port {}; forcing shutdown." +
+							" Pending test events may be lost.", options.httpServerPort, e
+				)
 			} finally {
 				serverExecutor?.shutdownNow()
 			}

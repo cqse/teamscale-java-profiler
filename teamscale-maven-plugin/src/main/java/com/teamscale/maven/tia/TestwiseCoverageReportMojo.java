@@ -118,8 +118,9 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 		try {
 			Files.createDirectories(reportsFolder);
 		} catch (IOException e) {
-			logger.error("Could not create folder " + reportsFolder + ". Aborting.", e);
-			throw new MojoFailureException(e);
+			throw new MojoFailureException(
+					"Could not create the testwise-coverage report folder " + reportsFolder
+							+ ". Check that the parent directory is writable.", e);
 		}
 		List<File> jacocoExecutionDataList = ReportUtils.listFiles(ETestArtifactFormat.JACOCO, reportFileDirectories);
 		String reportFilePath = reportsFolder.resolve("testwise-coverage.json").toString();
@@ -132,8 +133,9 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 				generator.convertAndConsume(executionDataFile, coverageWriter);
 			}
 		} catch (IOException e) {
-			logger.error("Could not create testwise report. Aborting.", e);
-			throw new MojoFailureException(e);
+			throw new MojoFailureException(
+					"Could not write the testwise coverage report to " + reportFilePath
+							+ ". Check disk space and that the file is not held open by another process.", e);
 		}
 	}
 
@@ -153,8 +155,9 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 			logger.info("Writing report with " + testDetails.size() + " Details/" + testExecutions.size() + " Results");
 			return new TestInfoFactory(testDetails, testExecutions);
 		} catch (IOException e) {
-			logger.error("Could not read test details from reports. Aborting.", e);
-			throw new MojoFailureException(e);
+			throw new MojoFailureException(
+					"Could not read test details from JaCoCo report directories " + reportFiles
+							+ ". Check that the files exist and are readable.", e);
 		}
 	}
 

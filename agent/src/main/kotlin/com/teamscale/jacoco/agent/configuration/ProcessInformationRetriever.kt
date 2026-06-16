@@ -24,7 +24,11 @@ class ProcessInformationRetriever(private val logger: ILogger) {
 			try {
 				return InetAddress.getLocalHost().hostName
 			} catch (e: UnknownHostException) {
-				logger.error("Failed to determine hostname!", e)
+				logger.warn(
+					"Could not determine the local hostname; using an empty value." +
+							" This only affects the display name shown in Teamscale's profiler list.",
+					e
+				)
 				return ""
 			}
 		}

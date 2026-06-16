@@ -142,7 +142,12 @@ class TeamscaleUploader(
 			)
 			return true
 		} catch (e: IOException) {
-			logger.error("Failed to upload coverage to {}", teamscaleServer, e)
+			logger.error(
+				"Failed to upload coverage to Teamscale at {}." +
+						" The file is kept for an automatic retry on next agent startup." +
+						" If this persists, check network connectivity and the configured access token.",
+				teamscaleServer, e
+			)
 			return false
 		}
 	}

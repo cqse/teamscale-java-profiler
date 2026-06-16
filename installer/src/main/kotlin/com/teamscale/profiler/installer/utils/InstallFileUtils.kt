@@ -23,7 +23,12 @@ object InstallFileUtils {
 		try {
 			Files.createDirectories(directory)
 		} catch (e: IOException) {
-			throw PermissionError("Cannot create directory $directory", e)
+			throw PermissionError(
+				"Cannot create directory '$directory': ${e.message}." +
+						" Check that the parent directory exists and that you have write permissions" +
+						" (try running the installer as root/Administrator).",
+				e
+			)
 		}
 	}
 }

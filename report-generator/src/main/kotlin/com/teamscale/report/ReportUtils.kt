@@ -40,7 +40,10 @@ object ReportUtils {
 	private fun <T> writeReportToFile(reportFile: File, report: T) {
 		val directory = reportFile.getParentFile()
 		if (!directory.isDirectory() && !directory.mkdirs()) {
-			throw IOException("Failed to create directory " + directory.absolutePath)
+			throw IOException(
+				"Failed to create the report output directory '${directory.absolutePath}'." +
+						" Verify the parent directory exists and is writable."
+			)
 		}
 		JsonUtils.serializeToFile(reportFile, report)
 	}

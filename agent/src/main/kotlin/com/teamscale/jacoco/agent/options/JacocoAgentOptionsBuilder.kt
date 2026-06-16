@@ -47,26 +47,40 @@ class JacocoAgentOptionsBuilder(private val agentOptions: AgentOptions) {
 		try {
 			return Files.createDirectory(mainTempDirectory.resolve("jacoco-class-dump"))
 		} catch (_: IOException) {
-			logger.warn("Unable to create temporary directory in default location. Trying in system temp directory.")
+			logger.warn(
+				"Could not create class-dump directory under {}. Trying the system temp directory next.",
+				mainTempDirectory
+			)
 		}
 
 		try {
 			return Files.createTempDirectory("jacoco-class-dump")
 		} catch (_: IOException) {
-			logger.warn("Unable to create temporary directory in default location. Trying in output directory.")
+			logger.warn(
+				"Could not create class-dump directory in the system temp directory ({}). Trying the agent's output directory next.",
+				System.getProperty("java.io.tmpdir")
+			)
 		}
 
 		try {
 			return Files.createTempDirectory(agentOptions.outputDirectory!!, "jacoco-class-dump")
 		} catch (_: IOException) {
-			logger.warn("Unable to create temporary directory in output directory. Trying in agent's directory.")
+			logger.warn(
+				"Could not create class-dump directory under the agent output directory ({}). Trying the agent's install directory next.",
+				agentOptions.outputDirectory
+			)
 		}
 
 		val agentDirectory = agentDirectory
 		try {
 			return Files.createTempDirectory(agentDirectory, "jacoco-class-dump")
 		} catch (e: IOException) {
-			throw AgentOptionParseException("Unable to create a temporary directory anywhere", e)
+			throw AgentOptionParseException(
+				"Could not create a class-dump directory under any of: ${mainTempDirectory}," +
+						" the system temp directory, ${agentOptions.outputDirectory}, or $agentDirectory." +
+						" Verify at least one of these locations is writable.",
+				e
+			)
 		}
 	}
 

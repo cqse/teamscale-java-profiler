@@ -50,10 +50,12 @@ class ArtifactoryUploader(
 			FileWriter(uploadMetadataFile).use { writer ->
 				properties.store(writer, null)
 			}
-		} catch (_: IOException) {
+		} catch (e: IOException) {
 			logger.warn(
-				"Failed to create metadata file for automatic upload retry of {}. Please manually retry the coverage upload to Azure.",
-				coverageFile
+				"Failed to create the retry metadata file for coverage upload {}." +
+						" The upload to Artifactory will not be retried automatically;" +
+						" you can re-upload the file manually.",
+				coverageFile, e
 			)
 			uploadMetadataFile.delete()
 		}

@@ -50,7 +50,7 @@ internal class TeamscalePropertiesUtilsTest {
 	fun missingUsername() {
 		Files.write(teamscalePropertiesPath!!, "url=http://test\naccesskey=key".toByteArray(StandardCharsets.UTF_8))
 		Assertions.assertThatThrownBy { parseCredentials(teamscalePropertiesPath!!) }
-			.hasMessageContaining("missing the username")
+			.hasMessageContaining("missing the 'username'")
 	}
 
 	@Test
@@ -58,7 +58,7 @@ internal class TeamscalePropertiesUtilsTest {
 	fun missingAccessKey() {
 		Files.write(teamscalePropertiesPath!!, "url=http://test\nusername=user".toByteArray(StandardCharsets.UTF_8))
 		Assertions.assertThatThrownBy { parseCredentials(teamscalePropertiesPath!!) }
-			.hasMessageContaining("missing the accesskey")
+			.hasMessageContaining("missing the 'accesskey'")
 	}
 
 	@Test
@@ -66,7 +66,7 @@ internal class TeamscalePropertiesUtilsTest {
 	fun missingUrl() {
 		Files.write(teamscalePropertiesPath!!, "username=user\nusername=user".toByteArray(StandardCharsets.UTF_8))
 		Assertions.assertThatThrownBy { parseCredentials(teamscalePropertiesPath!!) }
-			.hasMessageContaining("missing the url")
+			.hasMessageContaining("missing the 'url'")
 	}
 
 	@Test

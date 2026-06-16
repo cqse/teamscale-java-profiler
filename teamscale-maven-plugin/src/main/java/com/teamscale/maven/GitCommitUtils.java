@@ -20,7 +20,10 @@ public class GitCommitUtils {
 	public static String getGitHeadRevision(Path searchDirectory) throws IOException {
 		Path gitDirectory = findGitBaseDirectory(searchDirectory);
 		if (gitDirectory == null) {
-			throw new IOException("Could not find git directory in " + searchDirectory);
+			throw new IOException(
+					"Could not find a Git directory in " + searchDirectory + " or any parent directory."
+							+ " Configure <revision> or <commit> in the plugin configuration,"
+							+ " or run Maven from inside a Git checkout.");
 		}
 		Repository repository;
 		try (Git git = Git.open(gitDirectory.toFile())) {

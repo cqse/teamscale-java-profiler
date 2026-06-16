@@ -39,29 +39,42 @@ object TeamscalePropertiesUtils {
 
 		try {
 			val properties = readProperties(teamscalePropertiesPath.toFile())
-			return parseProperties(properties)
+			return parseProperties(properties, teamscalePropertiesPath)
 		} catch (e: IOException) {
 			throw AgentOptionParseException("Failed to read $teamscalePropertiesPath", e)
 		}
 	}
 
 	@Throws(AgentOptionParseException::class)
-	private fun parseProperties(properties: Properties): TeamscaleCredentials {
+	private fun parseProperties(properties: Properties, teamscalePropertiesPath: Path): TeamscaleCredentials {
 		val urlString = properties.getProperty("url")
-			?: throw AgentOptionParseException("teamscale.properties is missing the url field")
+			?: throw AgentOptionParseException(
+				"teamscale.properties at $teamscalePropertiesPath is missing the 'url' field." +
+						" Add a line like 'url=https://teamscale.example.com/'."
+			)
 
 		val url: HttpUrl
 		try {
 			url = urlString.toHttpUrl()
 		} catch (e: IllegalArgumentException) {
-			throw AgentOptionParseException("teamscale.properties contained malformed URL $urlString", e)
+			throw AgentOptionParseException(
+				"teamscale.properties at $teamscalePropertiesPath contains a malformed URL '$urlString'." +
+						" Expected format: 'https://teamscale.example.com/'.",
+				e
+			)
 		}
 
 		val userName = properties.getProperty("username")
-			?: throw AgentOptionParseException("teamscale.properties is missing the username field")
+			?: throw AgentOptionParseException(
+				"teamscale.properties at $teamscalePropertiesPath is missing the 'username' field." +
+						" Add a line like 'username=alice'."
+			)
 
 		val accessKey = properties.getProperty("accesskey")
-			?: throw AgentOptionParseException("teamscale.properties is missing the accesskey field")
+			?: throw AgentOptionParseException(
+				"teamscale.properties at $teamscalePropertiesPath is missing the 'accesskey' field." +
+						" Add a line like 'accesskey=<your-Teamscale-access-key>'."
+			)
 
 		return TeamscaleCredentials(url, userName, accessKey)
 	}

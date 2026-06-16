@@ -68,7 +68,11 @@ class InstallAgentFilesStep(private val sourceDirectory: Path, private val insta
 				}
 			}
 		} catch (e: IOException) {
-			throw PermissionError("Failed to list all files in $installDirectory.", e)
+			throw PermissionError(
+				"Failed to list all files in $installDirectory." +
+						" Check that the directory is readable and not concurrently modified.",
+				e
+			)
 		}
 	}
 
@@ -88,7 +92,11 @@ class InstallAgentFilesStep(private val sourceDirectory: Path, private val insta
 				properties.store(out, null)
 			}
 		} catch (e: IOException) {
-			throw PermissionError("Failed to write $teamscalePropertiesPath.", e)
+			throw PermissionError(
+				"Failed to write $teamscalePropertiesPath." +
+						" Verify that the parent directory is writable and that the disk is not full.",
+				e
+			)
 		}
 
 		InstallFileUtils.makeReadable(teamscalePropertiesPath)
@@ -109,7 +117,11 @@ class InstallAgentFilesStep(private val sourceDirectory: Path, private val insta
 	@Throws(FatalInstallerError::class)
 	private fun createAgentDirectory() {
 		if (Files.exists(installDirectory)) {
-			throw FatalInstallerError("Cannot install to $installDirectory: Path already exists")
+			throw FatalInstallerError(
+				"Cannot install to '$installDirectory': the path already exists." +
+						" Uninstall any previous installation first or choose a different target directory" +
+						" with --install-dir."
+			)
 		}
 
 		InstallFileUtils.createDirectory(installDirectory)

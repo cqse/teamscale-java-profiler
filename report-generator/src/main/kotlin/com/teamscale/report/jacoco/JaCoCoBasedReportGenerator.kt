@@ -155,7 +155,10 @@ abstract class JaCoCoBasedReportGenerator<Visitor : ICoverageVisitor>(
 					return
 				}
 
-				EDuplicateClassFileBehavior.FAIL -> error { "Can't add different class with same name: ${coverage.name}" }
+				EDuplicateClassFileBehavior.FAIL -> error {
+					"Duplicate non-identical class '${coverage.name}' encountered with 'duplicates=FAIL'." +
+							" Either resolve the duplicate in your application or set 'duplicates=WARN'."
+				}
 			}
 		}
 	}

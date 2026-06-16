@@ -196,7 +196,11 @@ public class CachingInstructionsBuilder extends InstructionsBuilder {
 			instruction = (Instruction) predecessorField.get(instruction);
 		} catch (NoSuchFieldException | IllegalAccessException e) {
 			// This means we have a serious coding mistake here there is no way to recover from this anyway
-			throw new RuntimeException("Instruction has no field named predecessor! This is a programming error!", e);
+			throw new RuntimeException(
+					"Reflection failed to access internal Instruction.predecessor field."
+							+ " This usually means the bundled JaCoCo version was upgraded without updating this class."
+							+ " Please report a bug to CQSE.",
+					e);
 		}
 		return instruction;
 	}

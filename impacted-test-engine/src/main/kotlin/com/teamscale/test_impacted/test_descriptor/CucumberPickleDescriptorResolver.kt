@@ -13,13 +13,17 @@ class CucumberPickleDescriptorResolver : ITestDescriptorResolver {
 	override fun getUniformPath(descriptor: TestDescriptor): String? {
 		val featurePath = descriptor.featurePath() ?: run {
 			LOG.severe {
-				"Cannot resolve the feature classpath for ${descriptor}. This is probably a bug. Please report to CQSE"
+				"Cannot resolve the feature classpath for Cucumber test descriptor '${descriptor.displayName}'." +
+						" Please report a bug to CQSE" +
+						" including the full descriptor: $descriptor"
 			}
 			return null
 		}
 		val pickleName = descriptor.getPickleName() ?: run {
 			LOG.severe {
-				"Cannot resolve the pickle name for ${descriptor}. This is probably a bug. Please report to CQSE"
+				"Cannot resolve the pickle name for Cucumber test descriptor '${descriptor.displayName}'." +
+						" Please report a bug to CQSE" +
+						" including the full descriptor: $descriptor"
 			}
 			return null
 		}

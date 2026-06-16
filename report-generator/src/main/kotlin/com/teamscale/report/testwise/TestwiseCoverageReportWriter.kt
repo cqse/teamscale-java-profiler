@@ -43,7 +43,11 @@ class TestwiseCoverageReportWriter(
 			writeTestInfo(testInfo)
 		} catch (e: IOException) {
 			// Need to be wrapped in RuntimeException as Consumer does not allow to throw a checked Exception
-			throw RuntimeException("Writing test info to report failed.", e)
+			throw RuntimeException(
+				"Writing test info for '${testInfo.uniformPath}' to the testwise report failed: ${e.message}." +
+						" Check disk space and that the agent's 'out' directory is writable.",
+				e
+			)
 		}
 	}
 

@@ -160,8 +160,12 @@ public class OpenAnalyzer {
 	protected IOException analyzerError(final String location,
 			final Exception cause) {
 		final IOException ex = new IOException(
-				String.format("Error while analyzing %s with JaCoCo %s/%s.",
-						location, JaCoCo.VERSION, JaCoCo.COMMITID_SHORT));
+				String.format(
+						"Could not analyze coverage for '%s' (JaCoCo %s/%s): %s."
+								+ " Verify that the file is a readable .class, JAR, ZIP, GZ, or Pack200 archive"
+								+ " and that it is not corrupt.",
+						location, JaCoCo.VERSION, JaCoCo.COMMITID_SHORT,
+						cause.getMessage()));
 		ex.initCause(cause);
 		return ex;
 	}

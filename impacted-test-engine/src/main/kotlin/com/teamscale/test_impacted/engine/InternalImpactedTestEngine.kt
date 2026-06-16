@@ -91,7 +91,11 @@ internal class InternalImpactedTestEngine(
 		rootTestDescriptor.children.flatMap { engineTestDescriptor ->
 			val engineId = engineTestDescriptor.uniqueId.engineId
 			if (!engineId.isPresent) {
-				LOG.severe { "Engine ID for test descriptor $engineTestDescriptor not present. Skipping execution of the engine." }
+				LOG.severe {
+					"A test engine returned a descriptor without an engine ID. Tests from this engine will be skipped." +
+							" Please report a bug to CQSE" +
+							" including the surrounding test descriptor: $engineTestDescriptor"
+				}
 				return@flatMap emptyList()
 			}
 

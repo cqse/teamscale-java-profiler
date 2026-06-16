@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [security fix] _agent_: The Azure shared-key error messages no longer include the configured `azure-key` value in the exception text (previously leaked the access key into stack traces and logs)
 
 # 37.0.0
 - [security fix] _agent_: Removed embedded Jetty addressing CVE-2026-2332, CVE-2024-6763

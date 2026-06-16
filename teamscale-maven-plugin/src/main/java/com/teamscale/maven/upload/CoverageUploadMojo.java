@@ -241,7 +241,10 @@ public class CoverageUploadMojo extends TeamscaleMojoBase {
 				continue;
 			}
 			if (!report.canRead()) {
-				getLog().warn(String.format("Cannot read %s, skipping!", report.getAbsolutePath()));
+				getLog().warn(String.format(
+						"Cannot read coverage report '%s' (permission denied or file vanished). It will be skipped"
+								+ " — check that the file exists and is readable by the Maven user.",
+						report.getAbsolutePath()));
 				continue;
 			}
 			reports.add(report);

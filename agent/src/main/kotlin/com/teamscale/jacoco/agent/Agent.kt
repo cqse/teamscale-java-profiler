@@ -91,7 +91,10 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 			}
 			Files.deleteIfExists(file.toPath())
 		} catch (e: IOException) {
-			logger.error("Reuploading coverage failed. $e")
+			logger.error(
+				"Reuploading cached coverage from {} failed. The file is kept and the upload will be retried on" +
+						" the next agent restart.", file, e
+			)
 		}
 	}
 
@@ -144,7 +147,10 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 		try {
 			dump = controller.dumpAndReset()
 		} catch (e: JacocoRuntimeController.DumpException) {
-			logger.error("Dumping failed, retrying later", e)
+			logger.error(
+				"Dumping coverage data failed. The agent will retry on the next dump interval." +
+						" If this persists, report a bug.", e
+			)
 			return
 		}
 
@@ -158,9 +164,17 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 				uploader.upload(coverageFile)
 			}
 		} catch (e: IOException) {
-			logger.error("Converting binary dump to coverage report failed", e)
+			logger.error(
+				"Converting the binary JaCoCo dump to a coverage report failed. This dump's coverage will be skipped." +
+						" If you set 'class-dir', ensure it points to your compiled classes and they are readable.", e
+			)
 		} catch (e: EmptyReportException) {
-			logger.error("No coverage was collected. ${e.message}", e)
+			logger.warn(
+				"No coverage was collected in this dump interval: {}." +
+						" This is normal if no profiled code ran." +
+						" Check the 'includes'/'excludes' patterns if you expected coverage.",
+				e.message
+			)
 		}
 	}
 }

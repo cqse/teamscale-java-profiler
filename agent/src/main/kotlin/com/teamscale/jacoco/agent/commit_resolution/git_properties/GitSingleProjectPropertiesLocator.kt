@@ -76,9 +76,19 @@ class GitSingleProjectPropertiesLocator<T>(
 			jarFileWithGitProperties = file
 			uploader.setCommitAndTriggerAsynchronousUpload(dataEntry)
 		} catch (e: IOException) {
-			logger.error("Error during asynchronous search for git.properties in {}", file.toString(), e)
+			logger.error(
+				"Could not search for git.properties in {}." +
+						" Auto-detection of the Teamscale project/commit for code loaded from this location will be skipped" +
+						" — set 'teamscale-project' and 'teamscale-revision' manually if no other git.properties is found.",
+				file.toString(), e
+			)
 		} catch (e: InvalidGitPropertiesException) {
-			logger.error("Error during asynchronous search for git.properties in {}", file.toString(), e)
+			logger.error(
+				"Could not search for git.properties in {}." +
+						" Auto-detection of the Teamscale project/commit for code loaded from this location will be skipped" +
+						" — set 'teamscale-project' and 'teamscale-revision' manually if no other git.properties is found.",
+				file.toString(), e
+			)
 		}
 	}
 

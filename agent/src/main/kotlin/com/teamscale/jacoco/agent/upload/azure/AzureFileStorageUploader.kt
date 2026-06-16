@@ -93,7 +93,7 @@ class AzureFileStorageUploader(
 	override fun uploadCoverageZip(coverageFile: File): Response<ResponseBody> {
 		val fileName = createFileName()
 		if (checkFile(fileName).isSuccessful) {
-			logger.warn("The file $fileName does already exists at $uploadUrl")
+			logger.warn("A file named $fileName already exists at $uploadUrl. It will be overwritten.")
 		}
 
 		return createAndFillFile(coverageFile, fileName)
@@ -132,7 +132,12 @@ class AzureFileStorageUploader(
 			if (!checkDirectory(directoryPath).isSuccessful) {
 				val mkdirResponse = createDirectory(directoryPath)
 				if (!mkdirResponse.isSuccessful) {
-					throw UploaderException("Creation of path '/$directoryPath' was unsuccessful", mkdirResponse)
+					throw UploaderException(
+						"Creating directory '$directoryPath' on the Azure file storage at $uploadUrl failed" +
+								" (HTTP ${mkdirResponse.code()} ${mkdirResponse.message()})." +
+								" Check the share name and that the configured access key has write permissions.",
+						mkdirResponse
+					)
 				}
 			}
 		}
@@ -200,7 +205,11 @@ class AzureFileStorageUploader(
 		if (response.isSuccessful) {
 			return fillFile(zipFile, fileName)
 		}
-		logger.error("Creation of file '$fileName' was unsuccessful.")
+		logger.error(
+			"Creating file '$fileName' on the Azure file storage at $uploadUrl failed" +
+					" (HTTP ${response.code()} ${response.message()})." +
+					" Check 'azure-url' and 'azure-key' and that the share has free space."
+		)
 		return response
 	}
 

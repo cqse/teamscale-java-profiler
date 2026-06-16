@@ -31,7 +31,9 @@ open class TeamscaleClient {
 		readTimeout: Duration = HttpUtils.DEFAULT_READ_TIMEOUT,
 		writeTimeout: Duration = HttpUtils.DEFAULT_WRITE_TIMEOUT
 	) {
-		val url = baseUrl?.toHttpUrlOrNull() ?: throw IllegalArgumentException("Invalid URL: $baseUrl")
+		val url = baseUrl?.toHttpUrlOrNull() ?: throw IllegalArgumentException(
+			"Invalid Teamscale base URL: '$baseUrl'. Use the form 'https://teamscale.example.com/'."
+		)
 		this.projectId = projectId
 		service = TeamscaleServiceGenerator.createService(
 			url, user, accessToken, userAgent, readTimeout, writeTimeout
@@ -50,7 +52,9 @@ open class TeamscaleClient {
 		writeTimeout: Duration = HttpUtils.DEFAULT_WRITE_TIMEOUT,
 		userAgent: String
 	) {
-		val url = baseUrl?.toHttpUrlOrNull() ?: throw IllegalArgumentException("Invalid URL: $baseUrl")
+		val url = baseUrl?.toHttpUrlOrNull() ?: throw IllegalArgumentException(
+			"Invalid Teamscale base URL: '$baseUrl'. Use the form 'https://teamscale.example.com/'."
+		)
 		this.projectId = projectId
 		service = TeamscaleServiceGenerator.createServiceWithRequestLogging(
 			url, user, accessToken, logfile, readTimeout, writeTimeout, userAgent
@@ -229,7 +233,10 @@ open class TeamscaleClient {
 		val sessionId =
 			service.createSession(projectId, commitDescriptor, revision, repository, partition, message)
 				.executeOrThrow()
-		require(sessionId != null) { "Session ID was null" }
+		require(sessionId != null) {
+			"Teamscale did not return a session ID for the upload." +
+					" The server may be misconfigured — check the Teamscale logs."
+		}
 
 		for ((reportFormat, files) in reports) {
 			val partList = files.map { file ->
@@ -299,7 +306,10 @@ open class TeamscaleClient {
 fun <T> Call<T>.executeOrThrow(): T? {
 	val response = execute()
 	if (!response.isSuccessful) {
-		throw IOException("HTTP request " + request() + " failed: " + HttpUtils.getErrorBodyStringSafe(response))
+		throw IOException(
+			"Request to Teamscale failed: HTTP ${response.code()} ${response.message()} for " +
+					"${request().method} ${request().url}. Response body: ${HttpUtils.getErrorBodyStringSafe(response)}"
+		)
 	}
 	return response.body()
 }

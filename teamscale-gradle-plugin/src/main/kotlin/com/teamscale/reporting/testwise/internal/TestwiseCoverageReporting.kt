@@ -41,7 +41,11 @@ class TestwiseCoverageReporting(
 		)
 		val jacocoExecutionData = ReportUtils.listFiles(ETestArtifactFormat.JACOCO, reportOutputDirs)
 		if (jacocoExecutionData.isEmpty()) {
-			logger.error("No execution data provided!")
+			logger.error(
+				"No execution data provided." +
+						" Make sure the upstream Test task has the JaCoCo extension enabled" +
+						" (e.g. via the 'jacoco' plugin)."
+			)
 			return
 		}
 

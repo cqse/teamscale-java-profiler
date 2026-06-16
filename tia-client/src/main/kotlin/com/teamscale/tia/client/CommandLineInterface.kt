@@ -29,7 +29,8 @@ class CommandLineInterface(arguments: Array<String>) {
 	init {
 		if (arguments.size < 2) {
 			throw InvalidCommandLineException(
-				"You must provide at least two arguments: the agent's URL and the command to execute"
+				"You must provide at least two arguments: the agent's URL and a command." +
+						" Usage: <agent-url> <startTestRun|startTest|endTest|endTestRun> [options]."
 			)
 		}
 

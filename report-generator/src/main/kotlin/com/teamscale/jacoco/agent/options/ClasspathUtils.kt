@@ -36,7 +36,8 @@ object ClasspathUtils {
 			txtFile.readLines()
 		} catch (e: IOException) {
 			throw IOException(
-				"Failed to read class path entries from the provided $txtFile in the `$key` option.", e
+				"Failed to read class-path entries from $txtFile (configured via option '$key')." +
+						" Verify the file exists and is readable by the user running the JVM.", e
 			)
 		}
 

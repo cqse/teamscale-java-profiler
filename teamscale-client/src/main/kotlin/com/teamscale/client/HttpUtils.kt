@@ -101,7 +101,11 @@ object HttpUtils {
 			val host = proxySystemProperties.proxyHost ?: return false
 			useProxyServer(httpClientBuilder, host, proxySystemProperties.proxyPort)
 		} catch (e: ProxySystemProperties.IncorrectPortFormatException) {
-			LOGGER.warn(e.message)
+			LOGGER.warn(
+				"Ignoring invalid proxy port from system properties (http.proxyPort/https.proxyPort): {}." +
+						" The proxy will not be used until a valid port is configured.",
+				e.message
+			)
 			return false
 		}
 

@@ -63,8 +63,11 @@ abstract class HttpZipUploaderBase<T>
 					(this as? IUploadRetry)?.markFileForUploadRetry(coverageFile)
 				}
 			}
-		} catch (_: IOException) {
-			logger.warn("Could not delete file {} after upload", coverageFile)
+		} catch (e: IOException) {
+			logger.warn(
+				"Could not delete coverage file {} after a successful upload — you may delete it manually.",
+				coverageFile, e
+			)
 		}
 	}
 

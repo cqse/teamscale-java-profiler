@@ -1,5 +1,6 @@
 package com.teamscale.jacoco.agent
 
+import com.teamscale.client.BugReportMessages
 import com.teamscale.report.jacoco.dump.Dump
 import org.jacoco.agent.rt.IAgent
 import org.jacoco.core.data.ExecutionDataReader
@@ -47,7 +48,10 @@ class JacocoRuntimeController
 				}
 			}
 		} catch (e: IOException) {
-			throw DumpException("should never happen for the ByteArrayInputStream", e)
+			throw DumpException(
+				"Unexpected IOException while reading the in-memory coverage dump." +
+						" ${BugReportMessages.REPORT_TO_CQSE}", e
+			)
 		}
 	}
 
@@ -75,7 +79,10 @@ class JacocoRuntimeController
 		try {
 			agent.dump(true)
 		} catch (e: IOException) {
-			throw DumpException(e.message, e)
+			throw DumpException(
+				"Failed to dump execution data: ${e.message ?: e.javaClass.simpleName}." +
+						" The dump will be retried on the next interval.", e
+			)
 		}
 	}
 

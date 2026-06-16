@@ -261,7 +261,9 @@ object GitPropertiesLocatorUtils {
 			}
 		} catch (e: IOException) {
 			throw IOException(
-				"Reading jar ${file.absolutePath} for obtaining commit descriptor from git.properties failed", e
+				"Reading JAR file ${file.absolutePath} for git.properties failed: ${e.message}." +
+						" Verify the file is a valid JAR and is readable by the user running the JVM.",
+				e
 			)
 		}
 	}
@@ -316,7 +318,9 @@ object GitPropertiesLocatorUtils {
 				}
 			} catch (e: IOException) {
 				throw IOException(
-					"Reading directory ${gitPropertiesFile.absolutePath} for obtaining commit descriptor from git.properties failed", e
+					"Reading directory ${gitPropertiesFile.absolutePath} for git.properties failed: ${e.message}." +
+							" Verify the path is readable by the user running the JVM.",
+					e
 				)
 			}
 		}
@@ -359,7 +363,10 @@ object GitPropertiesLocatorUtils {
 		}
 
 		if (isEmpty && isRootArchive) {
-			throw IOException("No entries in Jar file $archiveName. Is this a valid jar file?. If so, please report to CQSE.")
+			throw IOException(
+				"No entries found in JAR file $archiveName. Verify this is a valid JAR file." +
+						" If it is, report a bug."
+			)
 		}
 
 		return result

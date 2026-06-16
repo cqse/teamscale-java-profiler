@@ -32,7 +32,10 @@ class FilePatternResolver(private val logger: ILogger) {
 		try {
 			return listOf<File>(workingDirectory.toPath().resolve(Paths.get(pattern)).toFile())
 		} catch (e: InvalidPathException) {
-			throw IOException("Invalid path given for option $optionName: $pattern", e)
+			throw IOException(
+				"Invalid path given for option '$optionName': '$pattern' (${e.message})." +
+						" Use a normal file system path or an Ant-style pattern.", e
+			)
 		}
 	}
 
@@ -55,7 +58,10 @@ class FilePatternResolver(private val logger: ILogger) {
 		try {
 			return workingDirectory.toPath().resolve(Paths.get(pattern))
 		} catch (e: InvalidPathException) {
-			throw IOException("Invalid path given for option $optionName: $pattern", e)
+			throw IOException(
+				"Invalid path given for option '$optionName': '$pattern' (${e.message})." +
+						" Use a normal file system path or an Ant-style pattern.", e
+			)
 		}
 	}
 
@@ -133,7 +139,8 @@ class FilePatternResolver(private val logger: ILogger) {
 			get() {
 				if (matchingPaths.isEmpty()) {
 					logger.warn(
-						"The pattern $suffixPattern in $basePath for option $optionName did not match any file!"
+						"The pattern '$suffixPattern' under '$basePath' (option '$optionName') matched no files." +
+							" Check the pattern and the working directory."
 					)
 				}
 				logger.info("Resolved $pattern to ${matchingPaths.size} for option $optionName")

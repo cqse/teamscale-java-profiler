@@ -1,5 +1,6 @@
 package com.teamscale.jacoco.agent.upload.azure
 
+import com.teamscale.client.BugReportMessages
 import com.teamscale.jacoco.agent.upload.UploaderException
 import com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.CONTENT_ENCODING
 import com.teamscale.jacoco.agent.upload.azure.AzureHttpHeader.CONTENT_LANGUAGE
@@ -89,13 +90,25 @@ internal object AzureFileStorageHttpUtils {
 			val authKey = String(Base64.getEncoder().encode(mac.doFinal(stringToSign.toByteArray(charset("UTF-8")))))
 			return "SharedKey $account:$authKey"
 		} catch (e: NoSuchAlgorithmException) {
-			throw UploaderException("Something is really wrong...", e)
+			throw UploaderException(
+				"Your JVM does not support the HMAC-SHA256 algorithm required for Azure shared-key authentication." +
+						" Please use a different JVM that includes support for it.", e
+			)
 		} catch (e: UnsupportedEncodingException) {
-			throw UploaderException("Something is really wrong...", e)
+			throw UploaderException(
+				"The JVM does not support the UTF-8 charset required for Azure shared-key authentication." +
+						" Please use a different JVM that includes support for it.", e
+			)
 		} catch (e: InvalidKeyException) {
-			throw UploaderException("The given access key is malformed: $key", e)
+			throw UploaderException(
+				"The Azure access key configured via the 'azure-key' option is malformed: ${e.message}." +
+						" The key must be a valid Base64 string copied from the Azure portal.", e
+			)
 		} catch (e: IllegalArgumentException) {
-			throw UploaderException("The given access key is malformed: $key", e)
+			throw UploaderException(
+				"The Azure access key configured via the 'azure-key' option is not valid Base64: ${e.message}." +
+						" Copy the key as-is from the Azure portal.", e
+			)
 		}
 	}
 

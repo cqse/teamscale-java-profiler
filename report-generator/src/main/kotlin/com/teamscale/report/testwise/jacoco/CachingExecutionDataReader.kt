@@ -29,7 +29,9 @@ open class CachingExecutionDataReader(
 	 */
 	fun analyzeClassDirs() {
 		if (classesDirectories.isEmpty()) {
-			logger.warn("No class directories found for caching.")
+			logger.warn(
+				"No class directories provided — testwise coverage will be calculated without caching."
+			)
 			return
 		}
 		val analyzer = AnalyzerCache(probeCache, locationIncludeFilter, logger)
@@ -68,7 +70,10 @@ open class CachingExecutionDataReader(
 	private fun validateAnalysisResult(classCount: Int) {
 		val directoryList = classesDirectories.joinToString(",") { it.path }
 		when {
-			classCount == 0 -> logger.error("No class files found in directories: $directoryList")
+			classCount == 0 -> logger.error(
+				"No class files found in directories: $directoryList." +
+						" Verify that 'class-dir' points to compiled output and not the source tree."
+			)
 			probeCache.isEmpty -> logger.error(
 				"None of the $classCount class files found in the given directories match the configured include/exclude patterns! $directoryList"
 			)
@@ -93,7 +98,13 @@ open class CachingExecutionDataReader(
 			)
 			runCatching { buildCoverage(testId, dump.store, locationIncludeFilter) }
 				.onSuccess(nextConsumer::accept)
-				.onFailure { e -> logger.error("Failed to generate coverage for test $testId", e) }
+				.onFailure { e ->
+					logger.error(
+						"Failed to generate coverage for test $testId." +
+								" This test's coverage will be missing from the report. Check the agent log for the cause.",
+						e
+					)
+				}
 		}
 
 		/**

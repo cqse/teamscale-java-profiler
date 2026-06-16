@@ -90,7 +90,8 @@ object TeamscaleUtils {
 
 		if (!response.isSuccessful) {
 			throw FatalInstallerError(
-				"Unexpected response from Teamscale, HTTP status ${response.code} ${response.message}"
+				"Unexpected response from Teamscale at ${credentials.url}," +
+						" HTTP ${response.code} ${response.message}: ${response.body.string()}."
 			)
 		}
 	}

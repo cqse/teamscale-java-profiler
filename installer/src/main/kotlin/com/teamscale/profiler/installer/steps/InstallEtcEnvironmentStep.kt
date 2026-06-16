@@ -50,7 +50,11 @@ class InstallEtcEnvironmentStep(
 			}
 
 		} catch (e: IOException) {
-			throw PermissionError("Failed to modify ${environmentFile.toAbsolutePath()}.", e)
+			throw PermissionError(
+				"Failed to modify ${environmentFile.toAbsolutePath()}." +
+						" Ensure the installer is running as root and that no other process is editing the file.",
+				e
+			)
 		}
 	}
 
