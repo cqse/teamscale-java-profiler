@@ -7,7 +7,7 @@ plugins {
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-	enableAutoRelocation = project.properties["debug"] !== "true"
+	enableAutoRelocation = providers.gradleProperty("debug").map { it != "true" }.orElse(true)
 	archiveClassifier = null as String?
 	mergeServiceFiles()
 	// Relocates the .kotlin_metadata files to ensure reflection in Kotlin does not break

@@ -17,7 +17,7 @@ java {
 
 testing {
 	suites {
-		val test by getting(JvmTestSuite::class) {
+		getByName<JvmTestSuite>("test") {
 			useJUnitJupiter()
 		}
 
@@ -49,9 +49,9 @@ teamscale {
 	}
 }
 
-val test by testing.suites.existing(JvmTestSuite::class)
+val test = testing.suites.named<JvmTestSuite>("test")
 
-val unitTest by tasks.registering(Test::class) {
+val unitTest = tasks.register<Test>("unitTest") {
 	useJUnitPlatform()
 	configure<JacocoTaskExtension> {
 		includes = listOf("com.example.*")
@@ -60,7 +60,7 @@ val unitTest by tasks.registering(Test::class) {
 	classpath = files(test.map { it.sources.runtimeClasspath })
 }
 
-val systemTest by tasks.registering(Test::class) {
+val systemTest = tasks.register<Test>("systemTest") {
 	useJUnitPlatform()
 	configure<JacocoTaskExtension> {
 		includes = listOf("com.example.*")
