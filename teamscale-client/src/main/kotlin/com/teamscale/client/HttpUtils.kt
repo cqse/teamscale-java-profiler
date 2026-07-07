@@ -96,15 +96,16 @@ object HttpUtils {
 	internal var systemProxySelectorSupplier: () -> ProxySelector? = {
 		ProxySearch.getDefaultProxySearch().proxySelector
 	}
-		set(value) {
+		set(value) = synchronized(this) {
 			field = value
 			cachedSystemProxySelector = null
 		}
 
 	/**
-	 * Caches the detected system [ProxySelector] (wrapped in an [Optional] to also cache the "no proxy detected" result).
-	 * The OS proxy configuration does not change during the lifetime of the JVM, so the potentially expensive detection
-	 * (PAC download, WPAD lookup, native OS calls) only needs to run once. `null` means "not yet detected".
+	 * Caches a *successful* system [ProxySelector] detection (wrapped in an [Optional] to also cache the
+	 * "no proxy configured" result). The OS proxy configuration does not change during the lifetime of the JVM, so the
+	 * potentially expensive detection (PAC download, WPAD lookup, native OS calls) only needs to run once. `null` means
+	 * "not yet detected". A detection *failure* is deliberately not cached (see [detectSystemProxySelector]).
 	 */
 	private var cachedSystemProxySelector: Optional<ProxySelector>? = null
 
@@ -116,7 +117,7 @@ object HttpUtils {
 	 * connection instead of preventing the profiler from starting.
 	 */
 	private fun Builder.setUpSystemProxySelector() {
-		if (!"true".equals(System.getProperty("java.net.useSystemProxies"), ignoreCase = true)) {
+		if (!System.getProperty("java.net.useSystemProxies").toBoolean()) {
 			return
 		}
 
@@ -129,19 +130,23 @@ object HttpUtils {
 		proxySelector(proxySelector)
 	}
 
-	/** Detects the system [ProxySelector] once and caches it (see [cachedSystemProxySelector]). */
+	/**
+	 * Detects the system [ProxySelector] once and caches a successful result (see [cachedSystemProxySelector]).
+	 * Synchronized so that concurrent client construction runs the potentially expensive detection at most once.
+	 */
+	@Synchronized
 	private fun detectSystemProxySelector(): ProxySelector? {
 		cachedSystemProxySelector?.let { return it.orElse(null) }
 
 		val proxySelector = try {
 			systemProxySelectorSupplier()
-		} catch (e: RuntimeException) {
+		} catch (e: Exception) {
 			LOGGER.warn(
 				"Failed to detect the system proxy configuration. Falling back to a direct connection." +
 						" Configure the proxy explicitly via the proxy-http-host/proxy-https-host options if needed.",
 				e
 			)
-			null
+			return null
 		}
 		cachedSystemProxySelector = Optional.ofNullable(proxySelector)
 		return proxySelector
