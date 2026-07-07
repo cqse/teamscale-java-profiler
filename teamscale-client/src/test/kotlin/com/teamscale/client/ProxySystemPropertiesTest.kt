@@ -20,6 +20,23 @@ internal class ProxySystemPropertiesTest {
 		assertThat(properties.proxyPort).isEqualTo(-1)
 	}
 
+	@Test
+	fun testUsesStandardJvmProxyPropertyKeys() {
+		properties.proxyHost = "myHost"
+		properties.proxyPort = 1234
+
+		assertThat(System.getProperty("http.proxyHost")).isEqualTo("myHost")
+		assertThat(System.getProperty("http.proxyPort")).isEqualTo("1234")
+		assertThat(System.getProperty("http..proxyHost")).isNull()
+		properties.clear()
+
+		// The Teamscale-specific variant keeps its "teamscale." prefix so it does not collide with the JVM properties.
+		val teamscaleProperties = TeamscaleProxySystemProperties(ProxySystemProperties.Protocol.HTTP)
+		teamscaleProperties.proxyHost = "teamscaleHost"
+		assertThat(System.getProperty("teamscale.http.proxyHost")).isEqualTo("teamscaleHost")
+		teamscaleProperties.clear()
+	}
+
 	companion object {
 		private val properties = ProxySystemProperties(ProxySystemProperties.Protocol.HTTP)
 

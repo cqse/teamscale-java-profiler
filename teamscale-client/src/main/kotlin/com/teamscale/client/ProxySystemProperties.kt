@@ -13,10 +13,10 @@ package com.teamscale.client
 open class ProxySystemProperties(private val protocol: Protocol) {
 
 	companion object {
-		private const val PROXY_HOST_SYSTEM_PROPERTY = ".proxyHost"
-		private const val PROXY_PORT_SYSTEM_PROPERTY = ".proxyPort"
-		private const val PROXY_USER_SYSTEM_PROPERTY = ".proxyUser"
-		private const val PROXY_PASSWORD_SYSTEM_PROPERTY = ".proxyPassword"
+		private const val PROXY_HOST_SYSTEM_PROPERTY = "proxyHost"
+		private const val PROXY_PORT_SYSTEM_PROPERTY = "proxyPort"
+		private const val PROXY_USER_SYSTEM_PROPERTY = "proxyUser"
+		private const val PROXY_PASSWORD_SYSTEM_PROPERTY = "proxyPassword"
 	}
 
 	/**
