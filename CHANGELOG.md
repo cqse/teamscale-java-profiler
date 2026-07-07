@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [feature] _agent_: The profiler can now read the system proxy configuration including Proxy-Auto-Config (PAC) files to reach Teamscale. Set `-Djava.net.useSystemProxies=true` to opt in. Explicitly configured proxies (via the `proxy-http-host`/`proxy-https-host` options or the `-Dhttp.proxyHost`/`-Dhttps.proxyHost` JVM properties) take precedence.
+- [fix] _agent_: The standard JVM proxy properties (`-Dhttp.proxyHost`/`-Dhttp.proxyPort`/`-Dhttps.proxyHost`/...) were looked up under a malformed key and thus ignored.
 - [security fix] _agent_: The Azure shared-key error messages no longer include the configured `azure-key` value in the exception text (previously leaked the access key into stack traces and logs)
 
 # 37.0.0
