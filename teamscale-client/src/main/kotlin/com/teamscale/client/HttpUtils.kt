@@ -1,5 +1,6 @@
 package com.teamscale.client
 
+import com.github.markusbernhardt.proxy.ProxySearch
 import okhttp3.Authenticator
 import okhttp3.Credentials.basic
 import okhttp3.Interceptor
@@ -9,12 +10,12 @@ import retrofit2.Retrofit
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Proxy
+import java.net.ProxySelector
 import java.security.GeneralSecurityException
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.time.Duration
 import java.util.*
-import java.util.function.Consumer
 import javax.net.ssl.*
 
 /**
@@ -79,13 +80,71 @@ object HttpUtils {
 	 * [https://stackoverflow.com/a/35567936](https://stackoverflow.com/a/35567936)
 	 */
 	private fun Builder.setUpProxyServer() {
-		val setHttpsProxyWasSuccessful = setUpProxyServerForProtocol(
-			ProxySystemProperties.Protocol.HTTPS,
-			this
-		)
-		if (!setHttpsProxyWasSuccessful) {
-			setUpProxyServerForProtocol(ProxySystemProperties.Protocol.HTTP, this)
+		val explicitProxyConfigured = setUpProxyServerForProtocol(ProxySystemProperties.Protocol.HTTPS, this) ||
+				setUpProxyServerForProtocol(ProxySystemProperties.Protocol.HTTP, this)
+
+		// No explicit proxy configured: auto-detect the proxy from the operating system (including PAC files).
+		if (!explicitProxyConfigured) {
+			setUpSystemProxySelector()
 		}
+	}
+
+	/**
+	 * Supplies the operating system's [ProxySelector] including Proxy-Auto-Config (PAC) support.
+	 * Overridable in tests to inject a deterministic selector.
+	 */
+	internal var systemProxySelectorSupplier: () -> ProxySelector? = {
+		ProxySearch.getDefaultProxySearch().proxySelector
+	}
+		set(value) {
+			field = value
+			cachedSystemProxySelector = null
+		}
+
+	/**
+	 * Caches the detected system [ProxySelector] (wrapped in an [Optional] to also cache the "no proxy detected" result).
+	 * The OS proxy configuration does not change during the lifetime of the JVM, so the potentially expensive detection
+	 * (PAC download, WPAD lookup, native OS calls) only needs to run once. `null` means "not yet detected".
+	 */
+	private var cachedSystemProxySelector: Optional<ProxySelector>? = null
+
+	/**
+	 * Installs a [ProxySelector] that reads the operating system's proxy configuration including Proxy-Auto-Config (PAC)
+	 * files. This is only enabled when the user sets `-Djava.net.useSystemProxies=true`.
+	 *
+	 * Any failure while detecting the system proxy is logged and ignored so that the connection falls back to a direct
+	 * connection instead of preventing the profiler from starting.
+	 */
+	private fun Builder.setUpSystemProxySelector() {
+		if (!"true".equals(System.getProperty("java.net.useSystemProxies"), ignoreCase = true)) {
+			return
+		}
+
+		val proxySelector = detectSystemProxySelector()
+		if (proxySelector == null) {
+			LOGGER.debug("java.net.useSystemProxies is set but no system proxy could be detected.")
+			return
+		}
+		LOGGER.debug("Using the system proxy configuration (including PAC files) to reach Teamscale.")
+		proxySelector(proxySelector)
+	}
+
+	/** Detects the system [ProxySelector] once and caches it (see [cachedSystemProxySelector]). */
+	private fun detectSystemProxySelector(): ProxySelector? {
+		cachedSystemProxySelector?.let { return it.orElse(null) }
+
+		val proxySelector = try {
+			systemProxySelectorSupplier()
+		} catch (e: RuntimeException) {
+			LOGGER.warn(
+				"Failed to detect the system proxy configuration. Falling back to a direct connection." +
+						" Configure the proxy explicitly via the proxy-http-host/proxy-https-host options if needed.",
+				e
+			)
+			null
+		}
+		cachedSystemProxySelector = Optional.ofNullable(proxySelector)
+		return proxySelector
 	}
 
 	private fun setUpProxyServerForProtocol(

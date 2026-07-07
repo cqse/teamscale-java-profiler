@@ -17,5 +17,6 @@ dependencies {
 	implementation(libs.commonsCodec)
 	implementation(libs.slf4j.api)
 	implementation(libs.retrofit.converter.jackson)
+	implementation(libs.proxy.vole)
 	testImplementation(libs.okhttp.mockwebserver)
 }
