@@ -10,6 +10,7 @@ import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleConfig
 import com.teamscale.report.testwise.jacoco.cache.CoverageGenerationException
+import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.report.testwise.model.TestInfo
 import java.io.IOException
@@ -26,16 +27,33 @@ abstract class TestEventHandlerStrategyBase protected constructor(
 	/** The timestamp at which the /test/start endpoint has been called last time.  */
 	private var startTimestamp: Long = -1
 
+	/** Uniform path of the test that is currently running, or null if no test is in progress.  */
+	private var runningTest: String? = null
+
 	/** May be null if the user did not configure Teamscale.  */
 	@JvmField
 	protected val teamscaleClient = agentOptions.createTeamscaleClient(true)
 
 	/** Called when test test with the given name is about to start.  */
 	open fun testStart(test: String) {
+		runningTest?.let { previousTest ->
+			logger.warn(
+				"Test '{}' was started while test '{}' was still running (no /test/end was received)." +
+						" Automatically ending the previous test '{}' using the time until the new test's start as its duration.",
+				test, previousTest, ETestExecutionResult.SKIPPED
+			)
+			testEnd(
+				previousTest, TestExecution(
+					previousTest, 0L, ETestExecutionResult.SKIPPED,
+					"The test did not end properly: a new test ('$test') was started before this test ended."
+				)
+			)
+		}
 		logger.debug("Test {} started", test)
 		// Reset coverage so that we only record coverage that belongs to this particular test case.
 		controller.reset()
 		controller.sessionId = test
+		runningTest = test
 		startTimestamp = System.currentTimeMillis()
 	}
 
@@ -61,6 +79,7 @@ abstract class TestEventHandlerStrategyBase protected constructor(
 				testExecution.durationMillis = endTimestamp - startTimestamp
 			}
 		}
+		runningTest = null
 		logger.debug("Test {} ended with test execution {}", test, testExecution)
 		return null
 	}

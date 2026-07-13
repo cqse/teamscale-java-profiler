@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _agent_: Changed testwise coverage mode to log a warning and finalize an interrupted test as `SKIPPED` (with a calculated duration) if a new test started before the previous `/test/end` event arrived.
 - [security fix] _agent_: The Azure shared-key error messages no longer include the configured `azure-key` value in the exception text (previously leaked the access key into stack traces and logs)
 
 # 37.0.0
