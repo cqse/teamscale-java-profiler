@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _agent_: A configured dump `interval` smaller than 1h is now applied only once and then raised to 1h to prevent excessive uploads that can overwhelm Teamscale. A warning is logged at startup when this happens.
 
 # 37.0.1
 - [fix] _agent_: Changed testwise coverage mode to log a warning and finalize an interrupted test as `SKIPPED` (with a calculated duration) if a new test started before the previous `/test/end` event arrived.
