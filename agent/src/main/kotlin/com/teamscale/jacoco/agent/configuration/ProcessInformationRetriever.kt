@@ -52,10 +52,7 @@ class ProcessInformationRetriever(private val logger: ILogger) {
 				} catch (_: ReflectiveOperationException) {
 					// getRunTimeMXBean().name returns 'pid@hostname'
 					val res = ManagementFactory.getRuntimeMXBean().name
-					if (res.contains('@')){
-						return res.split('@')[0]
-					}
-					return res
+					return res.substringBefore('@')
 				}
 			}
 	}
