@@ -10,6 +10,7 @@ import com.teamscale.report.testwise.model.TestwiseCoverage
 import com.teamscale.report.testwise.model.builder.FileCoverageBuilder
 import com.teamscale.report.testwise.model.builder.TestCoverageBuilder
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
@@ -61,6 +62,42 @@ class CoverageToTeamscaleStrategyTest {
 			anyOrNull(),
 			anyOrNull()
 		)
+	}
+
+	/** Regression test for TS-46939. */
+	@Test
+	@Throws(Exception::class)
+	fun shouldAutomaticallyEndPreviousTestAsSkippedWhenNewTestStartsWithoutEnd() {
+		val options = mockOptions(false)
+		val strategy = CoverageToTeamscaleStrategy(controller, options, reportGenerator)
+
+		whenever(reportGenerator.convert(any<File>())).thenReturn(getDummyTestwiseCoverage("a", "b"))
+
+		// Test "a" is started but never ended. Starting "b" must auto-end "a" instead of dropping it.
+		strategy.testStart("a")
+		// Test "a" needs to take some time so that we can assert its duration is non-zero.
+		Thread.sleep(5)
+		strategy.testStart("b")
+		strategy.testEnd("b", TestExecution("b", 0L, ETestExecutionResult.PASSED))
+		strategy.testRunEnd(false)
+
+		val reportCaptor = argumentCaptor<String>()
+		verify(client).uploadReport(
+			eq(EReportFormat.TESTWISE_COVERAGE),
+			reportCaptor.capture(),
+			anyOrNull(),
+			anyOrNull(),
+			anyOrNull(),
+			anyOrNull(),
+			anyOrNull()
+		)
+		val report = reportCaptor.firstValue
+
+		assertThat(report).contains("\"uniformPath\":\"a\"", "\"result\":\"SKIPPED\"")
+		assertThat(report).contains("\"uniformPath\":\"b\"", "\"result\":\"PASSED\"")
+		val durationA = Regex("\"uniformPath\":\"a\"[^}]*?\"duration\":([0-9.E-]+)")
+			.find(report)!!.groupValues[1].toDouble()
+		assertThat(durationA).isGreaterThan(0.0)
 	}
 
 	@ParameterizedTest
@@ -133,14 +170,19 @@ class CoverageToTeamscaleStrategyTest {
 	}
 
 	companion object {
-		/** Returns a dummy testwise coverage object for a test with the given name that covers a few lines of Main.java.  */
-		fun getDummyTestwiseCoverage(test: String): TestwiseCoverage {
+		/** Returns a dummy coverage builder for a test with the given name that covers a few lines of Main.java.  */
+		fun getDummyTestCoverage(test: String): TestCoverageBuilder {
 			val testCoverageBuilder = TestCoverageBuilder(test)
 			val fileCoverageBuilder = FileCoverageBuilder("src/main/java", "Main.java")
 			fileCoverageBuilder.addLineRange(1, 4)
 			testCoverageBuilder.add(fileCoverageBuilder)
+			return testCoverageBuilder
+		}
+
+		/** Returns a dummy testwise coverage object for the given test names that each cover a few lines of Main.java.  */
+		fun getDummyTestwiseCoverage(vararg tests: String): TestwiseCoverage {
 			val testwiseCoverage = TestwiseCoverage()
-			testwiseCoverage.add(testCoverageBuilder)
+			tests.forEach { testwiseCoverage.add(getDummyTestCoverage(it)) }
 			return testwiseCoverage
 		}
 	}
