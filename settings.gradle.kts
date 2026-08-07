@@ -1,6 +1,6 @@
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
-    id("io.github.sgtsilvio.gradle.oci") version("0.29.0")
+    id("io.github.sgtsilvio.gradle.oci") version("0.30.0")
 }
 
 dependencyResolutionManagement {
