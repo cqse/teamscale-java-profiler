@@ -6,6 +6,7 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [fix] _agent_: In some cases the hostname was wrongly added to the PID when sending it to Teamscale.
+- [fix] _teamscale-gradle-plugin_: Fixed compatibility with Gradle 9.7, which requires report containers to implement `getElements()`.
 
 # 37.0.1
 - [fix] _agent_: Changed testwise coverage mode to log a warning and finalize an interrupted test as `SKIPPED` (with a calculated duration) if a new test started before the previous `/test/end` event arrived.
