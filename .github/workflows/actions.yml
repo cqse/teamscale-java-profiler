@@ -17,7 +17,21 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - uses: gradle/actions/setup-gradle@v6
+      # Anchored so the Windows job can reuse this step verbatim via *setup-gradle.
+      - &setup-gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          # "caches" and "notifications" are the action's defaults and have to be repeated here. "wrapper" additionally
+          # caches the Gradle distributions under wrapper/dists. The teamscale-gradle-plugin tests run against
+          # MINIMUM_SUPPORTED_VERSION via TestKit, so without this every build re-downloads that distribution
+          # (~145 MB) from services.gradle.org, which has made builds fail when that server was unavailable.
+          # The "-all" distribution used by our own wrapper is excluded because it alone would add ~570 MB.
+          gradle-home-cache-includes: |
+            caches
+            notifications
+            wrapper
+          gradle-home-cache-excludes: |
+            wrapper/dists/gradle-*-all
       - name: Build with Gradle
         run: ./gradlew build
       - name: Upload Release Assets
@@ -78,7 +92,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - uses: gradle/actions/setup-gradle@v6
+      - *setup-gradle
       - name: Build with Gradle
         run: ./gradlew build --max-workers=2
       - name: Upload coverage to Teamscale
