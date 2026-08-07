@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 37.0.2
 - [fix] _agent_: In some cases the hostname was wrongly added to the PID when sending it to Teamscale.
 - [fix] _teamscale-gradle-plugin_: Fixed compatibility with Gradle 9.7, which requires report containers to implement `getElements()`.
 
