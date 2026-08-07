@@ -26,6 +26,15 @@ open class Reports<T : Report>(objectFactory: ObjectFactory, clazz: Class<T>) : 
 	}
 
 	/**
+	 * @implNote Gradle 9.7+ re-declares this as an abstract member of `ReportContainer`. The `@Internal` annotation
+	 * must be repeated here because it is not inherited on the older Gradle versions we still support.
+	 */
+	@Internal
+	override fun getElements(): Provider<out Collection<T>> {
+		return reports.elements
+	}
+
+	/**
 	 * Adds the specified report to the container.
 	 *
 	 * @param report Report to add to the container
