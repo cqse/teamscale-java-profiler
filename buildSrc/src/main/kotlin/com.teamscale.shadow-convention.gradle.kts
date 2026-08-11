@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.KotlinModuleMetadataTransformer
 
 plugins {
 	java
@@ -10,11 +11,10 @@ tasks.named<ShadowJar>("shadowJar") {
 	enableAutoRelocation = providers.gradleProperty("debug").map { it != "true" }.orElse(true)
 	archiveClassifier = null as String?
 	mergeServiceFiles()
-	// Relocates the .kotlin_metadata files to ensure reflection in Kotlin does not break
-	relocate("kotlin", "shadow.kotlin")
-	relocate("okhttp3", "shadow.okhttp3")
-	relocate("okio", "shadow.okio")
-	relocate("retrofit", "shadow.retrofit")
+	// Rewrites the package parts inside the .kotlin_module files so they match the relocated
+	// classes. Shadow still does this implicitly via the deprecated enableKotlinModuleRemapping
+	// flag, but that flag is removed in Shadow 10, so we apply the transformer explicitly.
+	transform(KotlinModuleMetadataTransformer::class.java)
 	val archiveFile = this.archiveFile
 	doLast("revertKotlinPackageChanges") { revertKotlinPackageChanges(archiveFile) }
 }
