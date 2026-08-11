@@ -14,6 +14,21 @@ mavenPlugin {
 	helpMojoPackage = "com.teamscale.maven.help"
 }
 
+// This module is not shaded itself, but the bundled logback configuration is handed to the shaded
+// agent, so it has to reference the relocated logback classes.
+tasks.processResources {
+	shadowLoggingPackages(usesShadowedPackages)
+}
+
+val verifyShadowedLoggingConfigs by tasks.registering(VerifyShadowedLoggingConfigs::class) {
+	archives.from(tasks.jar)
+	relocated = usesShadowedPackages
+}
+
+tasks.check {
+	dependsOn(verifyShadowedLoggingConfigs)
+}
+
 dependencies {
 	runtimeOnly(project(":agent"))
 	implementation(project(":report-generator"))

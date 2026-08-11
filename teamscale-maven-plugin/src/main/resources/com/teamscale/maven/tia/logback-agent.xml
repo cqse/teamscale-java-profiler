@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="FILE" class="shadow.ch.qos.logback.core.FileAppender">
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>${TEAMSCALE_AGENT_LOG_FILE}</file>
         <encoder>
             <pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{35} - %msg%n</pattern>
@@ -10,7 +10,4 @@
     <root level="${TEAMSCALE_AGENT_LOG_LEVEL}">
         <appender-ref ref="FILE"/>
     </root>
-
-    <logger name="shadow.org.apache.spark" level="warn" />
-    <logger name="shadow.org.eclipse.jetty" level="warn" />
 </configuration>

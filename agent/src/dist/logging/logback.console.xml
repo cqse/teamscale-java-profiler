@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <appender name="CONSOLE" class="shadow.ch.qos.logback.core.ConsoleAppender">
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{35} - %msg%n</pattern>
     </encoder>
@@ -9,7 +9,4 @@
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
   </root>
-
-  <logger name="shadow.org.apache.spark" level="warn" />
-  <logger name="shadow.org.eclipse.jetty" level="warn" />
 </configuration>

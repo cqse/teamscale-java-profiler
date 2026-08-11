@@ -99,6 +99,21 @@ distributions {
 	}
 }
 
+// The logging templates in src/dist are checked in without the shadow prefix so they also work when
+// relocation is disabled. Add the prefix while packaging them, since the distribution ships the shaded agent.
+listOf(tasks.shadowDistZip, tasks.shadowDistTar, tasks.installShadowDist).forEach { task ->
+	task { shadowLoggingPackages(usesShadowedPackages) }
+}
+
+val verifyShadowedLoggingConfigs by tasks.registering(VerifyShadowedLoggingConfigs::class) {
+	archives.from(tasks.shadowJar, tasks.shadowDistZip)
+	relocated = usesShadowedPackages
+}
+
+tasks.check {
+	dependsOn(verifyShadowedLoggingConfigs)
+}
+
 tasks.shadowDistZip {
 	archiveFileName = "teamscale-jacoco-agent.zip"
 }

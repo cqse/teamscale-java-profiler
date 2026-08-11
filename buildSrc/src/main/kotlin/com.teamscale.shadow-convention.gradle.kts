@@ -8,9 +8,12 @@ plugins {
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-	enableAutoRelocation = providers.gradleProperty("debug").map { it != "true" }.orElse(true)
+	enableAutoRelocation = usesShadowedPackages
 	archiveClassifier = null as String?
 	mergeServiceFiles()
+	// Our logback configurations are checked in without the shadow prefix so they also work when
+	// relocation is disabled. Add the prefix while packaging them into the shaded jar.
+	shadowLoggingPackages(usesShadowedPackages)
 	// Rewrites the package parts inside the .kotlin_module files so they match the relocated
 	// classes. Shadow still does this implicitly via the deprecated enableKotlinModuleRemapping
 	// flag, but that flag is removed in Shadow 10, so we apply the transformer explicitly.
