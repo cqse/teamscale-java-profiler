@@ -16,7 +16,6 @@ tasks.test {
 
 	environment("AGENT_JAR", agentJar)
 	environment("SYSTEM_UNDER_TEST_JAR", tasks.jar.get().outputs.files.singleFile)
-	dependsOn(":sample-app:assemble")
 
 	val teamscalePropertiesPath = agentJar.toPath().parent.parent.resolve("teamscale.properties")
 	doFirst {
