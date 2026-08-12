@@ -20,10 +20,18 @@ tasks.jar {
 	}
 }
 
+/**
+ * Uses `jacocoagent.local.properties` if it exists, so credentials for a real Teamscale instance can be kept out of
+ * version control (the file is git-ignored), and the committed `jacocoagent.properties` otherwise.
+ */
+val agentConfigFile =
+	listOf("jacocoagent.local.properties", "jacocoagent.properties")
+		.first { layout.projectDirectory.file(it).asFile.exists() }
+
 tasks.named<JavaExec>("run") {
 	teamscaleAgent(
 		mapOf(
-			"config-file" to "jacocoagent.properties"
+			"config-file" to agentConfigFile
 		)
 	)
 	dependsOn(":agent:shadowJar")
