@@ -9,7 +9,6 @@
   "rangeStrategy": "bump",
   "separateMajorMinor": false,
   "ignorePaths": [
-    "sample-app/**",
     "report-generator/build.gradle.kts"
   ],
   "packageRules": [
