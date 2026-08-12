@@ -5,9 +5,20 @@ plugins {
 
 val provider = SystemTestPorts.registerWith(project)
 
+/**
+ * Port on which JVMs spawned by the system tests wait for a debugger, requested via `-PdebugSut[=<port>]`.
+ * Absent unless the property is set, in which case no JVM waits for anything.
+ */
+val debugSutPort = providers.gradleProperty("debugSut")
+	.map { if (it.isEmpty() || it == "true") "5005" else it }
+
 tasks.test {
 	dependsOn(":agent:shadowJar")
 	usesService(provider)
+
+	// The spawned JVM suspends until a debugger attaches, so the test must not be run in parallel with others
+	// and must not inherit a timeout. Both are the caller's responsibility (see docs/DEBUGGING.md).
+	debugSutPort.orNull?.let { environment("SYSTEM_TEST_DEBUG_PORT", it) }
 
 	val teamscalePort = provider.get().pickFreePort()
 	val agentPort = provider.get().pickFreePort()
