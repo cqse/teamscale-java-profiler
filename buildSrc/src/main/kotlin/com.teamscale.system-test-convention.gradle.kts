@@ -13,7 +13,6 @@ val debugSutPort = providers.gradleProperty("debugSut")
 	.map { if (it.isEmpty() || it == "true") "5005" else it }
 
 tasks.test {
-	dependsOn(":agent:shadowJar")
 	usesService(provider)
 
 	// The spawned JVM suspends until a debugger attaches, so the test must not be run in parallel with others
