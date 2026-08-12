@@ -12,6 +12,7 @@ val Test.logFilePath
 
 /** Adds a convenient way to attach the Teamscale JaCoCo agent to the JVM with the given options in a readable map format. */
 fun JavaExec.teamscaleAgent(options: Map<String, String>) {
+	dependsOn(":agent:shadowJar")
 	jvmArgs(
 		"-javaagent:$agentJar=${options.entries.joinToString(separator = ",") { "${it.key}=${it.value}" }}"
 	)

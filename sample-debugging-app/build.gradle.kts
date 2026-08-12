@@ -34,5 +34,4 @@ tasks.named<JavaExec>("run") {
 			"config-file" to agentConfigFile
 		)
 	)
-	dependsOn(":agent:shadowJar")
 }
