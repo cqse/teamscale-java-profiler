@@ -1,7 +1,5 @@
 import org.beryx.jlink.BaseTask
-import org.beryx.jlink.CreateMergedModuleTask
 import org.beryx.jlink.JlinkTask
-import org.beryx.jlink.util.JdkUtil
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -39,20 +37,6 @@ tasks.withType<JavaCompile> {
 	options.release = 21
 }
 
-// The jlink tasks expose `targetPlatforms` as an @Input. `jdkDownload` below stores the JDK home as a
-// lazily evaluated Groovy closure in there. The configuration cache replaces that closure's owner with a
-// non-serializable BrokenObject, so fingerprinting the input fails once the task graph is restored:
-//   java.io.NotSerializableException: ...ClosureCodec$BrokenObject
-// Removing these opt-outs therefore requires provisioning the target JDKs ourselves and passing plain
-// paths to `setJdkHome`. Until then, any build that runs jlink falls back to no configuration cache.
-tasks.withType<BaseTask> {
-	notCompatibleWithConfigurationCache("jdkDownload stores a Groovy closure in the targetPlatforms input")
-}
-
-tasks.withType<CreateMergedModuleTask> {
-	notCompatibleWithConfigurationCache("jdkDownload stores a Groovy closure in the targetPlatforms input")
-}
-
 tasks.withType<KotlinCompile> {
 	compilerOptions.jvmTarget = JvmTarget.JVM_21
 }
@@ -75,8 +59,59 @@ application {
 	)
 }
 
-val ADOPTIUM_BINARY_REPOSITORY = "https://api.adoptium.net/v3/binary"
-val RUNTIME_JDK_VERSION = "21.0.6+7"
+val runtimeJdkVersion = providers.gradleProperty("runtimeJdkVersion").get()
+
+/**
+ * Provisions the JDK that the runtime image for the given operating system is linked against and returns the
+ * path to its JDK home.
+ *
+ * The jlink plugin can download the JDK itself via `jdkDownload`, but it stores that download as a lazily
+ * evaluated Groovy closure in its `targetPlatforms` input. The configuration cache replaces the closure's
+ * owner with a non-serializable BrokenObject, which makes fingerprinting that input fail once the task graph
+ * is restored. Handing jlink a plain path keeps the input serializable, and declaring the archive as a
+ * dependency lets Gradle cache it across builds instead of re-downloading it into the build directory.
+ *
+ * The archives are resolved from the Adoptium repository declared in settings.gradle.kts, which is what the
+ * `net.adoptium.cdn` group below refers to.
+ */
+fun provisionRuntimeJdk(operatingSystem: String, archiveExtension: String): String {
+	val archiveName = "OpenJDK${runtimeJdkVersion.substringBefore(".")}U-jdk_x64_" +
+			"${operatingSystem}_hotspot_${runtimeJdkVersion.replace("+", "_")}"
+
+	val jdk = configurations.dependencyScope("${operatingSystem}RuntimeJdk")
+	val jdkArchive = configurations.resolvable("${operatingSystem}RuntimeJdkArchive") {
+		extendsFrom(jdk.get())
+	}
+	dependencies.add(
+		jdk.name,
+		mapOf("group" to "net.adoptium.cdn", "name" to archiveName, "ext" to archiveExtension)
+	)
+
+	val jdkHome = layout.buildDirectory.dir("runtime-jdks/$operatingSystem")
+	val unpackJdk = tasks.register<Sync>("unpack${operatingSystem.replaceFirstChar(Char::titlecase)}RuntimeJdk") {
+		description = "Unpacks the JDK that the $operatingSystem runtime image is linked against."
+		// The archive tree is built during configuration, so that the copy action does not have to reach back
+		// into the build script at execution time.
+		val archiveFile = jdkArchive.map { it.singleFile }
+		from(if (archiveExtension == "zip") zipTree(archiveFile) else tarTree(archiveFile)) {
+			// Everything sits below a single jdk-<version> folder, which we strip to get a predictable path.
+			eachFile {
+				relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+			}
+			includeEmptyDirs = false
+		}
+		into(jdkHome)
+	}
+
+	// The JDK home is a plain string, so Gradle cannot infer this dependency by itself. CreateMergedModuleTask
+	// and JlinkTask both extend BaseTask, so this covers every task that reads a target platform.
+	tasks.withType<BaseTask> {
+		dependsOn(unpackJdk)
+	}
+
+	return jdkHome.get().asFile.absolutePath
+}
+
 jlink {
 	forceMerge("kotlin")
 	options = listOf(
@@ -89,22 +124,10 @@ jlink {
 	}
 
 	targetPlatform("linux-x86_64") {
-		setJdkHome(
-			jdkDownload(
-				"$ADOPTIUM_BINARY_REPOSITORY/version/jdk-${RUNTIME_JDK_VERSION}/linux/x64/jdk/hotspot/normal/eclipse",
-				closureOf<JdkUtil.JdkDownloadOptions> {
-					archiveExtension = "tar.gz"
-				})
-		)
+		setJdkHome(provisionRuntimeJdk("linux", "tar.gz"))
 	}
 	targetPlatform("windows-x86_64") {
-		setJdkHome(
-			jdkDownload(
-				"$ADOPTIUM_BINARY_REPOSITORY/version/jdk-${RUNTIME_JDK_VERSION}/windows/x64/jdk/hotspot/normal/eclipse",
-				closureOf<JdkUtil.JdkDownloadOptions> {
-					archiveExtension = "zip"
-				})
-		)
+		setJdkHome(provisionRuntimeJdk("windows", "zip"))
 	}
 }
 

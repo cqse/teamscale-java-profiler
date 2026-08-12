@@ -6,6 +6,27 @@ plugins {
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+
+        // The JDKs that the installer's runtime images are linked against. Declaring them as dependencies
+        // instead of letting the jlink plugin download them keeps the download out of the configuration
+        // phase and makes it cacheable, cf. installer/build.gradle.kts.
+        ivy {
+            val jdkVersion = providers.gradleProperty("runtimeJdkVersion").get()
+            val repository = "temurin${jdkVersion.substringBefore(".")}-binaries"
+            url = uri(
+                "https://github.com/adoptium/$repository/releases/download/jdk-${jdkVersion.replace("+", "%2B")}/"
+            )
+            patternLayout {
+                artifact("[artifact].[ext]")
+            }
+            // The release only contains the archives themselves, there is no module metadata to fetch.
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeGroup("net.adoptium.cdn")
+            }
+        }
     }
     oci {
         registries {
