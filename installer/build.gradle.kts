@@ -1,5 +1,6 @@
 import org.beryx.jlink.BaseTask
 import org.beryx.jlink.CreateMergedModuleTask
+import org.beryx.jlink.JlinkTask
 import org.beryx.jlink.util.JdkUtil
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -23,7 +24,9 @@ tasks.jar {
 
 // Workaround for https://youtrack.jetbrains.com/issue/KT-55389
 tasks.compileJava {
-	val mainSourceSetOutput = sourceSets.main.get().output
+	// Typed as FileCollection because the configuration cache cannot restore the captured value
+	// into a field declared as the more specific SourceSetOutput.
+	val mainSourceSetOutput: FileCollection = sourceSets.main.get().output
 	options.compilerArgumentProviders.add(CommandLineArgumentProvider {
 		listOf(
 			"--patch-module",
@@ -36,16 +39,29 @@ tasks.withType<JavaCompile> {
 	options.release = 21
 }
 
+// The jlink tasks expose `targetPlatforms` as an @Input. `jdkDownload` below stores the JDK home as a
+// lazily evaluated Groovy closure in there. The configuration cache replaces that closure's owner with a
+// non-serializable BrokenObject, so fingerprinting the input fails once the task graph is restored:
+//   java.io.NotSerializableException: ...ClosureCodec$BrokenObject
+// Removing these opt-outs therefore requires provisioning the target JDKs ourselves and passing plain
+// paths to `setJdkHome`. Until then, any build that runs jlink falls back to no configuration cache.
 tasks.withType<BaseTask> {
-	notCompatibleWithConfigurationCache("https://github.com/beryx/badass-jlink-plugin/issues/304")
+	notCompatibleWithConfigurationCache("jdkDownload stores a Groovy closure in the targetPlatforms input")
 }
 
 tasks.withType<CreateMergedModuleTask> {
-	notCompatibleWithConfigurationCache("https://github.com/beryx/badass-jlink-plugin/issues/304")
+	notCompatibleWithConfigurationCache("jdkDownload stores a Groovy closure in the targetPlatforms input")
 }
 
 tasks.withType<KotlinCompile> {
 	compilerOptions.jvmTarget = JvmTarget.JVM_21
+}
+
+// Shares the jlink runtime image with the :agent project, which ships it in its distribution.
+configurations.consumable(JLINK_IMAGE_CONFIGURATION)
+artifacts.add(JLINK_IMAGE_CONFIGURATION, tasks.named<JlinkTask>("jlink").map { it.imageDir }) {
+	type = "directory"
+	builtBy(tasks.named("jlink"))
 }
 
 application {

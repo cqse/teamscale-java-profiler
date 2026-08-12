@@ -15,7 +15,15 @@ plugins {
 	alias(libs.plugins.oci)
 }
 
-evaluationDependsOn(":installer")
+// The jlink runtime image of the installer, which the distribution below ships alongside the agent.
+val installerImageDependency = configurations.dependencyScope("installerImage")
+val installerImage = configurations.resolvable("installerImagePath") {
+	extendsFrom(installerImageDependency.get())
+}
+
+dependencies {
+	installerImageDependency(project(":installer", JLINK_IMAGE_CONFIGURATION))
+}
 
 publishAs {
 	artifactId = "teamscale-jacoco-agent"
@@ -23,7 +31,7 @@ publishAs {
 	description = "JVM profiler that simplifies various aspects around recording and uploading test coverage"
 }
 
-val appVersion = rootProject.extra["appVersion"].toString()
+val appVersion = extra["appVersion"].toString()
 val jacocoVersion = libs.versions.jacoco.get()
 val outputVersion = "$appVersion-jacoco-$jacocoVersion"
 
@@ -82,17 +90,25 @@ tasks.startShadowScripts {
 	applicationName = "convert"
 }
 
+// Shares the shaded agent jar with the projects that attach the profiler to a JVM, cf. the
+// com.teamscale.agent-jar convention plugin.
+configurations.consumable(AGENT_JAR_CONFIGURATION)
+artifacts.add(AGENT_JAR_CONFIGURATION, tasks.shadowJar)
+
 distributions {
 	named("shadow") {
 		distributionBaseName = "teamscale-jacoco-agent"
 		contents {
-			from(project(":installer").tasks["jlink"]) {
+			from(installerImage.get()) {
 				into("installer")
 			}
 
+			// Captured in a local so the copy action does not reference the build script itself,
+			// which cannot be stored in the configuration cache.
+			val distributionVersion = outputVersion
 			filesMatching("**/VERSION.txt") {
 				filter {
-					it.replace("%APP_VERSION_TOKEN_REPLACED_DURING_BUILD%", outputVersion)
+					it.replace("%APP_VERSION_TOKEN_REPLACED_DURING_BUILD%", distributionVersion)
 				}
 			}
 		}

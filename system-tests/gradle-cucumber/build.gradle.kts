@@ -6,5 +6,5 @@ plugins {
 
 tasks.test {
     // install dependencies needed by the Gradle test project
-    dependsOn(rootProject.tasks["publishToMavenLocal"])
+    dependsOn(":publishToMavenLocal")
 }
