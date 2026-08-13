@@ -121,14 +121,7 @@ listOf(tasks.shadowDistZip, tasks.shadowDistTar, tasks.installShadowDist).forEac
 	task { shadowLoggingPackages(usesShadowedPackages) }
 }
 
-val verifyShadowedLoggingConfigs by tasks.registering(VerifyShadowedLoggingConfigs::class) {
-	archives.from(tasks.shadowJar, tasks.shadowDistZip)
-	relocated = usesShadowedPackages
-}
-
-tasks.check {
-	dependsOn(verifyShadowedLoggingConfigs)
-}
+verifyShadowedLoggingConfigs(tasks.shadowJar, tasks.shadowDistZip)
 
 tasks.shadowDistZip {
 	archiveFileName = "teamscale-jacoco-agent.zip"

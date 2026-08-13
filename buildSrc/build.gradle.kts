@@ -8,7 +8,7 @@ repositories {
 
 dependencies {
 	implementation(plugin(libs.plugins.shadow))
-	implementation(plugin(libs.plugins.kotlinJvm))
+	implementation(embeddedKotlin("gradle-plugin"))
 	implementation(plugin(libs.plugins.testRetry))
 	implementation(plugin(libs.plugins.nmcp))
 

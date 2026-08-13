@@ -4,6 +4,9 @@ import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.provider.Provider
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import java.io.Serializable
 
 /** The prefix that the shadow plugin's auto relocation puts all relocated dependency packages under. */
@@ -33,6 +36,23 @@ val Project.usesShadowedPackages: Provider<Boolean>
 fun <T> T.shadowLoggingPackages(relocated: Provider<Boolean>) where T : Task, T : CopySpec {
 	inputs.property("shadowedLoggingPackages", relocated)
 	filesMatching(LOGBACK_CONFIG_PATTERNS, ShadowLoggingPackages(relocated.get()))
+}
+
+/**
+ * Registers a [VerifyShadowedLoggingConfigs] task for the given archives and hooks it into `check`.
+ *
+ * The archives are anything a file collection accepts, in particular the archive tasks that packaged the
+ * logback configuration files, e.g. `verifyShadowedLoggingConfigs(tasks.jar)`.
+ */
+fun Project.verifyShadowedLoggingConfigs(vararg archives: Any) {
+	val verifyTask = tasks.register<VerifyShadowedLoggingConfigs>("verifyShadowedLoggingConfigs") {
+		this.archives.from(*archives)
+		// The Kotlin DSL's assignment operator is not available outside of build scripts.
+		relocated.set(usesShadowedPackages)
+	}
+	tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME) {
+		dependsOn(verifyTask)
+	}
 }
 
 /**

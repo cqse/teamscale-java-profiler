@@ -82,10 +82,7 @@ fun provisionRuntimeJdk(operatingSystem: String, archiveExtension: String): Stri
 	val jdkArchive = configurations.resolvable("${operatingSystem}RuntimeJdkArchive") {
 		extendsFrom(jdk.get())
 	}
-	dependencies.add(
-		jdk.name,
-		mapOf("group" to "net.adoptium.cdn", "name" to archiveName, "ext" to archiveExtension)
-	)
+	dependencies.add(jdk.name, "net.adoptium.cdn:$archiveName@$archiveExtension")
 
 	val jdkHome = layout.buildDirectory.dir("runtime-jdks/$operatingSystem")
 	val unpackJdk = tasks.register<Sync>("unpack${operatingSystem.replaceFirstChar(Char::titlecase)}RuntimeJdk") {

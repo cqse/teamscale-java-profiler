@@ -20,14 +20,7 @@ tasks.processResources {
 	shadowLoggingPackages(usesShadowedPackages)
 }
 
-val verifyShadowedLoggingConfigs by tasks.registering(VerifyShadowedLoggingConfigs::class) {
-	archives.from(tasks.jar)
-	relocated = usesShadowedPackages
-}
-
-tasks.check {
-	dependsOn(verifyShadowedLoggingConfigs)
-}
+verifyShadowedLoggingConfigs(tasks.jar)
 
 dependencies {
 	runtimeOnly(project(":agent"))

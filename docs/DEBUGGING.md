@@ -1,7 +1,7 @@
 # Debugging the Teamscale Java Profiler
 
-This document is for developers working **on** the profiler. For debugging a profiler *deployment*, see the
-[official documentation](https://docs.teamscale.com/reference/coverage-profilers/teamscale-java-profiler/).
+This document is for developers working **on** the profiler.
+For debugging a profiler *deployment*, see the [official documentation](https://docs.teamscale.com/reference/coverage-profilers/teamscale-java-profiler/).
 
 - [Debugging the agent in the IDE](#debugging-the-agent-in-the-ide)
 - [Where the profiler writes its logs](#where-the-profiler-writes-its-logs)
@@ -14,16 +14,21 @@ This document is for developers working **on** the profiler. For debugging a pro
 
 ## Debugging the agent in the IDE
 
-Use the `SampleApp` run configuration. It runs `:sample-app:run` with `-Pdebug=true` and attaches the
-freshly built agent to a tiny application (`com.example.Main`). Breakpoints anywhere in the agent sources work.
+Use the `SampleApp` run configuration — with _Debug_, not _Run_. It executes `:sample-app:run` with `-Pdebug=true` and
+attaches the freshly built agent to a tiny application (`com.example.Main`). Breakpoints anywhere in the agent sources
+work; IntelliJ passes the debugger options to the forked application JVM for you.
 
-From the command line the equivalent is:
+From the command line you have to ask for that JVM yourself, with Gradle's `--debug-jvm`:
 
 ```bash
-./gradlew :sample-app:run -Pdebug=true
+./gradlew :sample-app:run -Pdebug=true --debug-jvm
 ```
 
-Two things to be aware of:
+The application JVM then suspends on port 5005 until you attach, e.g. via IntelliJ's _Run → Attach to Process_ or a
+Remote JVM Debug configuration. Without `--debug-jvm`, `-Pdebug=true` only turns off relocation (see below) — no
+debugger is attached and the application simply runs to completion.
+
+Two more things to be aware of:
 
 **`-Pdebug=true` turns off relocation.** The shadow plugin normally relocates all dependencies under a `shadow.`
 package prefix. Relocated class names do not match what the IDE knows from the source tree, so breakpoints in
@@ -51,11 +56,11 @@ what lets the playground stay disposable.
 
 ### Useful breakpoints
 
-| Where | Fires when |
-|---|---|
-| `PreMain.premain` | Once, at JVM startup. Good entry point for anything option- or startup-related. |
-| `AgentOptionsParser.parse` | Once, while options are being merged. See [configuration resolution](#how-the-configuration-is-resolved). |
-| `Agent.dumpReport` | On every dump: interval, `POST /dump`, and JVM shutdown. |
+| Where                                  | Fires when                                                                                                                                                 |
+|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PreMain.premain`                      | Once, at JVM startup. Good entry point for anything option- or startup-related.                                                                            |
+| `AgentOptionsParser.parse`             | Once, while options are being merged. See [configuration resolution](#how-the-configuration-is-resolved).                                                  |
+| `Agent.dumpReport`                     | On every dump: interval, `POST /dump`, and JVM shutdown.                                                                                                   |
 | `LenientCoverageTransformer.transform` | **For every single loaded class.** Always make this breakpoint conditional, e.g. `classname.startsWith("com/example")`, or the JVM will not make progress. |
 
 ## Where the profiler writes its logs
@@ -181,13 +186,13 @@ coverage, the upload most likely landed on a commit Teamscale does not know abou
 Options come from five places. They are applied in this order, and **later sources overwrite earlier ones**
 (`AgentOptionsParser.parse`):
 
-| # | Source | Contributes |
-|---|---|---|
-| 1 | `teamscale.properties` next to the agent | `url`, `username`, `accesskey` only |
-| 2 | `TEAMSCALE_ACCESS_TOKEN` env var | the access token only |
-| 3 | The `-javaagent:...=<options>` string | any option, including `config-file=` |
-| 4 | `TEAMSCALE_JAVA_PROFILER_CONFIG_ID` env var, then the options fetched from Teamscale | any option |
-| 5 | `TEAMSCALE_JAVA_PROFILER_CONFIG_FILE` env var | any option |
+| # | Source                                                                               | Contributes                          |
+|---|--------------------------------------------------------------------------------------|--------------------------------------|
+| 1 | `teamscale.properties` next to the agent                                             | `url`, `username`, `accesskey` only  |
+| 2 | `TEAMSCALE_ACCESS_TOKEN` env var                                                     | the access token only                |
+| 3 | The `-javaagent:...=<options>` string                                                | any option, including `config-file=` |
+| 4 | `TEAMSCALE_JAVA_PROFILER_CONFIG_ID` env var, then the options fetched from Teamscale | any option                           |
+| 5 | `TEAMSCALE_JAVA_PROFILER_CONFIG_FILE` env var                                        | any option                           |
 
 Consequences worth remembering:
 
@@ -210,12 +215,12 @@ java -javaagent:teamscale-jacoco-agent.jar=config-id=my-config -jar app.jar
 
 The full exchange, all under `api/v2024.7.0/`:
 
-| Step | Request | Implemented in |
-|---|---|---|
-| Register and fetch configuration | `POST /profilers?configuration-id=<id>` | `ConfigurationViaTeamscale.retrieve` |
-| Heartbeat, once a minute | `PUT /profilers/<profilerId>` | `ConfigurationViaTeamscale.sendHeartbeat` |
-| Forward log entries | `POST /profilers/<profilerId>/logs` | `LogToTeamscaleAppender` |
-| Unregister on shutdown | `DELETE /profilers/<profilerId>` | `ConfigurationViaTeamscale.unregisterProfiler` |
+| Step                             | Request                                 | Implemented in                                 |
+|----------------------------------|-----------------------------------------|------------------------------------------------|
+| Register and fetch configuration | `POST /profilers?configuration-id=<id>` | `ConfigurationViaTeamscale.retrieve`           |
+| Heartbeat, once a minute         | `PUT /profilers/<profilerId>`           | `ConfigurationViaTeamscale.sendHeartbeat`      |
+| Forward log entries              | `POST /profilers/<profilerId>/logs`     | `LogToTeamscaleAppender`                       |
+| Unregister on shutdown           | `DELETE /profilers/<profilerId>`        | `ConfigurationViaTeamscale.unregisterProfiler` |
 
 The server answers the registration with a profiler ID and a `configurationOptions` string, which is a newline-separated
 list of the same `key=value` options you would otherwise pass on the command line.
@@ -227,13 +232,13 @@ fastest way to see the sequence without a server.
 
 The profiler deliberately never crashes the application it profiles. That makes several failure modes quiet:
 
-| Situation | Behaviour |
-|---|---|
-| No options and no `TEAMSCALE_JAVA_PROFILER_CONFIG_ID`/`_CONFIG_FILE` | `premain` returns immediately, before logging is even initialised. Nothing is logged anywhere. This is intentional: it lets the profiler be registered globally via `JAVA_TOOL_OPTIONS` without profiling every JVM on the machine. |
-| Invalid options (`AgentOptionParseException`) | Error is logged, the profiler unregisters itself from Teamscale, and the application starts normally without coverage. |
-| Teamscale unreachable while fetching a `config-id` (`AgentOptionReceiveException`) | Two-minute timeout, then the application starts normally without coverage. |
-| Anything throwing after options were parsed | `PreMain.logStartupFailure` logs it and the application continues. |
-| Coverage collected but report empty | `EmptyReportException`, logged as a warning on every dump. |
+| Situation                                                                          | Behaviour                                                                                                                                                                                                                           |
+|------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| No options and no `TEAMSCALE_JAVA_PROFILER_CONFIG_ID`/`_CONFIG_FILE`               | `premain` returns immediately, before logging is even initialised. Nothing is logged anywhere. This is intentional: it lets the profiler be registered globally via `JAVA_TOOL_OPTIONS` without profiling every JVM on the machine. |
+| Invalid options (`AgentOptionParseException`)                                      | Error is logged, the profiler unregisters itself from Teamscale, and the application starts normally without coverage.                                                                                                              |
+| Teamscale unreachable while fetching a `config-id` (`AgentOptionReceiveException`) | Two-minute timeout, then the application starts normally without coverage.                                                                                                                                                          |
+| Anything throwing after options were parsed                                        | `PreMain.logStartupFailure` logs it and the application continues.                                                                                                                                                                  |
+| Coverage collected but report empty                                                | `EmptyReportException`, logged as a warning on every dump.                                                                                                                                                                          |
 
 So "the application ran fine and there is no coverage" is the expected symptom of almost every misconfiguration. When
 in doubt, start with `debug=true` so you at least get console output.
