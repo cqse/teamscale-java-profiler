@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="sample-debugging-app:run" />
+          <option value="sample-app:run" />
         </list>
       </option>
       <option name="vmOptions" />

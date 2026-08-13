@@ -63,7 +63,7 @@ include(":impacted-test-engine")
 include(":tia-client")
 include(":tia-runlisteners")
 include(":common-system-test")
-include(":sample-debugging-app")
+include(":sample-app")
 include(":teamscale-maven-plugin")
 include(":installer")
 

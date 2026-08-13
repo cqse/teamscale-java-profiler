@@ -14,13 +14,13 @@ This document is for developers working **on** the profiler. For debugging a pro
 
 ## Debugging the agent in the IDE
 
-Use the `SampleApp` run configuration. It runs `:sample-debugging-app:run` with `-Pdebug=true` and attaches the
+Use the `SampleApp` run configuration. It runs `:sample-app:run` with `-Pdebug=true` and attaches the
 freshly built agent to a tiny application (`com.example.Main`). Breakpoints anywhere in the agent sources work.
 
 From the command line the equivalent is:
 
 ```bash
-./gradlew :sample-debugging-app:run -Pdebug=true
+./gradlew :sample-app:run -Pdebug=true
 ```
 
 Two things to be aware of:
@@ -42,7 +42,7 @@ _Settings → Build, Execution, Deployment → Build Tools → Gradle → Build 
 
 ### Which application to profile
 
-`sample-debugging-app` is a playground: nothing in the build depends on it, so you can change it freely to reproduce
+`sample-app` is a playground: nothing in the build depends on it, so you can change it freely to reproduce
 whatever you are chasing without breaking anything.
 
 Do not add system tests against it. Every system test brings its own system under test in
@@ -75,7 +75,7 @@ no way to find the log unless you already know where it is. Options, in increasi
 - `logging-config=<file.xml>` — full control via a logback configuration. `agent/src/dist/logging/` contains ready-made
   configurations (`logback.console.xml`, `logback.debug.xml`, `logback.rolling-file.xml`).
 
-`sample-debugging-app/jacocoagent.properties` uses `logging-config=../agent/src/dist/logging/logback.console.xml`, which
+`sample-app/jacocoagent.properties` uses `logging-config=../agent/src/dist/logging/logback.console.xml`, which
 is why the sample app prints the profiler's log to the console instead of hiding it in a temp directory.
 
 The default file appender rolls at 1 MB and keeps 10 compressed files. On a chatty application the startup lines —
@@ -98,7 +98,7 @@ corner → **Access Keys** (`/user/access-key`) → **Generate New Access Key**,
 ### 3. A project
 
 Coverage is always uploaded into a project, so one has to exist. Create a project that analyses your checkout of this
-repository, so that the sample application's source file (`sample-debugging-app/src/main/java/com/example/Main.java`)
+repository, so that the sample application's source file (`sample-app/src/main/java/com/example/Main.java`)
 is known to Teamscale and the uploaded coverage has something to attach itself to. Note the project ID — that is what
 goes into `teamscale-project`, not the display name.
 
@@ -107,7 +107,7 @@ goes into `teamscale-project`, not the display name.
 Do not put credentials into the committed `jacocoagent.properties`. Copy it instead:
 
 ```bash
-cp sample-debugging-app/jacocoagent.properties sample-debugging-app/jacocoagent.local.properties
+cp sample-app/jacocoagent.properties sample-app/jacocoagent.local.properties
 ```
 
 `jacocoagent.local.properties` is git-ignored, and the `run` task prefers it over `jacocoagent.properties` when it
@@ -132,7 +132,7 @@ the commit from `git.properties` files inside the profiled code — which the sa
 ### 5. Run it
 
 ```bash
-./gradlew :sample-debugging-app:run -Pdebug=true
+./gradlew :sample-app:run -Pdebug=true
 ```
 
 The sample application prints one line and exits immediately. That is enough: `dump-on-exit` defaults to `true`, so the

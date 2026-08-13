@@ -107,8 +107,7 @@ git config --local core.hooksPath .githooks
 
 ### Debug locally
 
-Run the `SampleApp` run configuration in IntelliJ, or `./gradlew :sample-debugging-app:run -Pdebug=true` on the command
-line, to profile the included `sample-debugging-app` with breakpoints in the agent working.
+Debug the `SampleApp` run configuration in IntelliJ to debug the included `sample-app` with breakpoints in the agent working.
 
 **[docs/DEBUGGING.md](docs/DEBUGGING.md) is the full guide**: setting up end-to-end communication with a real Teamscale
 instance, how the agent's configuration is resolved from its five sources, where the profiler writes its logs, why a
