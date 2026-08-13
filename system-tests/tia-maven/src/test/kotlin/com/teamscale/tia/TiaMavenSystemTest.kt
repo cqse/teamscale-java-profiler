@@ -136,7 +136,7 @@ class TiaMavenSystemTest {
 		runMavenTests("maven-project", "-DdebugLogging=true", "-Dtia")
 
 		assertThat(File("maven-project/sub-project-A/target/tia/agent.log")).content()
-			.contains("DEBUG com.teamscale.jacoco.agent.Agent - No explicit teamscale.properties file given.");
+			.contains("DEBUG Agent - No explicit teamscale.properties file given.");
 		assertThat(File("maven-project/sub-project-A/target/tia/engine.log")).content()
 			.contains("[FINE] com.teamscale.test_impacted.engine.TestEngineRegistry: Found test engines: [junit-jupiter]")
 	}

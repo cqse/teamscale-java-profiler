@@ -5,9 +5,9 @@ plugins {
 	com.teamscale.`java-convention`
 	application
 
-	// we don't want to cause conflicts between our dependencies and the target application
+	// we don't want to cause conflicts between the classes we ship and the target application
 	// since the agent will be loaded with the same class loader as the profiled application
-	// so we use the shadow plugin to relocate our dependencies
+	// so we use the shadow plugin to relocate our dependencies and our own classes
 	com.teamscale.`shadow-convention`
 	com.teamscale.coverage
 	com.teamscale.publish
@@ -72,7 +72,7 @@ dependencies {
 }
 
 application {
-	mainClass = "com.teamscale.jacoco.agent.Main"
+	mainClass = "$AGENT_PACKAGE.Main"
 }
 
 tasks.shadowJar {
@@ -81,13 +81,22 @@ tasks.shadowJar {
 	// update
 	archiveFileName = "teamscale-jacoco-agent.jar"
 
+	// The shadow plugin's auto relocation only covers the dependencies, so the agent's own classes are
+	// relocated explicitly. The entry points below have to name them by their relocated names, and so do the
+	// logback configuration files, cf. ShadowedPackages.kt.
+	if (usesShadowedPackages.get()) {
+		relocate(AGENT_PACKAGE, "$SHADOW_PACKAGE_PREFIX.$AGENT_PACKAGE")
+	}
+
 	manifest {
-		attributes["Premain-Class"] = "com.teamscale.jacoco.agent.PreMain"
+		attributes["Premain-Class"] = shadowed("$AGENT_PACKAGE.PreMain")
+		attributes["Main-Class"] = shadowed("$AGENT_PACKAGE.Main")
 	}
 }
 
 tasks.startShadowScripts {
 	applicationName = "convert"
+	mainClass = shadowed("$AGENT_PACKAGE.Main")
 }
 
 // Shares the shaded agent jar with the projects that attach the profiler to a JVM, cf. the

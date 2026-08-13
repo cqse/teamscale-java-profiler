@@ -36,8 +36,10 @@ class CopyAgent(
 
 tasks.withType<JavaExec> {
 	createAgentCopy()
+	startDebuggerBeforeProfiler()
 }
 
 tasks.test {
 	createAgentCopy()
+	startDebuggerBeforeProfiler()
 }

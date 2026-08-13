@@ -11,48 +11,28 @@ For debugging a profiler *deployment*, see the [official documentation](https://
 - [When nothing happens at all](#when-nothing-happens-at-all)
 - [Debugging system tests](#debugging-system-tests)
 - [Debugging the Gradle and Maven plugins](#debugging-the-gradle-and-maven-plugins)
+- [Debugging the agent from the command line](#debugging-the-agent-from-the-command-line)
 
 ## Debugging the agent in the IDE
 
-Use the `SampleApp` run configuration — with _Debug_, not _Run_. It executes `:sample-app:run` with `-Pdebug=true` and
-attaches the freshly built agent to a tiny application (`com.example.Main`). Breakpoints anywhere in the agent sources
-work; IntelliJ passes the debugger options to the forked application JVM for you.
+Use the `SampleApp` run configuration — with _Debug_, not _Run_. It executes `:sample-app:run` with
+`-Punshaded=true` and attaches the freshly built agent to a tiny application (`com.example.Main`). Breakpoints
+anywhere in the agent sources work; IntelliJ passes the debugger options to the forked application JVM for you.
 
-From the command line you have to ask for that JVM yourself, with Gradle's `--debug-jvm`:
-
-```bash
-./gradlew :sample-app:run -Pdebug=true --debug-jvm
-```
-
-The application JVM then suspends on port 5005 until you attach, e.g. via IntelliJ's _Run → Attach to Process_ or a
-Remote JVM Debug configuration. Without `--debug-jvm`, `-Pdebug=true` only turns off relocation (see below) — no
-debugger is attached and the application simply runs to completion.
-
-Two more things to be aware of:
-
-**`-Pdebug=true` turns off relocation.** The shadow plugin normally relocates all dependencies under a `shadow.`
-package prefix. Relocated class names do not match what the IDE knows from the source tree, so breakpoints in
-dependencies would not bind and stack traces would be unreadable. `-Pdebug=true` disables relocation, and
-`ShadowedPackages.kt` additionally keeps the packaged logback configuration files free of the prefix so that the same
-configuration files work relocated and unrelocated.
+**`-Punshaded=true` turns off relocation.** The agent is loaded by the same class loader as the application it
+profiles, so anything it ships can interfere with that application. The jar therefore carries everything under a
+`shadow.` package prefix which keeps the two apart. Those class names do not match what the IDE knows from the source 
+tree, so breakpoints would not bind and stack traces would be unreadable. `-Punshaded=true` disables relocation.
 
 The flip side: **this is not the artifact that ships.** Bugs that are caused by relocation itself — a class name
-built at runtime, a resource path, Kotlin module metadata — will not reproduce under `-Pdebug=true`. If a problem
+built at runtime, a resource path, Kotlin module metadata — will not reproduce under `-Punshaded=true`. If a problem
 disappears when you enable debugging, suspect the shading, and reproduce against a normal `./gradlew :agent:shadowJar`
 build.
-
-**IntelliJ must build the project, not Gradle.** If you get
-`IllegalStateException: Cannot process instrumented class com/example/Main`, switch
-_Settings → Build, Execution, Deployment → Build Tools → Gradle → Build and run using_ to **IntelliJ IDEA**.
 
 ### Which application to profile
 
 `sample-app` is a playground: nothing in the build depends on it, so you can change it freely to reproduce
 whatever you are chasing without breaking anything.
-
-Do not add system tests against it. Every system test brings its own system under test in
-`src/main/.../systemundertest/`, packaged as a runnable jar by its own `build.gradle.kts`. Keeping the two apart is
-what lets the playground stay disposable.
 
 ### Useful breakpoints
 
@@ -65,7 +45,7 @@ what lets the playground stay disposable.
 
 ## Where the profiler writes its logs
 
-By default the agent logs into a **new temporary directory per process**:
+By default, the agent logs into a **new temporary directory per process**:
 
 ```
 <java.io.tmpdir>/teamscale-java-profiler-<pid>-<random>/logs/teamscale-jacoco-agent.log
@@ -137,7 +117,7 @@ the commit from `git.properties` files inside the profiled code — which the sa
 ### 5. Run it
 
 ```bash
-./gradlew :sample-app:run -Pdebug=true
+./gradlew :sample-app:run -Punshaded=true
 ```
 
 The sample application prints one line and exits immediately. That is enough: `dump-on-exit` defaults to `true`, so the
@@ -245,8 +225,8 @@ in doubt, start with `debug=true` so you at least get console output.
 
 ## Debugging system tests
 
-System tests exercise the **packaged** agent jar, so they catch shading problems that `-Pdebug=true` hides. They come
-in two shapes, and they are debugged differently.
+System tests exercise the **packaged** agent jar, so they catch shading problems that `-Punshaded=true` hides. They
+come in two shapes, and they are debugged differently.
 
 **The agent is attached to the Gradle test JVM** (most tests — those calling `teamscaleAgent(...)` in their
 `build.gradle.kts`). Use Gradle's built-in flag:
@@ -272,8 +252,8 @@ with `-PdebugSut=5006`. Because the spawned JVM suspends until you attach, run a
 
 Notes:
 
-- Combine with `-Pdebug=true` to also get unrelocated class names — but remember that this changes the artifact under
-  test, which is the whole point of a system test.
+- Combine with `-Punshaded=true` to also get unrelocated class names — but remember that this changes the artifact
+  under test, which is the whole point of a system test.
 - Only directly spawned `java` processes are affected. JVMs forked by Maven in the Maven-based system tests are not.
 - Tests that opt in with `teamscaleAgent(mapOf("debug" to logFilePath))` write the agent's log to their project's
   `logTest/` directory. That directory is wiped at the start of every test run, so copy anything you want to keep.
@@ -309,3 +289,17 @@ To attach a debugger:
 - **The impacted test engine during a build**: `./gradlew --no-daemon --debug-jvm`, then attach once the test phase
   starts.
 - Both flags can be combined; the build then pauses twice.
+
+## Debugging the agent from the command line
+
+Seldom needed — the [`SampleApp` run configuration](#debugging-the-agent-in-the-ide) is the usual way to get a
+debugger onto the agent. If you do have to start the sample application from a terminal, ask for the debugger
+yourself with Gradle's `--debug-jvm`:
+
+```bash
+./gradlew :sample-app:run -Punshaded=true --debug-jvm
+```
+
+The application JVM then suspends on port 5005 until you attach, e.g. via IntelliJ's _Run → Attach to Process_ or a
+Remote JVM Debug configuration. Without `--debug-jvm`, `-Punshaded=true` only turns off relocation — no debugger is
+attached and the application simply runs to completion.

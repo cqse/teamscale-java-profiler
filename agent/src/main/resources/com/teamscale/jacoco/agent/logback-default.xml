@@ -17,7 +17,7 @@
         </triggeringPolicy>
 
         <encoder>
-            <pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{35} - %msg%n</pattern>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} - %msg%n</pattern>
         </encoder>
     </appender>
 

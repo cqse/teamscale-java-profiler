@@ -12,18 +12,29 @@ import java.io.Serializable
 /** The prefix that the shadow plugin's auto relocation puts all relocated dependency packages under. */
 const val SHADOW_PACKAGE_PREFIX = "shadow"
 
+/**
+ * The agent's own package. Unlike the dependencies, the shadow plugin does not relocate it on its own, so the
+ * agent jar asks for it explicitly. Everything the jar ships then lives under [SHADOW_PACKAGE_PREFIX] and thus
+ * cannot interfere with the application the agent is loaded into.
+ */
+const val AGENT_PACKAGE = "com.teamscale.jacoco.agent"
+
 /** Ant patterns under which our own logback configuration files are packaged. */
 private val LOGBACK_CONFIG_PATTERNS = listOf("com/teamscale/**/logback*.xml", "logging/logback*.xml")
 
 /** Packages that our logback configuration files reference by fully qualified name and that get relocated. */
-private val RELOCATED_LOGGING_PACKAGES = listOf("ch.qos.logback")
+internal val RELOCATED_LOGGING_PACKAGES = listOf("ch.qos.logback", AGENT_PACKAGE)
 
 /**
  * Whether this build relocates dependencies under [SHADOW_PACKAGE_PREFIX]. Auto relocation is disabled via
- * `-Pdebug=true` to make the agent easier to debug locally.
+ * `-Punshaded=true` to make the agent easier to debug locally.
  */
 val Project.usesShadowedPackages: Provider<Boolean>
-	get() = providers.gradleProperty("debug").map { it != "true" }.orElse(true)
+	get() = providers.gradleProperty("unshaded").map { it != "true" }.orElse(true)
+
+/** Prefixes the given class or package name with [SHADOW_PACKAGE_PREFIX] if this build relocates. */
+fun Project.shadowed(name: String): Provider<String> =
+	usesShadowedPackages.map { if (it) "$SHADOW_PACKAGE_PREFIX.$name" else name }
 
 /**
  * Prefixes references to relocated packages in the logback configuration files packaged by this task, cf.
@@ -60,7 +71,7 @@ fun Project.verifyShadowedLoggingConfigs(vararg archives: Any) {
  * [SHADOW_PACKAGE_PREFIX] so they match the relocated classes in the shaded agent jar.
  *
  * This lets us keep the configuration files in the source tree free of the prefix, so they can be used as-is
- * from the IDE, from unit tests and in `-Pdebug=true` builds, where no relocation happens.
+ * from the IDE, from unit tests and in `-Punshaded=true` builds, where no relocation happens.
  */
 private class ShadowLoggingPackages(private val enabled: Boolean) : Action<FileCopyDetails>, Serializable {
 	override fun execute(details: FileCopyDetails) {

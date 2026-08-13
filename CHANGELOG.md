@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [breaking] _agent_: Log lines now show the simple class name (`INFO Agent - ...`) instead of the fully qualified one.
 
 # 37.0.2
 - [fix] _agent_: In some cases the hostname was wrongly added to the PID when sending it to Teamscale.

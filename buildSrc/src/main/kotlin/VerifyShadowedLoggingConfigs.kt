@@ -45,26 +45,31 @@ abstract class VerifyShadowedLoggingConfigs : DefaultTask() {
 	}
 
 	private fun verify(archive: File, path: String, content: String, relocated: Boolean) {
+		// Every configuration references logback classes, so this one doubles as the canary for a
+		// configuration file that the packaging did not rewrite at all.
 		val relocatedReference = "\"$SHADOW_PACKAGE_PREFIX.$LOGBACK_PACKAGE."
-		val plainReference = "\"$LOGBACK_PACKAGE."
-		if (relocated) {
-			if (!content.contains(relocatedReference)) {
-				throw GradleException(
-					"$path in ${archive.name} does not reference any relocated logback class." +
-							" Is it covered by one of the LOGBACK_CONFIG_PATTERNS?"
-				)
-			}
-			if (content.contains(plainReference)) {
-				throw GradleException(
-					"$path in ${archive.name} still references non-relocated logback classes," +
-							" which do not exist in the shaded jar."
-				)
-			}
-		} else if (content.contains(relocatedReference)) {
+		if (relocated && !content.contains(relocatedReference)) {
+			throw GradleException(
+				"$path in ${archive.name} does not reference any relocated logback class." +
+						" Is it covered by one of the LOGBACK_CONFIG_PATTERNS?"
+			)
+		}
+		if (!relocated && content.contains(relocatedReference)) {
 			throw GradleException(
 				"$path in ${archive.name} references relocated logback classes," +
 						" but this build does not relocate anything."
 			)
+		}
+
+		// The agent's own classes are relocated as well, so a configuration naming one of them by its plain
+		// name would fail at logging initialisation with a ClassNotFoundException.
+		RELOCATED_LOGGING_PACKAGES.forEach { packageName ->
+			if (relocated && content.contains("\"$packageName.")) {
+				throw GradleException(
+					"$path in ${archive.name} still references non-relocated $packageName classes," +
+							" which do not exist in the shaded jar."
+				)
+			}
 		}
 	}
 
