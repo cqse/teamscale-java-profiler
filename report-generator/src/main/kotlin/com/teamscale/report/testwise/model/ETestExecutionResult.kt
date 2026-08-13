@@ -32,5 +32,8 @@ enum class ETestExecutionResult {
 	FAILURE,
 
 	/** Caused by an error during test execution (e.g. exception thrown in the test runner code, not the test itself).  */
-	ERROR
+	ERROR,
+
+	/** The test was executed, but its actual result is ambiguous. */
+	INCONCLUSIVE
 }

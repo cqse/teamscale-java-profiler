@@ -18,6 +18,7 @@
 package com.teamscale.report.testwise.model
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.io.Serializable
 
@@ -48,4 +49,12 @@ data class TestExecution @JvmOverloads constructor(
 	val durationSeconds: Double
 		@Suppress("DEPRECATION")
 		get() = duration ?: (durationMillis / 1000.0)
+
+	/**
+	 * Whether the caller explicitly provided a duration. A [durationMillis] of zero counts as no duration, since it is
+	 * indistinguishable from the default of that deprecated field. Use [duration] to report a duration of zero.
+	 */
+	@get:JsonIgnore
+	val hasExplicitDuration: Boolean
+		get() = duration != null || durationSeconds != 0.0
 }

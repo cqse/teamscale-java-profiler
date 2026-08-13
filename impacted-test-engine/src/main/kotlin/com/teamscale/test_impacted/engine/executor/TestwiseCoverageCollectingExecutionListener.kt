@@ -84,9 +84,7 @@ class TestwiseCoverageCollectingExecutionListener(
 			val testExecution = getTestExecution(
 				testDescriptor, testExecutionResult, uniformPath
 			)
-			if (testExecution != null) {
-				testExecutions.add(testExecution)
-			}
+			testExecutions.add(testExecution)
 			teamscaleAgentNotifier.endTest(uniformPath, testExecution)
 		} else if (testDescriptor.parent.isPresent) {
 			val testExecutionResults = testResultCache.computeIfAbsent(
@@ -102,7 +100,7 @@ class TestwiseCoverageCollectingExecutionListener(
 		testDescriptor: TestDescriptor,
 		testExecutionResult: TestExecutionResult,
 		testUniformPath: String
-	): TestExecution? {
+	): TestExecution {
 		val testExecutionResults = getTestExecutionResults(testDescriptor, testExecutionResult)
 
 		val executionEndTime = System.currentTimeMillis()
@@ -141,20 +139,18 @@ class TestwiseCoverageCollectingExecutionListener(
 		duration: Long,
 		status: TestExecutionResult.Status,
 		message: String
-	): TestExecution? {
-		when (status) {
-			TestExecutionResult.Status.SUCCESSFUL -> return TestExecution(
-				testUniformPath, duration, ETestExecutionResult.PASSED
-			)
+	) = when (status) {
+		TestExecutionResult.Status.SUCCESSFUL -> TestExecution(
+			testUniformPath, duration, ETestExecutionResult.PASSED
+		)
 
-			TestExecutionResult.Status.ABORTED -> return TestExecution(
-				testUniformPath, duration, ETestExecutionResult.ERROR, message
-			)
+		TestExecutionResult.Status.ABORTED -> TestExecution(
+			testUniformPath, duration, ETestExecutionResult.ERROR, message
+		)
 
-			TestExecutionResult.Status.FAILED -> return TestExecution(
-				testUniformPath, duration, ETestExecutionResult.FAILURE, message
-			)
-		}
+		TestExecutionResult.Status.FAILED -> TestExecution(
+			testUniformPath, duration, ETestExecutionResult.FAILURE, message
+		)
 	}
 
 	/** Extracts the stacktrace from the given [Throwable] into a string or returns null if no throwable is given.  */

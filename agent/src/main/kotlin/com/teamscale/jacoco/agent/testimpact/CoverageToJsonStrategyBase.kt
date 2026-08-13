@@ -65,12 +65,10 @@ abstract class CoverageToJsonStrategyBase(
 	@Throws(DumpException::class, CoverageGenerationException::class)
 	override fun testEnd(
 		test: String,
-		testExecution: TestExecution?
+		testExecution: TestExecution
 	): TestInfo? {
 		super.testEnd(test, testExecution)
-		if (testExecution != null) {
-			testExecutions.add(testExecution)
-		}
+		testExecutions.add(testExecution)
 
 		try {
 			if (testExecFile == null) {
@@ -86,6 +84,9 @@ abstract class CoverageToJsonStrategyBase(
 
 	@Throws(IOException::class, CoverageGenerationException::class)
 	override fun testRunEnd(partial: Boolean) {
+		// Ensures that a test for which we never received a valid /test/end request still shows up in the report
+		endRunningTestAsInconclusive("the test run ended")
+
 		if (testExecFile == null) {
 			logger.warn("Tried to end a test run that contained no tests!")
 			clearTestRun()

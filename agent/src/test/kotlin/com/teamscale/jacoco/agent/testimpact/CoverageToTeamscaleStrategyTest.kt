@@ -1,5 +1,9 @@
 package com.teamscale.jacoco.agent.testimpact
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.teamscale.client.*
 import com.teamscale.jacoco.agent.JacocoRuntimeController
 import com.teamscale.jacoco.agent.options.AgentOptions
@@ -20,6 +24,7 @@ import org.mockito.ArgumentMatchers.matches
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.*
+import org.slf4j.LoggerFactory
 import retrofit2.Response
 import java.io.File
 import java.io.IOException
@@ -67,7 +72,7 @@ class CoverageToTeamscaleStrategyTest {
 	/** Regression test for TS-46939. */
 	@Test
 	@Throws(Exception::class)
-	fun shouldAutomaticallyEndPreviousTestAsSkippedWhenNewTestStartsWithoutEnd() {
+	fun shouldAutomaticallyEndPreviousTestAsInconclusiveWhenNewTestStartsWithoutEnd() {
 		val options = mockOptions(false)
 		val strategy = CoverageToTeamscaleStrategy(controller, options, reportGenerator)
 
@@ -93,12 +98,157 @@ class CoverageToTeamscaleStrategyTest {
 		)
 		val report = reportCaptor.firstValue
 
-		assertThat(report).contains("\"uniformPath\":\"a\"", "\"result\":\"SKIPPED\"")
+		assertThat(report).contains("\"uniformPath\":\"a\"", "\"result\":\"INCONCLUSIVE\"")
 		assertThat(report).contains("\"uniformPath\":\"b\"", "\"result\":\"PASSED\"")
 		val durationA = Regex("\"uniformPath\":\"a\"[^}]*?\"duration\":([0-9.E-]+)")
 			.find(report)!!.groupValues[1].toDouble()
 		assertThat(durationA).isGreaterThan(0.0)
 	}
+
+	/**
+	 * A test that is still running when the test run ends must not be dropped from the report. This happens e.g. if we
+	 * rejected its /test/end request for not containing a result and the caller never repeated it.
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun shouldEndARunningTestAsInconclusiveWhenTheTestRunEnds() {
+		val strategy = CoverageToTeamscaleStrategy(controller, mockOptions(false), reportGenerator)
+
+		whenever(reportGenerator.convert(any<File>())).thenReturn(getDummyTestwiseCoverage("a"))
+
+		// Test "a" is started but never ended.
+		strategy.testStart("a")
+		strategy.testRunEnd(false)
+
+		val reportCaptor = argumentCaptor<String>()
+		verify(client).uploadReport(
+			eq(EReportFormat.TESTWISE_COVERAGE),
+			reportCaptor.capture(),
+			anyOrNull(),
+			anyOrNull(),
+			anyOrNull(),
+			anyOrNull(),
+			anyOrNull()
+		)
+
+		assertThat(reportCaptor.firstValue).contains(
+			"\"uniformPath\":\"a\"", "\"result\":\"INCONCLUSIVE\"", "the test run ended"
+		)
+	}
+
+	/** We must not report the duration of a previous test as the duration of a test we never saw starting. */
+	@Test
+	@Throws(Exception::class)
+	fun shouldNotDeriveADurationForATestThatWasNeverStarted() {
+		val strategy = CoverageToTeamscaleStrategy(controller, mockOptions(false), reportGenerator)
+
+		strategy.testStart("a")
+		// Test "a" needs to take some time so that a duration wrongly derived for "b" would be non-zero.
+		Thread.sleep(5)
+		strategy.testEnd("a", TestExecution("a", 0L, ETestExecutionResult.PASSED))
+
+		val executionOfB = TestExecution("b", 0L, ETestExecutionResult.PASSED)
+		strategy.testEnd("b", executionOfB)
+
+		assertThat(executionOfB.durationSeconds).isEqualTo(0.0)
+	}
+
+	/**
+	 * A caller may end the same test twice, e.g. by repeating a /test/end request whose response it never received.
+	 * The duration we derived during the first request must survive that, since the repeated request usually contains
+	 * no duration either.
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun shouldKeepTheDerivedDurationWhenATestIsEndedTwice() {
+		val strategy = CoverageToTeamscaleStrategy(controller, mockOptions(false), reportGenerator)
+
+		strategy.testStart("mytest")
+		// The test needs to take some time so that we can assert that its duration is non-zero.
+		Thread.sleep(5)
+		val firstExecution = TestExecution("mytest", 0L, ETestExecutionResult.PASSED)
+		strategy.testEnd("mytest", firstExecution)
+
+		val repeatedExecution = TestExecution("mytest", 0L, ETestExecutionResult.PASSED)
+		strategy.testEnd("mytest", repeatedExecution)
+
+		assertThat(repeatedExecution.durationSeconds)
+			.isGreaterThan(0.0)
+			.isEqualTo(firstExecution.durationSeconds)
+	}
+
+	@Test
+	fun shouldNotWarnAboutAMissingTestStartWhenATestIsEndedTwice() {
+		val log = captureLog {
+			it.testStart("mytest")
+			it.testEnd("mytest", TestExecution("mytest", 0L, ETestExecutionResult.PASSED))
+			it.testEnd("mytest", TestExecution("mytest", 0L, ETestExecutionResult.PASSED))
+		}
+
+		assertThat(log.messagesAt(Level.WARN)).noneSatisfy {
+			assertThat(it).contains("/test/start")
+		}
+	}
+
+	@Test
+	fun shouldWarnWhenNoTestStartWasReceived() {
+		val log = captureLog {
+			it.testEnd("mytest", TestExecution("mytest", 0L, ETestExecutionResult.PASSED))
+		}
+
+		assertThat(log.messagesAt(Level.WARN)).anySatisfy {
+			assertThat(it).contains("No /test/start request was received for test 'mytest'")
+		}
+	}
+
+	@Test
+	fun shouldNotWarnAboutTheDurationIfTheCallerProvidedOne() {
+		val log = captureLog {
+			it.testEnd("mytest", TestExecution("mytest", 1500L, ETestExecutionResult.PASSED))
+		}
+
+		assertThat(log.messagesAt(Level.WARN)).noneSatisfy {
+			assertThat(it).contains("/test/start")
+		}
+	}
+
+	@Test
+	fun shouldNotWarnAboutTheDurationIfTheCallerExplicitlyReportedZeroDuration() {
+		val execution = JsonUtils.deserialize<TestExecution>(
+			"""{"uniformPath":"mytest","result":"SKIPPED","duration":0}"""
+		)
+
+		val log = captureLog { it.testEnd("mytest", execution) }
+
+		assertThat(log.messagesAt(Level.WARN)).noneSatisfy {
+			assertThat(it).contains("/test/start")
+		}
+	}
+
+	/** Runs the given actions against a strategy and returns the events it logged. */
+	private fun captureLog(action: (CoverageToTeamscaleStrategy) -> Unit): List<ILoggingEvent> {
+		val strategy = CoverageToTeamscaleStrategy(controller, mockOptions(false), reportGenerator)
+		val logger = LoggerFactory.getLogger(strategy.javaClass) as Logger
+		val appender = ListAppender<ILoggingEvent>().apply { start() }
+		val previousLevel = logger.level
+		logger.level = Level.DEBUG
+		logger.addAppender(appender)
+		val events = try {
+			action(strategy)
+			appender.list.toList()
+		} finally {
+			logger.detachAppender(appender)
+			logger.level = previousLevel
+			appender.stop()
+		}
+		assertThat(events)
+			.describedAs("The strategy must have logged something, otherwise we are not capturing its log events")
+			.isNotEmpty()
+		return events
+	}
+
+	private fun List<ILoggingEvent>.messagesAt(level: Level) =
+		filter { it.level == level }.map { it.formattedMessage }
 
 	@ParameterizedTest
 	@ValueSource(booleans = [true, false])

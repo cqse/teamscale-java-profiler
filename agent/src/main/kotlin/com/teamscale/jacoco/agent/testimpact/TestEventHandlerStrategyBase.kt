@@ -30,25 +30,22 @@ abstract class TestEventHandlerStrategyBase protected constructor(
 	/** Uniform path of the test that is currently running, or null if no test is in progress.  */
 	private var runningTest: String? = null
 
+	/** Uniform path of the test that was ended last, or null if no test has ended yet.  */
+	private var lastEndedTest: String? = null
+
+	/**
+	 * The duration we derived for [lastEndedTest] from the time between its /test/start and /test/end requests, or null
+	 * if we could not derive one because we did not receive a matching /test/start request.
+	 */
+	private var lastEndedTestDurationMillis: Long? = null
+
 	/** May be null if the user did not configure Teamscale.  */
 	@JvmField
 	protected val teamscaleClient = agentOptions.createTeamscaleClient(true)
 
 	/** Called when test test with the given name is about to start.  */
 	open fun testStart(test: String) {
-		runningTest?.let { previousTest ->
-			logger.warn(
-				"Test '{}' was started while test '{}' was still running (no /test/end was received)." +
-						" Automatically ending the previous test '{}' using the time until the new test's start as its duration.",
-				test, previousTest, ETestExecutionResult.SKIPPED
-			)
-			testEnd(
-				previousTest, TestExecution(
-					previousTest, 0L, ETestExecutionResult.SKIPPED,
-					"The test did not end properly: a new test ('$test') was started before this test ended."
-				)
-			)
-		}
+		endRunningTestAsInconclusive("a new test ('$test') was started")
 		logger.debug("Test {} started", test)
 		// Reset coverage so that we only record coverage that belongs to this particular test case.
 		controller.reset()
@@ -61,27 +58,90 @@ abstract class TestEventHandlerStrategyBase protected constructor(
 	 * Called when the test with the given name finished.
 	 * 
 	 * @param test          Uniform path of the test
-	 * @param testExecution A test execution object holding the test result and error message. May be null if none is
-	 * given in the request.
+	 * @param testExecution A test execution object holding the test result and error message.
 	 * @return The body of the response. `null` indicates "204 No content". Non-null results will be treated
 	 * as a json response.
 	 */
 	@Throws(DumpException::class, CoverageGenerationException::class)
 	open fun testEnd(
 		test: String,
-		testExecution: TestExecution?
+		testExecution: TestExecution
 	): TestInfo? {
-		if (testExecution != null) {
-			testExecution.uniformPath = test
-			if (startTimestamp != -1L) {
-				val endTimestamp = System.currentTimeMillis()
-				@Suppress("DEPRECATION")
-				testExecution.durationMillis = endTimestamp - startTimestamp
-			}
+		testExecution.uniformPath = test
+		val derivedDurationMillis = deriveDurationMillis(test, testExecution)
+		derivedDurationMillis?.let {
+			@Suppress("DEPRECATION")
+			testExecution.durationMillis = it
 		}
+		lastEndedTest = test
+		lastEndedTestDurationMillis = derivedDurationMillis
 		runningTest = null
+		startTimestamp = -1
 		logger.debug("Test {} ended with test execution {}", test, testExecution)
 		return null
+	}
+
+	/**
+	 * Ends the test that is currently running, if any, as [ETestExecutionResult.INCONCLUSIVE]. We do not know its
+	 * actual result, since the profiler never received a valid /test/end request for it.
+	 *
+	 * @param cause Description of what ended the test, e.g. the start of another test. Used in the log message and
+	 * recorded as the test's message in the report.
+	 */
+	@Throws(DumpException::class, CoverageGenerationException::class)
+	protected fun endRunningTestAsInconclusive(cause: String) {
+		val test = runningTest ?: return
+		logger.warn(
+			"No valid /test/end request was received for test '{}' before {}." +
+					" Automatically ending it as '{}', using the time until now as its duration.",
+			test, cause, ETestExecutionResult.INCONCLUSIVE
+		)
+		val testInfo = testEnd(
+			test, TestExecution(
+				test, 0L, ETestExecutionResult.INCONCLUSIVE,
+				"The test did not end properly: $cause before this test ended."
+			)
+		)
+		if (testInfo != null) {
+			logger.warn(
+				"The coverage recorded for test '{}' is lost. The profiler is configured to return each test's" +
+						" coverage in the response to its /test/end request (tia-mode=http), but it never received a" +
+						" valid /test/end request for this test.", test
+			)
+		}
+	}
+
+	/**
+	 * Derives the duration of the given test from the time between its /test/start and its /test/end request. Returns
+	 * null if we cannot derive it, in which case the duration given by the caller (if any) is used as-is.
+	 */
+	private fun deriveDurationMillis(test: String, testExecution: TestExecution): Long? {
+		if (runningTest == test) return System.currentTimeMillis() - startTimestamp
+
+		if (test == lastEndedTest) {
+			// The test was already ended once, e.g. because the caller sent a second /test/end request for it. Reuse
+			// the duration derived back then instead of claiming that no /test/start request was received, which
+			// would be wrong and unactionable.
+			return lastEndedTestDurationMillis
+		}
+
+		if (!testExecution.hasExplicitDuration) logMissingDuration(test)
+		return null
+	}
+
+	/**
+	 * Logs that we can neither derive the duration of the given test ourselves, because we did not receive a matching
+	 * /test/start request, nor did the caller provide the duration in the /test/end request.
+	 */
+	private fun logMissingDuration(test: String) {
+		logger.warn(
+			"No /test/start request was received for test '{}', so the profiler could not derive its" +
+					" duration and none was provided in the /test/end request either." +
+					" The duration reported for this test will be inaccurate." +
+					" Please send a /test/start request before ending a test or provide a 'duration'" +
+					" (in seconds) in the body of the /test/end request.",
+			test
+		)
 	}
 
 	/**

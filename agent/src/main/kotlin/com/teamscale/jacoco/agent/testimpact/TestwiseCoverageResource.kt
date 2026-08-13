@@ -4,6 +4,7 @@ import com.teamscale.client.ClusteredTestDetails
 import com.teamscale.jacoco.agent.JacocoRuntimeController.DumpException
 import com.teamscale.jacoco.agent.ResourceBase
 import com.teamscale.report.testwise.jacoco.cache.CoverageGenerationException
+import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.report.testwise.model.TestInfo
 import java.io.IOException
@@ -31,7 +32,7 @@ class TestwiseCoverageResource(private val testwiseCoverageAgent: TestwiseCovera
 
 		logger.debug("Start test {}", testId)
 
-		testwiseCoverageAgent.testEventHandler.testStart(testId!!)
+		testwiseCoverageAgent.testEventHandler.testStart(testId)
 		return Response.noContent().build()
 	}
 
@@ -46,9 +47,20 @@ class TestwiseCoverageResource(private val testwiseCoverageAgent: TestwiseCovera
 	): TestInfo? {
 		if (testId.isNullOrEmpty()) handleBadRequest("Test name is missing!")
 
-		logger.debug("End test {}", testId)
+		if (testExecution?.result == null) {
+			// We reject the request without ending the test, i.e. without dumping and resetting the coverage.
+			// The caller needs to repeat the request with a result.
+			handleBadRequest(
+				"The test result is missing for test '$testId'!" +
+						" Please provide a JSON body containing a 'result' (one of $VALID_RESULTS)." +
+						" The test was not ended and its coverage is still being recorded," +
+						" so please repeat this request with a result." +
+						" If you don't, the test will be recorded as ${ETestExecutionResult.INCONCLUSIVE}" +
+						" once the next test starts or the test run ends."
+			)
+		}
 
-		return testwiseCoverageAgent.testEventHandler.testEnd(testId!!, testExecution)
+		return testwiseCoverageAgent.testEventHandler.testEnd(testId, testExecution)
 	}
 
 	/** Handles the start of a new testrun.  */
@@ -83,5 +95,8 @@ class TestwiseCoverageResource(private val testwiseCoverageAgent: TestwiseCovera
 	companion object {
 		/** Path parameter placeholder used in the HTTP requests.  */
 		private const val TEST_ID_PARAMETER = "testId"
+
+		/** The test results that callers may supply, for use in error messages.  */
+		private val VALID_RESULTS = ETestExecutionResult.entries.joinToString()
 	}
 }
