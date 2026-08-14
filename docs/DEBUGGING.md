@@ -5,7 +5,7 @@ For debugging a profiler *deployment*, see the [official documentation](https://
 
 - [Debugging the agent in the IDE](#debugging-the-agent-in-the-ide)
 - [Where the profiler writes its logs](#where-the-profiler-writes-its-logs)
-- [End-to-end against a real Teamscale](#end-to-end-against-a-real-teamscale)
+- [Running the profiler locally](#running-the-profiler-locally)
 - [How the configuration is resolved](#how-the-configuration-is-resolved)
 - [Configuring the profiler from Teamscale (`config-id`)](#configuring-the-profiler-from-teamscale-config-id)
 - [When nothing happens at all](#when-nothing-happens-at-all)
@@ -32,7 +32,9 @@ build.
 ### Which application to profile
 
 `sample-app` is a playground: nothing in the build depends on it, so you can change it freely to reproduce
-whatever you are chasing without breaking anything.
+whatever you are chasing without breaking anything. Its `run` task profiles the application's jar instead of the class
+directories, so that the generated `git.properties` is where the agent looks for it — see
+[uploading coverage to Teamscale](#2-uploading-coverage-to-teamscale).
 
 ### Useful breakpoints
 
@@ -45,121 +47,88 @@ whatever you are chasing without breaking anything.
 
 ## Where the profiler writes its logs
 
-By default, the agent logs into a **new temporary directory per process**:
+`sample-app/jacocoagent.properties` sets `debug=true`, so the profiler logs to the console at DEBUG level. Without
+that option it logs into a new temporary directory per process.
 
+## Running the profiler locally
+
+Three scenarios, in increasing order of setup. All of them run `sample-app`, which stays alive for ten seconds — long
+enough for one dump at shutdown. Pass `-PruntimeSeconds=300` to keep it running for five minutes instead, e.g. to watch
+periodic dumps or to take your time in the debugger.
+
+### 1. Only the system under test
+
+```bash
+./gradlew :sample-app:run
 ```
-<java.io.tmpdir>/teamscale-java-profiler-<pid>-<random>/logs/teamscale-jacoco-agent.log
-```
 
-The path is announced with a `Logging to ...` line — but that line is written *into that very log file*, so there is
-no way to find the log unless you already know where it is. Options, in increasing order of convenience:
+The committed `sample-app/jacocoagent.properties` needs no Teamscale: the profiler instruments `com.example.*`, logs to
+the console and writes the reports next to its logs into `<temp dir>/coverage/<timestamp>/`.
 
-- `debug=true` — DEBUG level to both the file **and** the console. The console appender is what makes the log
-  discoverable.
-- `debug=<dir>` — same, but the file lands in `<dir>/logs` instead of a temporary directory.
-- `logging-config=<file.xml>` — full control via a logback configuration. `agent/src/dist/logging/` contains ready-made
-  configurations (`logback.console.xml`, `logback.debug.xml`, `logback.rolling-file.xml`).
+### 2. Uploading coverage to Teamscale
 
-`sample-app/jacocoagent.properties` uses `logging-config=../agent/src/dist/logging/logback.console.xml`, which
-is why the sample app prints the profiler's log to the console instead of hiding it in a temp directory.
-
-The default file appender rolls at 1 MB and keeps 10 compressed files. On a chatty application the startup lines —
-usually the most interesting ones — are the first to be rolled away, so capture them early.
-
-## End-to-end against a real Teamscale
-
-The profiler talks to Teamscale for four different things — registration, configuration retrieval, coverage upload, and
-log forwarding — and each can fail on its own. This is how to get all of them running locally.
-
-### 1. A Teamscale instance
-
-A local instance is assumed to be reachable at `http://127.0.0.1:9999/teamscale/`.
-
-### 2. An access key
-
-The REST API does **not** accept your password; it needs an access key. Log in, then go to the avatar in the top-right
-corner → **Access Keys** (`/user/access-key`) → **Generate New Access Key**, and copy the key.
-
-### 3. A project
-
-Coverage is always uploaded into a project, so one has to exist. Create a project that analyses your checkout of this
-repository, so that the sample application's source file (`sample-app/src/main/java/com/example/Main.java`)
-is known to Teamscale and the uploaded coverage has something to attach itself to. Note the project ID — that is what
-goes into `teamscale-project`, not the display name.
-
-### 4. Configure the sample application
-
-Do not put credentials into the committed `jacocoagent.properties`. Copy it instead:
+Credentials must not end up in the committed file, so copy it — `jacocoagent.local.properties` is git-ignored and the
+`run` task prefers it:
 
 ```bash
 cp sample-app/jacocoagent.properties sample-app/jacocoagent.local.properties
 ```
 
-`jacocoagent.local.properties` is git-ignored, and the `run` task prefers it over `jacocoagent.properties` when it
-exists. Fill in:
+Add the server, a project that analyses this repository, and an access key (avatar menu → **Access Keys** →
+_Generate New Access Key_; the REST API does not accept your password):
 
 ```properties
-includes=*com.example.*
-logging-config=../agent/src/dist/logging/logback.console.xml
-
-teamscale-server-url=http://127.0.0.1:9999/teamscale/
-teamscale-project=<project id>
+teamscale-server-url=http://127.0.0.1:8080/
+teamscale-project=<project id, not the display name>
 teamscale-user=admin
 teamscale-access-token=<your access key>
 teamscale-partition=Agent Debugging
-teamscale-commit=master:HEAD
 ```
 
-`teamscale-commit` accepts `<branch>:<timestamp>`, and `HEAD` is a valid timestamp. Alternatively use
-`teamscale-revision=<git sha>`; the two are mutually exclusive. If you provide neither, the agent tries to auto-detect
-the commit from `git.properties` files inside the profiled code — which the sample application does not have.
+`./gradlew :sample-app:run` then uploads the coverage during JVM shutdown (`dump-on-exit` defaults to `true`); with a
+longer runtime, `interval=1` uploads once a minute on top of that. The commit is auto-detected from the
+`git.properties` the build generates into the jar, so coverage lands on the revision you have checked out —
+**Teamscale has to know that revision** so if you used a File System Connector for example you need to manually specify
+ a branch name instead, otherwise the upload is rejected. Commit and let it be analyzed, or set
+`teamscale-commit`/`teamscale-revision` explicitly.
 
-### 5. Run it
+### 3. Configuration from the Teamscale profiler configuration UI
 
-```bash
-./gradlew :sample-app:run -Punshaded=true
+In Teamscale, go to _Project Configuration → Coverage Profilers → New profiler configuration → Create for a JVM
+project_ and give the configuration these options:
+
+```properties
+includes=*com.example.*
+interval=1
+teamscale-project=<project id, not the display name>
+teamscale-partition=Agent Debugging
 ```
 
-The sample application prints one line and exits immediately. That is enough: `dump-on-exit` defaults to `true`, so the
-coverage dump and upload happen during JVM shutdown. You do **not** have to wait for the dump interval, which defaults
-to 480 minutes.
+`teamscale-server-url`, `teamscale-user` and `teamscale-access-token` must **not** be among them: the profiler needs
+those to fetch the configuration in the first place, so they have to stay local. Reduce
+`jacocoagent.local.properties` to:
 
-Expect this sequence in the console:
-
-```
-WARN  Using multiple java agents could interfere with coverage recording: ...
-WARN  For best results consider registering the Teamscale Java Profiler first.
-INFO  Logging to /var/folders/.../teamscale-java-profiler-<pid>-<random>/logs
-INFO  Teamscale Java profiler version <version>
-INFO  Starting JaCoCo's agent
-INFO  Excluding 23 package prefixes from instrumentation: kotlin.*:shadow.*:...
-INFO  Starting Teamscale Java Profiler for process <pid>@<host> with options: config-file=...
-INFO  Upload method: Uploading to Teamscale <url> as user <user> for <project> to <partition> at commit <commit>
-INFO  Logs are being forwarded to Teamscale at <url>
-INFO  Dumping every 480 minutes.
-Hello Java Profiler!
-INFO  Teamscale Java Profiler is shutting down...
-INFO  Teamscale Java Profiler successfully shut down.
+```properties
+debug=true
+config-id=<the configuration's ID>
+teamscale-server-url=http://127.0.0.1:8080/
+teamscale-user=admin
+teamscale-access-token=<your access key>
 ```
 
-The two warnings at the top are expected here and not a problem: Gradle attaches its own Java agent to the `run` task,
-and it comes first on the command line.
+While `./gradlew :sample-app:run` is running, the profiler shows up under _Running Profilers_ in Teamscale. See
+[configuring the profiler from Teamscale](#configuring-the-profiler-from-teamscale-config-id) for the requests behind
+it.
 
-`Upload method:` is the line to check first — it tells you which uploader was actually configured. Without any
-`teamscale-*` options it reads `configured output directory on the local disk`, which means nothing will be uploaded
-anywhere.
+### When it does not work
 
-Then in Teamscale, look for the coverage under the partition you configured. If the upload succeeded but you see no
-coverage, the upload most likely landed on a commit Teamscale does not know about — check `teamscale-commit`.
-
-### What can go wrong here
-
+- **`Upload method:`** is the first line to check — it names the uploader that was actually configured.
+  `configured output directory on the local disk` means nothing gets uploaded anywhere;
+  `Temporary cache until commit is resolved` turns into a real uploader once `Commit to upload to has been found`
+  appears.
 - **`The generated coverage report is empty`** — the `includes`/`excludes` patterns did not match anything that ran.
-  Widen `includes` first, then narrow it down.
-- **No `class-dir` set** — that is fine and is the normal case. The agent then tells JaCoCo to dump the instrumented
-  classes into `<temp dir>/jacoco-class-dump` and analyses those (`JacocoAgentOptionsBuilder`). You only need
-  `class-dir` when the classes JaCoCo sees differ from the ones you want reported.
 - **Nothing at all in the log** — see [When nothing happens at all](#when-nothing-happens-at-all).
+- The two Java-agent warnings at startup are expected: Gradle attaches its own agent to the `run` task.
 
 ## How the configuration is resolved
 

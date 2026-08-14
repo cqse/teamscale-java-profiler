@@ -87,3 +87,4 @@ shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
 oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.30.0" }
 jlink = { id = "org.beryx.jlink", version = "4.1.1" }
 testRetry = { id = "org.gradle.test-retry", version = "1.6.5" }
+gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "4.0.1" }
