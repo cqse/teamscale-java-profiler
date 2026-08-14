@@ -12,6 +12,6 @@ report-generator/test-coverage-*.xml
 **/logTest/**
 **/jacoco.exec
 # local profiler configuration containing Teamscale credentials, see docs/DEBUGGING.md
-jacocoagent.local.properties
+java-profiler.local.properties
 **/target/**
 .claude/settings.local.json

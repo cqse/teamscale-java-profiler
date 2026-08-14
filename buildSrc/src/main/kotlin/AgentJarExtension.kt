@@ -8,9 +8,14 @@ import org.gradle.process.JavaForkOptions
 import java.io.File
 import java.io.Serializable
 
-/** Determines the path under which the com.teamscale.agent-jar plugin stored the agent jar. */
+/**
+ * Determines the path under which the com.teamscale.agent-jar plugin stored the agent jar.
+ *
+ * The file name has to stay `teamscale-jacoco-agent.jar`: `PreMain` recognises its own `-javaagent` option by that
+ * name, and warns about interference from other Java agents for every option it does not recognise.
+ */
 val Task.agentJar: File
-	get() = this.temporaryDir.resolve("libs/agent.jar")
+	get() = this.temporaryDir.resolve("libs/teamscale-jacoco-agent.jar")
 
 val Test.logFilePath
 	get() = "logTest"

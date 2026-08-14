@@ -26,11 +26,11 @@ gitProperties {
 }
 
 /**
- * Uses `jacocoagent.local.properties` if it exists, so credentials for a real Teamscale instance can be kept out of
- * version control (the file is git-ignored), and the committed `jacocoagent.properties` otherwise.
+ * Uses `java-profiler.local.properties` if it exists, so credentials for a real Teamscale instance can be kept out of
+ * version control (the file is git-ignored), and the committed `java-profiler.properties` otherwise.
  */
 val agentConfigFile =
-	listOf("jacocoagent.local.properties", "jacocoagent.properties")
+	listOf("java-profiler.local.properties", "java-profiler.properties")
 		.first { layout.projectDirectory.file(it).asFile.exists() }
 
 tasks.named<JavaExec>("run") {
