@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _agent_: A configured dump `interval` smaller than 1h is now applied only once and then raised to 1h to prevent excessive uploads that can overwhelm Teamscale. A warning is logged at startup when this happens.
 
 # 37.0.2
 - [fix] _agent_: In some cases the hostname was wrongly added to the PID when sending it to Teamscale.
