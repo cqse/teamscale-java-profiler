@@ -9,7 +9,6 @@
   "rangeStrategy": "bump",
   "separateMajorMinor": false,
   "ignorePaths": [
-    "sample-app/**",
     "report-generator/build.gradle.kts"
   ],
   "packageRules": [
@@ -73,12 +72,6 @@
       "matchPackageNames": [
         "com.teamscale:teamscale-jacoco-agent",
         "com.teamscale:teamscale-client"
-      ],
-      "enabled": false
-    },
-    {
-      "matchPackageNames": [
-        "org.jetbrains.kotlin.jvm"
       ],
       "enabled": false
     }

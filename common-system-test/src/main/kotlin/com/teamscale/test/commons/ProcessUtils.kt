@@ -117,12 +117,36 @@ object ProcessUtils {
 		 *
 		 * @return ProcessBuilder configured with commands and working directory
 		 */
-		fun build(): ProcessBuilder = ProcessBuilder(commands).apply {
+		fun build(): ProcessBuilder = ProcessBuilder(commands.withDebuggerArgumentIfRequested()).apply {
 			workingDirectory?.let { directory(it) }
 			environmentVariables?.let { environment().putAll(it) }
 			removeEnvironmentVariables.forEach { environment().remove(it) }
 		}
 	}
+
+	/**
+	 * Environment variable through which the build tells us that JVMs spawned by system tests should wait for a
+	 * debugger to attach. Set by the system test convention plugin when Gradle is run with `-PdebugSut`.
+	 */
+	private const val DEBUG_PORT_ENVIRONMENT_VARIABLE = "SYSTEM_TEST_DEBUG_PORT"
+
+	/**
+	 * Makes a `java` command line suspend at startup until a debugger connects, if the build requested it via
+	 * [DEBUG_PORT_ENVIRONMENT_VARIABLE]. Other commands (Maven, `chcp.com`, ...) are left untouched, so only the
+	 * JVM that the system test actually profiles waits for the debugger.
+	 */
+	private fun List<String>.withDebuggerArgumentIfRequested(): List<String> {
+		val port = System.getenv(DEBUG_PORT_ENVIRONMENT_VARIABLE) ?: return this
+		val executable = firstOrNull()?.takeIf { it.isJavaExecutable() } ?: return this
+		return listOf(
+			executable,
+			"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:$port"
+		) + drop(1)
+	}
+
+	/** Whether this command is a `java` executable, with or without a path and the Windows `.exe` extension. */
+	private fun String.isJavaExecutable() =
+		substringAfterLast('/').substringAfterLast('\\').removeSuffix(".exe") == "java"
 
 	/**
 	 * Immutable result of process execution.

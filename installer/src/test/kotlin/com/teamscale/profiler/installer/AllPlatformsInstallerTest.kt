@@ -5,7 +5,6 @@ import com.teamscale.profiler.installer.utils.MockRegistry
 import com.teamscale.profiler.installer.utils.MockTeamscale
 import com.teamscale.profiler.installer.utils.TestUtils
 import com.teamscale.profiler.installer.utils.UninstallErrorReporterAssert
-import com.teamscale.test.commons.SystemTestUtils
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterAll
@@ -92,14 +91,14 @@ internal class AllPlatformsInstallerTest {
 
 	@Test
 	fun connectionRefused() {
-		Assertions.assertThatThrownBy { install("http://localhost:" + (SystemTestUtils.TEAMSCALE_PORT + 1)) }
+		Assertions.assertThatThrownBy { install("http://localhost:" + (TEAMSCALE_PORT + 1)) }
 			.hasMessageContaining("refused a connection")
 		Assertions.assertThat(targetDirectory).doesNotExist()
 	}
 
 	@Test
 	fun httpsInsteadOfHttp() {
-		Assertions.assertThatThrownBy { install("https://localhost:" + SystemTestUtils.TEAMSCALE_PORT) }
+		Assertions.assertThatThrownBy { install("https://localhost:$TEAMSCALE_PORT") }
 			.hasMessageContaining("configured for HTTPS, not HTTP")
 		Assertions.assertThat(targetDirectory).doesNotExist()
 	}
@@ -133,14 +132,21 @@ internal class AllPlatformsInstallerTest {
 	companion object {
 		private const val FILE_TO_INSTALL_CONTENT = "install-me"
 		private const val NESTED_FILE_CONTENT = "nested-file"
-		private val TEAMSCALE_URL = "http://localhost:" + SystemTestUtils.TEAMSCALE_PORT + "/"
+
+		/**
+		 * The port for the mock Teamscale server, picked by the build script so that it does not conflict
+		 * with the ports of any other test.
+		 */
+		private val TEAMSCALE_PORT: Int = Integer.getInteger("teamscalePort")
+
+		private val TEAMSCALE_URL = "http://localhost:$TEAMSCALE_PORT/"
 
 		private var mockTeamscale: MockTeamscale? = null
 
 		@JvmStatic
 		@BeforeAll
 		fun startFakeTeamscale() {
-			mockTeamscale = MockTeamscale(SystemTestUtils.TEAMSCALE_PORT)
+			mockTeamscale = MockTeamscale(TEAMSCALE_PORT)
 		}
 
 		@JvmStatic

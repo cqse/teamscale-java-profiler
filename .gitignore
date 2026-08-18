@@ -11,5 +11,7 @@ report-generator/test-coverage-*.xml
 **/maven-wrapper.jar
 **/logTest/**
 **/jacoco.exec
+# local profiler configuration containing Teamscale credentials, see docs/DEBUGGING.md
+java-profiler.local.properties
 **/target/**
 .claude/settings.local.json

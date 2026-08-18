@@ -55,7 +55,7 @@ jobs:
       - name: Publish to Maven Central
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          ./gradlew publishMavenPublicationToSonatypeRepository closeAndReleaseSonatypeStagingRepository \
+          ./gradlew publishAggregationToCentralPortal \
             -Psigning.secretKeyRingFile=${{ github.workspace }}/.gnupg/secring.gpg \
             -PgpgDirectory=${{ github.workspace }}/.gnupg \
             -Psigning.password=${{ secrets.MAVEN_CENTRAL_GPG_SIGNATURE }} \

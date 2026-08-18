@@ -1,3 +1,4 @@
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.writeText
 
 plugins {
@@ -18,7 +19,7 @@ tasks.test {
 		)
 	}
 	doLast {
-		delete(teamscalePropertiesPath)
+		teamscalePropertiesPath.deleteIfExists()
 	}
 
 	teamscaleAgent(

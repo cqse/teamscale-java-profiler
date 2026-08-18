@@ -6,6 +6,6 @@ plugins {
 
 tasks.test {
     // install dependencies needed by the Maven test project
-    dependsOn(rootProject.tasks["publishToMavenLocal"])
+    dependsOn(":publishToMavenLocal")
 }
 

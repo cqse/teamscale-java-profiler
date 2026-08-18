@@ -4,7 +4,6 @@ plugins {
 }
 
 tasks.register<JavaExec>("runWithoutGradleWorker") {
-	dependsOn(":agent:shadowJar")
 	mainClass = "jul.test.SystemUnderTest"
 	classpath = sourceSets["main"].runtimeClasspath
 	systemProperty("java.util.logging.manager", "jul.test.CustomLogManager")

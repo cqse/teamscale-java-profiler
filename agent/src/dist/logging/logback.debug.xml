@@ -2,29 +2,29 @@
 <configuration>
 	<define name="defaultLogDir" class="com.teamscale.jacoco.agent.logging.LogDirectoryPropertyDefiner" />
 
-	<appender name="CONSOLE" class="shadow.ch.qos.logback.core.ConsoleAppender">
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{35} - %msg%n</pattern>
+			<pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} - %msg%n</pattern>
 		</encoder>
 	</appender>
 
-	<appender name="RollingFile" class="shadow.ch.qos.logback.core.rolling.RollingFileAppender">
+	<appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<!-- TODO: adjust the path where the log file should be written -->
 		<file>${defaultLogDir}/teamscale-jacoco-agent.log</file>
 
-		<rollingPolicy class="shadow.ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
 			<!-- TODO: adjust the path where the log file should be written -->
 			<fileNamePattern>${defaultLogDir}/teamscale-jacoco-agent-%i.log.zip</fileNamePattern>
 			<minIndex>1</minIndex>
 			<maxIndex>10</maxIndex>
 		</rollingPolicy>
 
-		<triggeringPolicy class="shadow.ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
 			<maxFileSize>1MB</maxFileSize>
 		</triggeringPolicy>
 
 		<encoder>
-			<pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{35} - %msg%n</pattern>
+			<pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} - %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -32,7 +32,4 @@
 		<appender-ref ref="RollingFile"/>
 		<appender-ref ref="CONSOLE"/>
 	</root>
-
-	<logger name="shadow.org.apache.spark" level="warn" />
-	<logger name="shadow.org.eclipse.jetty" level="warn" />
 </configuration>

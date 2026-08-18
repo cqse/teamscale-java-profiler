@@ -80,12 +80,12 @@ jetbrains-annotations = { module = "org.jetbrains:annotations", version = "26.1.
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 
 [plugins]
-nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
+nmcp = { id = "com.gradleup.nmcp", version = "1.6.1" }
 pluginPublish = { id = "com.gradle.plugin-publish", version = "2.1.1" }
-gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "4.0.1" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
 shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
 oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.30.0" }
-kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.10" }
-jlink = { id = "org.beryx.jlink", version = "4.1.1" }
+jlink = { id = "com.github.iherasymenko.jlink", version = "0.9" }
+extraJavaModuleInfo = { id = "org.gradlex.extra-java-module-info", version = "1.14.2" }
 testRetry = { id = "org.gradle.test-retry", version = "1.6.5" }
+gitProperties = { id = "com.gorylenko.gradle-git-properties", version = "4.0.1" }

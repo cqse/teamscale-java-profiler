@@ -68,7 +68,7 @@ object Main {
 
 	/** Creates a builder for a [com.beust.jcommander.JCommander] object.  */
 	private fun createJCommanderBuilder() =
-		JCommander.newBuilder().programName(Main::class.java.getName())
+		JCommander.newBuilder().programName("convert")
 			.addObject(defaultArguments)
 			.addObject(command)
 

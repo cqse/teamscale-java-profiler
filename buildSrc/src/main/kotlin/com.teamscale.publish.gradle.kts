@@ -27,6 +27,12 @@ publishing {
 	}
 }
 
+// Contributes this project's publications to the aggregated deployment that the root project uploads to
+// Maven Central. The Gradle plugin is released through the Gradle Plugin Portal instead, so it stays out.
+if (project.name != "teamscale-gradle-plugin") {
+	pluginManager.apply("com.gradleup.nmcp")
+}
+
 signing {
 	setRequired({
 		// Do not require signing for deployment to maven local

@@ -107,43 +107,11 @@ git config --local core.hooksPath .githooks
 
 ### Debug locally
 
-For IntelliJ, there is a run config `SampleApp` which profiles the included `sample-debugging-app` and can be used to 
-debug the agent. This run config omits relocating packages in the shadow jar because with relocating, the package 
-names in the jar would not match with the ones IntelliJ knows from the code and so debugging would not work. 
-The agent is configured in the config file `sample-debugging-app/jacocoagent.properties`. By default, no upload 
-is configured but the file includes all required options to upload to Teamscale, they are just commented out. 
-Feel free to adapt it to your needs.
-If you get an `IllegalStateException: Cannot process instrumented class com/example/Main`, make sure that you use 
-the built-in IntelliJ functionality for building and running instead of 
-gradle (IntelliJ Settings -> Build, Execution, Deployment -> Build Tools -> Gradle -> Build and run using: IntelliJ IDEA).
+Debug the `SampleApp` run configuration in IntelliJ to debug the included `sample-app` with breakpoints in the agent working.
 
-### Debugging the Gradle plugin
-
-* increase the plugin version (=`appVersion`) in [build.gradle.kts](build.gradle.kts)
-* `./gradlew publishToMavenLocal` will deploy your checked out version to your local m2 cache
-* then you can import this version into any other gradle project by
-  * adding the following to the `settings.gradle.kts`
-```kotlin
-pluginManagement {
-    repositories {
-		mavenLocal()
-		gradlePluginPortal()
-    }
-}
-
-dependencyResolutionManagement {
-    repositories {
-		mavenLocal()
-        mavenCentral()
-    }
-}
-```
-  * declaring a plugin dependency on the incremented version of the teamscale plugin
-* to debug a build that uses the plugin, run `./gradlew` with `--no-daemon -Dorg.gradle.debug=true`.
-  The build will pause and wait for you to attach a debugger, via IntelliJ's `Run > Attach to Process`.
-* to debug the impacted test engine during a build, run `./gradlew` with `--no-daemon --debug-jvm` and wait for the test phase to start.
-  The build will pause and wait for you to attach a debugger, via IntelliJ's `Run > Attach to Process`.
-* These two debug flags can also be combined. The build will then pause twice.
+**[docs/DEBUGGING.md](docs/DEBUGGING.md) is the full guide**: setting up end-to-end communication with a real Teamscale
+instance, how the agent's configuration is resolved from its five sources, where the profiler writes its logs, why a
+misconfigured profiler fails silently, and how to attach a debugger to system tests.
 
 ### Contributing
 

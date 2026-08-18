@@ -1,44 +1,46 @@
-// Needed to make git properties work with Java 8,
-// see https://github.com/n0mer/gradle-git-properties/issues/195#issuecomment-982326268
-buildscript {
-	dependencies {
-		classpath("org.eclipse.jgit:org.eclipse.jgit") {
-			version {
-				strictly("5.13.0.202109080827-r")
-			}
-		}
-	}
+plugins {
+	com.teamscale.`java-convention`
+	application
+	com.teamscale.`agent-jar`
+	alias(libs.plugins.gitProperties)
 }
 
-plugins {
-	application
-	com.teamscale.`java-convention`
-	com.teamscale.coverage
-	alias(libs.plugins.gitProperties)
+application {
+	mainClass = "com.example.Main"
 }
 
 version = "unspecified"
 
-application {
-	applicationName = "sample-app"
-	mainClass = "Main"
+dependencies {
+	testImplementation(libs.junit4)
 }
 
 tasks.jar {
 	manifest {
-		attributes["Main-Class"] = "Main"
+		attributes["Main-Class"] = "com.example.Main"
 	}
-	// make it a fat jar
-	from(configurations.runtimeClasspath.get().files.map { if (it.isDirectory) it else zipTree(it) })
 }
 
 gitProperties {
-	dotGitDirectory = rootProject.layout.projectDirectory.dir(".git")
+	keys = listOf("git.branch", "git.commit.id", "git.commit.time")
 }
 
-dependencies {
-	// this logback version is the oldest one available that I could get to work and possibly incompatible
-	// with the one used in the agent. This way, we can test if the shadowing works correctly
-	implementation("ch.qos.logback:logback-core:1.0.0")
-	implementation("ch.qos.logback:logback-classic:1.0.0")
+/**
+ * Uses `java-profiler.local.properties` if it exists, so credentials for a real Teamscale instance can be kept out of
+ * version control (the file is git-ignored), and the committed `java-profiler.properties` otherwise.
+ */
+val agentConfigFile =
+	listOf("java-profiler.local.properties", "java-profiler.properties")
+		.first { layout.projectDirectory.file(it).asFile.exists() }
+
+tasks.named<JavaExec>("run") {
+	classpath = files(tasks.jar, configurations.runtimeClasspath)
+	// How long the application should keep running, e.g. `./gradlew :sample-app:run -PruntimeSeconds=300` to profile
+	// for five minutes. Without it the application uses its own default of ten seconds.
+	providers.gradleProperty("runtimeSeconds").orNull?.let { args(it) }
+	teamscaleAgent(
+		mapOf(
+			"config-file" to agentConfigFile
+		)
+	)
 }

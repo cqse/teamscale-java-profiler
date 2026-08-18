@@ -2,29 +2,26 @@
 <configuration>
     <define name="defaultLogDir" class="com.teamscale.jacoco.agent.logging.LogDirectoryPropertyDefiner" />
 
-    <appender name="RollingFile" class="shadow.ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- We write to a file that is located in a folder provided via the context -->
         <file>${defaultLogDir}/teamscale-jacoco-agent.log</file>
 
-        <rollingPolicy class="shadow.ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
             <fileNamePattern>${defaultLogDir}/teamscale-jacoco-agent-%i.log.zip</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>10</maxIndex>
         </rollingPolicy>
 
-        <triggeringPolicy class="shadow.ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <maxFileSize>1MB</maxFileSize>
         </triggeringPolicy>
 
         <encoder>
-            <pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{35} - %msg%n</pattern>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <root level="INFO">
         <appender-ref ref="RollingFile"/>
     </root>
-
-    <logger name="shadow.org.apache.spark" level="warn" />
-    <logger name="shadow.org.eclipse.jetty" level="warn" />
 </configuration>
