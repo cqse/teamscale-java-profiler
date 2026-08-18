@@ -28,6 +28,7 @@ abstract class VerifyShadowedLoggingConfigs : DefaultTask() {
 	@get:Input
 	abstract val relocated: Property<Boolean>
 
+	/** Checks every logback configuration in every archive, cf. [VerifyShadowedLoggingConfigs]. */
 	@TaskAction
 	fun verify() {
 		val isRelocated = relocated.get()

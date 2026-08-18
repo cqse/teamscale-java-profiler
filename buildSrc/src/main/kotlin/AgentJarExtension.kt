@@ -17,6 +17,10 @@ import java.io.Serializable
 val Task.agentJar: File
 	get() = this.temporaryDir.resolve("libs/teamscale-jacoco-agent.jar")
 
+/**
+ * The project-relative directory that the agent writes its debug logs to during a system test, cf. the agent's
+ * `debug` option. The system test convention deletes it before every run.
+ */
 val Test.logFilePath
 	get() = "logTest"
 
@@ -49,7 +53,10 @@ private fun <T> T.addTeamscaleAgent(options: Map<String, String>) where T : Task
 }
 
 /** Supplies the `-javaagent` option of the profiler, cf. [addTeamscaleAgent]. */
-class TeamscaleAgentArgumentProvider(@get:Input val argument: String) : CommandLineArgumentProvider, Serializable {
+class TeamscaleAgentArgumentProvider(
+	/** The `-javaagent` option, including the agent jar path and its options. */
+	@get:Input val argument: String
+) : CommandLineArgumentProvider, Serializable {
 	override fun asArguments() = listOf(argument)
 }
 
@@ -67,11 +74,14 @@ fun <T> T.startDebuggerBeforeProfiler() where T : Task, T : JavaForkOptions {
 		val options = debugOptions
 		if (!options.enabled.get()) return@whenReady
 
-		val server = if (options.server.get()) "y" else "n"
-		val suspend = if (options.suspend.get()) "y" else "n"
+		val server = options.server.get().asJdwpFlag()
+		val suspend = options.suspend.get().asJdwpFlag()
 		val address = options.host.map { "$it:" }.getOrElse("") + options.port.get()
 		// Disabled so that Gradle does not append a second, conflicting option of its own.
 		options.enabled.set(false)
 		jvmArgs("-agentlib:jdwp=transport=dt_socket,server=$server,suspend=$suspend,address=$address")
 	}
 }
+
+/** Renders the boolean as the `y`/`n` value that the `jdwp` agent expects. */
+private fun Boolean.asJdwpFlag() = if (this) "y" else "n"
