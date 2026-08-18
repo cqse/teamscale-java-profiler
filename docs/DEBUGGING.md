@@ -6,12 +6,8 @@ For debugging a profiler *deployment*, see the [official documentation](https://
 - [Debugging the agent in the IDE](#debugging-the-agent-in-the-ide)
 - [Where the profiler writes its logs](#where-the-profiler-writes-its-logs)
 - [Running the profiler locally](#running-the-profiler-locally)
-- [How the configuration is resolved](#how-the-configuration-is-resolved)
-- [Configuring the profiler from Teamscale (`config-id`)](#configuring-the-profiler-from-teamscale-config-id)
-- [When nothing happens at all](#when-nothing-happens-at-all)
 - [Debugging system tests](#debugging-system-tests)
 - [Debugging the Gradle and Maven plugins](#debugging-the-gradle-and-maven-plugins)
-- [Debugging the agent from the command line](#debugging-the-agent-from-the-command-line)
 
 ## Debugging the agent in the IDE
 
@@ -22,7 +18,7 @@ anywhere in the agent sources work.
 **`-Punshaded=true` turns off relocation.** The agent is loaded by the same class loader as the application it
 profiles, so anything it ships can interfere with that application. The jar therefore carries everything under a
 `shadow.` package prefix which keeps the two apart. Those class names do not match what the IDE knows from the source 
-tree, so breakpoints would not bind and stack traces would be unreadable. `-Punshaded=true` disables relocation.
+tree, so breakpoints would not bind and stack traces would be unreadable.
 
 The flip side: **this is not the artifact that ships.** Bugs that are caused by relocation itself — a class name
 built at runtime, a resource path, Kotlin module metadata — will not reproduce under `-Punshaded=true`. If a problem
@@ -41,7 +37,7 @@ directories, so that the generated `git.properties` is where the agent looks for
 | Where                                  | Fires when                                                                                                                                                 |
 |----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `PreMain.premain`                      | Once, at JVM startup. Good entry point for anything option- or startup-related.                                                                            |
-| `AgentOptionsParser.parse`             | Once, while options are being merged. See [configuration resolution](#how-the-configuration-is-resolved).                                                  |
+| `AgentOptionsParser.parse`             | Once, while options are being merged, so you can see which source contributed which option.                                                                |
 | `Agent.dumpReport`                     | On every dump: interval, `POST /dump`, and JVM shutdown.                                                                                                   |
 | `LenientCoverageTransformer.transform` | **For every single loaded class.** Always make this breakpoint conditional, e.g. `classname.startsWith("com/example")`, or the JVM will not make progress. |
 
@@ -123,9 +119,8 @@ unregister:
 ./gradlew :sample-app:run -PruntimeSeconds=300
 ```
 
-While it runs, the profiler shows up under _Running Profilers_ in Teamscale. See
-[configuring the profiler from Teamscale](#configuring-the-profiler-from-teamscale-config-id) for the requests behind
-it.
+While it runs, the profiler shows up under _Running Profilers_ in Teamscale. `ConfigurationViaTeamscale` implements
+the requests behind that — registration, heartbeat and unregistration on shutdown.
 
 ## Debugging system tests
 
