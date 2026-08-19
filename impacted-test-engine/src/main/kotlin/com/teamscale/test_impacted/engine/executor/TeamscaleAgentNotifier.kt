@@ -38,16 +38,11 @@ open class TeamscaleAgentNotifier(
 	}
 
 	/** Reports the end of a test to the Teamscale JaCoCo agent.  */
-	open fun endTest(testUniformPath: String, testExecution: TestExecution?) {
-		LOG.fine { "Ending test notification for: $testUniformPath (execution: ${testExecution != null})" }
+	open fun endTest(testUniformPath: String, testExecution: TestExecution) {
+		LOG.fine { "Ending test notification for: $testUniformPath (result: ${testExecution.result})" }
 		try {
 			testwiseCoverageAgentApis.forEach { apiService ->
-				val url = testUniformPath.encodeUrl()
-				if (testExecution == null) {
-					apiService.testFinished(url).execute()
-				} else {
-					apiService.testFinished(url, testExecution).execute()
-				}
+				apiService.testFinished(testUniformPath.encodeUrl(), testExecution).execute()
 			}
 			LOG.fine { "Successfully notified test end for: $testUniformPath" }
 		} catch (e: IOException) {

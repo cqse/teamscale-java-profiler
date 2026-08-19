@@ -37,12 +37,6 @@ interface ITestwiseCoverageAgentApi {
 	/** Test finished.  */
 	@POST("test/end/{testUniformPath}")
 	fun testFinished(
-		@Path(value = "testUniformPath", encoded = true) testUniformPath: String
-	): Call<ResponseBody>
-
-	/** Test finished.  */
-	@POST("test/end/{testUniformPath}")
-	fun testFinished(
 		@Path(value = "testUniformPath", encoded = true) testUniformPath: String,
 		@Body testExecution: TestExecution
 	): Call<ResponseBody>

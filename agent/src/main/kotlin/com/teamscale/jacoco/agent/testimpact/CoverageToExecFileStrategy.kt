@@ -16,14 +16,14 @@ import java.io.IOException
 class CoverageToExecFileStrategy(
 	controller: JacocoRuntimeController, agentOptions: AgentOptions,
 	/** Helper for writing test executions to disk.  */
-	private val testExecutionWriter: TestExecutionWriter?
+	private val testExecutionWriter: TestExecutionWriter
 ) : TestEventHandlerStrategyBase(agentOptions, controller) {
 	private val logger = getLogger(this)
 
 	@Throws(DumpException::class, CoverageGenerationException::class)
 	override fun testEnd(
 		test: String,
-		testExecution: TestExecution?
+		testExecution: TestExecution
 	): TestInfo? {
 		logger.debug("Test {} ended with execution {}. Writing exec file and test execution", test, testExecution)
 		super.testEnd(test, testExecution)
@@ -31,18 +31,16 @@ class CoverageToExecFileStrategy(
 		// Ensures that the coverage collected between the last test and the JVM shutdown
 		// is not considered a test with the same name as the last test
 		controller.resetSessionId()
-		if (testExecution != null) {
-			try {
-				testExecutionWriter?.append(testExecution)
-				logger.debug("Successfully wrote test execution for {}", test)
-			} catch (e: IOException) {
-				logger.error(
-					"Failed to append test execution for test '{}' to the testwise report: {}." +
-							" This test will be missing from the final report." +
-							" Check that the agent's 'out' directory is writable.",
-					test, e.message, e
-				)
-			}
+		try {
+			testExecutionWriter.append(testExecution)
+			logger.debug("Successfully wrote test execution for {}", test)
+		} catch (e: IOException) {
+			logger.error(
+				"Failed to append test execution for test '{}' to the testwise report: {}." +
+						" This test will be missing from the final report." +
+						" Check that the agent's 'out' directory is writable.",
+				test, e.message, e
+			)
 		}
 		return null
 	}

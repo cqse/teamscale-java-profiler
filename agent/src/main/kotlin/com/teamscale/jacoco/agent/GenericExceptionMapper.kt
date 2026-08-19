@@ -1,5 +1,6 @@
 package com.teamscale.jacoco.agent
 
+import javax.ws.rs.WebApplicationException
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.ext.ExceptionMapper
@@ -10,9 +11,11 @@ import javax.ws.rs.ext.Provider
  */
 @Provider
 class GenericExceptionMapper : ExceptionMapper<Throwable?> {
-	override fun toResponse(e: Throwable?): Response =
-		Response.status(Response.Status.INTERNAL_SERVER_ERROR).apply {
+	override fun toResponse(e: Throwable?): Response {
+		val status = (e as? WebApplicationException)?.response?.statusInfo ?: Response.Status.INTERNAL_SERVER_ERROR
+		return Response.status(status).apply {
 			type(MediaType.TEXT_PLAIN_TYPE)
 			entity("Message: ${e?.message}")
 		}.build()
+	}
 }

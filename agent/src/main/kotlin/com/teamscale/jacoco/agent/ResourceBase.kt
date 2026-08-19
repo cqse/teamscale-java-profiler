@@ -114,11 +114,11 @@ abstract class ResourceBase(protected val agentBase: AgentBase) {
 		}
 
 	/**
-	 * Handles bad requests to the endpoints.
+	 * Handles bad requests to the endpoints. Never returns normally, it always throws a [BadRequestException].
 	 */
 	@Contract(value = "_ -> fail")
 	@Throws(BadRequestException::class)
-	protected fun handleBadRequest(message: String?) {
+	protected fun handleBadRequest(message: String?): Nothing {
 		logger.error(message)
 		throw BadRequestException(message)
 	}

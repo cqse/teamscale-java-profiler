@@ -6,6 +6,10 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [breaking] _agent_: Log lines now show the simple class name (`INFO Agent - ...`) instead of the fully qualified one.
+- [breaking] _agent_: In testwise coverage mode, the test result is now mandatory in the body of `/test/end` requests. Requests without a result (or without a body at all) are rejected with "400 Bad Request" instead of silently producing a report entry without a result. The duration remains optional: if it is omitted, the profiler derives it from the time between the `/test/start` and `/test/end` requests. The profiler additionally logs a warning if no `/test/start` request was received, since the duration cannot be derived reliably in that case.
+- [breaking] _tia-client_: Removed the `ITestwiseCoverageAgentApi.testFinished(testUniformPath)` overload, which sent a `/test/end` request without a body. Since the agent now rejects such requests, use `testFinished(testUniformPath, testExecution)` instead.
+- [fix] _agent_: A test whose result the profiler does not know is now reported as `INCONCLUSIVE` instead of `SKIPPED`. This affects tests that are ended implicitly because the next `/test/start` arrived before their `/test/end`, or because the test run ended while the tests were still running.
+- [fix] _agent_: Requests to the profiler's REST API that are rejected as invalid (e.g. a `/test/start` without a test name or an empty `PUT /partition` body) now respond with the appropriate HTTP status code, e.g. "400 Bad Request".
 
 # 37.0.2
 - [fix] _agent_: In some cases the hostname was wrongly added to the PID when sending it to Teamscale.

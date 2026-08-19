@@ -12,8 +12,8 @@ import com.teamscale.report.testwise.model.builder.TestInfoBuilder
 
 /**
  * Strategy which directly converts the collected coverage into a JSON object in place and returns the result to the
- * caller as response to the http request. If a test execution is given it is merged into the representation and
- * returned together with the coverage.
+ * caller as response to the http request. The test execution is merged into the representation and returned together
+ * with the coverage.
  */
 class CoverageViaHttpStrategy(
 	controller: JacocoRuntimeController, agentOptions: AgentOptions,
@@ -22,16 +22,14 @@ class CoverageViaHttpStrategy(
 	private val logger = getLogger(this)
 
 	@Throws(DumpException::class, CoverageGenerationException::class)
-	override fun testEnd(test: String, testExecution: TestExecution?): TestInfo {
+	override fun testEnd(test: String, testExecution: TestExecution): TestInfo {
 		super.testEnd(test, testExecution)
 
 		val builder = TestInfoBuilder(test)
 		val dump = controller.dumpAndReset()
 		reportGenerator.updateClassDirCache()
 		reportGenerator.convert(dump)?.let { builder.setCoverage(it) }
-		if (testExecution != null) {
-			builder.setExecution(testExecution)
-		}
+		builder.setExecution(testExecution)
 		val testInfo = builder.build()
 		logger.debug("Generated test info {}", testInfo)
 		return testInfo

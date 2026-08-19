@@ -18,7 +18,7 @@ import kotlin.Throws
  */
 class TestwiseCoverageAgent(
 	options: AgentOptions,
-	testExecutionWriter: TestExecutionWriter?,
+	testExecutionWriter: TestExecutionWriter,
 	reportGenerator: JaCoCoTestwiseReportGenerator
 ) : AgentBase(options) {
 	/**
