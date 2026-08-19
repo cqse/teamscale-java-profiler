@@ -134,6 +134,7 @@ verifyShadowedLoggingConfigs(tasks.shadowJar, tasks.shadowDistZip)
 
 tasks.shadowDistZip {
 	archiveFileName = "teamscale-jacoco-agent.zip"
+	useFileSystemPermissions()
 }
 
 oci {
