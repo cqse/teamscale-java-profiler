@@ -37,7 +37,7 @@ abstract class TestEventHandlerStrategyBase protected constructor(
 	 * The duration we derived for [lastEndedTest] from the time between its /test/start and /test/end requests, or null
 	 * if we could not derive one because we did not receive a matching /test/start request.
 	 */
-	private var lastEndedTestDurationMillis: Long? = null
+	private var lastEndedTestDurationSeconds: Double? = null
 
 	/** May be null if the user did not configure Teamscale.  */
 	@JvmField
@@ -68,13 +68,12 @@ abstract class TestEventHandlerStrategyBase protected constructor(
 		testExecution: TestExecution
 	): TestInfo? {
 		testExecution.uniformPath = test
-		val derivedDurationMillis = deriveDurationMillis(test, testExecution)
-		derivedDurationMillis?.let {
-			@Suppress("DEPRECATION")
-			testExecution.durationMillis = it
+		val derivedDurationSeconds = deriveDurationSeconds(test, testExecution)
+		derivedDurationSeconds?.let {
+			testExecution.durationSeconds = it
 		}
 		lastEndedTest = test
-		lastEndedTestDurationMillis = derivedDurationMillis
+		lastEndedTestDurationSeconds = derivedDurationSeconds
 		runningTest = null
 		startTimestamp = -1
 		logger.debug("Test {} ended with test execution {}", test, testExecution)
@@ -115,14 +114,14 @@ abstract class TestEventHandlerStrategyBase protected constructor(
 	 * Derives the duration of the given test from the time between its /test/start and its /test/end request. Returns
 	 * null if we cannot derive it, in which case the duration given by the caller (if any) is used as-is.
 	 */
-	private fun deriveDurationMillis(test: String, testExecution: TestExecution): Long? {
-		if (runningTest == test) return System.currentTimeMillis() - startTimestamp
+	private fun deriveDurationSeconds(test: String, testExecution: TestExecution): Double? {
+		if (runningTest == test) return (System.currentTimeMillis() - startTimestamp) / 1000.0
 
 		if (test == lastEndedTest) {
 			// The test was already ended once, e.g. because the caller sent a second /test/end request for it. Reuse
 			// the duration derived back then instead of claiming that no /test/start request was received, which
 			// would be wrong and unactionable.
-			return lastEndedTestDurationMillis
+			return lastEndedTestDurationSeconds
 		}
 
 		if (!testExecution.hasExplicitDuration) logMissingDuration(test)
