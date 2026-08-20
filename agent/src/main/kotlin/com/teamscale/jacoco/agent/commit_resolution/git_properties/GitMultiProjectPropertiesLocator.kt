@@ -11,7 +11,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 /**
- * Searches a Jar/War/Ear/... file for a git.properties file in order to enable upload for the commit described therein,
+ * Searches a Jar/War/Ear/... file or a folder for a git.properties file in order to enable upload for the commit described therein,
  * e.g. to Teamscale, via a [DelayedTeamscaleMultiProjectUploader]. Specifically, this searches for the
  * 'teamscale.project' property specified in each of the discovered 'git.properties' files.
  */
@@ -37,7 +37,7 @@ class GitMultiProjectPropertiesLocator(
 	)
 
 	/**
-	 * Asynchronously searches the given jar file for git.properties files and adds a corresponding uploader to the
+	 * Asynchronously searches the given jar file or folder for git.properties files and adds a corresponding uploader to the
 	 * multi-project uploader.
 	 */
 	override fun searchFileForGitPropertiesAsync(file: File, isJarFile: Boolean) {
@@ -45,7 +45,7 @@ class GitMultiProjectPropertiesLocator(
 	}
 
 	/**
-	 * Synchronously searches the given jar file for git.properties files and adds a corresponding uploader to the
+	 * Synchronously searches the given jar file or folder for git.properties files and adds a corresponding uploader to the
 	 * multi-project uploader.
 	 */
 	@VisibleForTesting

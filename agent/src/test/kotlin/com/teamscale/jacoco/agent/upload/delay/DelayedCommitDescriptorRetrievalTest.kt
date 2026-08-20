@@ -20,6 +20,20 @@ class DelayedCommitDescriptorRetrievalTest {
 	@Test
 	@Throws(Exception::class)
 	fun locatorShouldTriggerUploadOfCachedXmls(@TempDir outputPath: Path) {
+		assertLocatorTriggersUpload(
+			outputPath, File(javaClass.getResource("git-properties.jar")!!.toURI()), isJarFile = true
+		)
+	}
+
+	@Test
+	@Throws(Exception::class)
+	fun locatorShouldTriggerUploadOfCachedXmlsForFolder(@TempDir outputPath: Path) {
+		assertLocatorTriggersUpload(
+			outputPath, File(javaClass.getResource("git-properties-folder")!!.toURI()), isJarFile = false
+		)
+	}
+
+	private fun assertLocatorTriggersUpload(outputPath: Path, gitPropertiesSearchRoot: File, isJarFile: Boolean) {
 		val storeExecutor = Executors.newSingleThreadExecutor()
 		val coverageFilePath = outputPath
 			.resolve(String.format("jacoco-%d.xml", ZonedDateTime.now().toInstant().toEpochMilli()))
@@ -31,14 +45,14 @@ class DelayedCommitDescriptorRetrievalTest {
 		val locatorExecutor = Executors.newSingleThreadExecutor()
 		val locator = GitSingleProjectPropertiesLocator(
 			store, true, null, locatorExecutor
-		) { file, isJarFile, recursiveSearch, timeFormatter ->
+		) { file, isArchive, recursiveSearch, timeFormatter ->
 			getCommitInfoFromGitProperties(
-				file, isJarFile, recursiveSearch, timeFormatter
+				file, isArchive, recursiveSearch, timeFormatter
 			)
 		}
 
 		store.upload(coverageFile)
-		locator.searchFileForGitPropertiesAsync(File(javaClass.getResource("git-properties.jar")!!.toURI()), true)
+		locator.searchFileForGitPropertiesAsync(gitPropertiesSearchRoot, isJarFile)
 		locatorExecutor.shutdown()
 		locatorExecutor.awaitTermination(5, TimeUnit.SECONDS)
 		storeExecutor.shutdown()

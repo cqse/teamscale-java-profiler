@@ -1,6 +1,7 @@
 package com.teamscale.jacoco.agent.commit_resolution.git_properties
 
 import com.teamscale.jacoco.agent.logging.LoggingUtils.getLogger
+import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.jacoco.agent.upload.delay.DelayedUploader
 import com.teamscale.jacoco.agent.util.DaemonThreadFactory
 import java.io.File
@@ -10,8 +11,8 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 /**
- * Searches a Jar/War/Ear/... file for a git.properties file in order to enable upload for the commit described therein,
- * e.g. to Teamscale, via a [DelayedUploader].
+ * Searches a Jar/War/Ear/... file or a folder for a git.properties file in order to enable upload for the commit
+ * described therein, e.g. to Teamscale, via a [DelayedUploader].
  */
 class GitSingleProjectPropertiesLocator<T>(
 	private val uploader: DelayedUploader<T>,
@@ -27,17 +28,17 @@ class GitSingleProjectPropertiesLocator<T>(
 ) : IGitPropertiesLocator {
 	private val logger = getLogger(this)
 	private var foundData: T? = null
-	private var jarFileWithGitProperties: File? = null
+	private var fileWithGitProperties: File? = null
 
 	/**
-	 * Asynchronously searches the given jar file for a git.properties file.
+	 * Asynchronously searches the given jar file or folder for a git.properties file.
 	 */
 	override fun searchFileForGitPropertiesAsync(file: File, isJarFile: Boolean) {
 		executor.execute { searchFile(file, isJarFile) }
 	}
 
 	private fun searchFile(file: File, isJarFile: Boolean) {
-		logger.debug("Searching jar file {} for a single git.properties", file)
+		logger.debug("Searching {} for a single git.properties", file)
 		try {
 			val data = dataExtractor.extractData(file, isJarFile, recursiveSearch, gitPropertiesCommitTimeFormat)
 			if (data.isEmpty()) {
@@ -60,9 +61,9 @@ class GitSingleProjectPropertiesLocator<T>(
 								" Otherwise, you may" +
 								" be uploading to the wrong project/commit which will result in incorrect coverage data" +
 								" displayed in Teamscale. If you cannot fix the inconsistency, you can manually" +
-								" specify a Jar/War/Ear/... file from which to read the correct git.properties" +
-								" file with the agent's teamscale-git-properties-jar parameter.",
-						jarFileWithGitProperties, foundData, file, data
+								" specify a Jar/War/Ear/... file or folder from which to read the correct git.properties" +
+								" file with the agent's ${AgentOptions.GIT_PROPERTIES_JAR_OPTION} parameter.",
+						fileWithGitProperties, foundData, file, data
 					)
 				}
 				return
@@ -73,7 +74,7 @@ class GitSingleProjectPropertiesLocator<T>(
 				dataEntry
 			)
 			foundData = dataEntry
-			jarFileWithGitProperties = file
+			fileWithGitProperties = file
 			uploader.setCommitAndTriggerAsynchronousUpload(dataEntry)
 		} catch (e: IOException) {
 			logger.error(

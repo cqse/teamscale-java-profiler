@@ -291,11 +291,11 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 					"The option " + ArtifactoryConfig.ARTIFACTORY_GIT_PROPERTIES_JAR_OPTION + " is deprecated. It still has an effect, " +
 							"but should be replaced with the equivalent option " + AgentOptions.GIT_PROPERTIES_JAR_OPTION + "."
 				)
-				options.gitPropertiesJar = getGitPropertiesJarFile(value)
+				options.gitPropertiesJar = getGitPropertiesFileOrFolder(value)
 				return true
 			}
 			AgentOptions.GIT_PROPERTIES_JAR_OPTION -> {
-				options.gitPropertiesJar = getGitPropertiesJarFile(value)
+				options.gitPropertiesJar = getGitPropertiesFileOrFolder(value)
 				return true
 			}
 			ArtifactoryConfig.ARTIFACTORY_GIT_PROPERTIES_COMMIT_DATE_FORMAT_OPTION -> {
@@ -393,17 +393,18 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 		readConfigFromString(options, configuration.profilerConfiguration!!.configurationOptions)
 	}
 
-	private fun getGitPropertiesJarFile(path: String): File? {
-		val jarFile = File(path)
-		if (!jarFile.exists()) {
+	/**
+	 * Resolves the path given for [AgentOptions.GIT_PROPERTIES_JAR_OPTION]. Both an archive (jar/war/ear/aar) and a
+	 * folder are accepted, since the git.properties search handles either. A path that does not exist is not treated
+	 * as a fatal error, as the profiled application should keep running in that case.
+	 */
+	private fun getGitPropertiesFileOrFolder(path: String): File? {
+		val gitPropertiesSearchRoot = File(path)
+		if (!gitPropertiesSearchRoot.exists()) {
 			logger.warn("The path provided with the ${AgentOptions.GIT_PROPERTIES_JAR_OPTION} option does not exist: $path. Continuing without searching it for git.properties files.")
 			return null
 		}
-		if (!jarFile.isFile()) {
-			logger.warn("The path provided with the ${AgentOptions.GIT_PROPERTIES_JAR_OPTION} option is not a regular file (probably a folder instead): $path. Continuing without searching it for git.properties files.")
-			return null
-		}
-		return jarFile
+		return gitPropertiesSearchRoot
 	}
 
 	/**

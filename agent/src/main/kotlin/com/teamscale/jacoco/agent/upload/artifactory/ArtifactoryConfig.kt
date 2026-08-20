@@ -4,6 +4,7 @@ import com.teamscale.jacoco.agent.commit_resolution.git_properties.CommitInfo
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitPropertiesLocatorUtils
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.InvalidGitPropertiesException
 import com.teamscale.jacoco.agent.options.AgentOptionParseException
+import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.jacoco.agent.options.AgentOptionsParser
 import com.teamscale.jacoco.agent.upload.UploaderException
 import com.teamscale.jacoco.agent.upload.artifactory.ArtifactoryConfig.Companion.ARTIFACTORY_API_KEY_OPTION
@@ -171,37 +172,44 @@ class ArtifactoryConfig {
 			}
 		}
 
-		/** Parses the commit information form a git.properties file.  */
+		/**
+		 * Parses the commit information from a git.properties file. The search root is either an archive
+		 * (isJarFile = true) or a folder.
+		 */
 		@Throws(UploaderException::class)
 		fun parseGitProperties(
-			jarFile: File, searchRecursively: Boolean, gitPropertiesCommitTimeFormat: DateTimeFormatter?
+			gitPropertiesSearchRoot: File,
+			isJarFile: Boolean,
+			searchRecursively: Boolean,
+			gitPropertiesCommitTimeFormat: DateTimeFormatter?
 		): CommitInfo? {
 			try {
 				val commitInfo = GitPropertiesLocatorUtils.getCommitInfoFromGitProperties(
-					jarFile,
-					true,
+					gitPropertiesSearchRoot,
+					isJarFile,
 					searchRecursively,
 					gitPropertiesCommitTimeFormat
 				)
 				if (commitInfo.isEmpty()) {
 					throw UploaderException(
-						"Found no git.properties files in $jarFile." +
-								" The 'artifactory-git-properties-jar' option must point to a JAR that contains" +
-								" a git.properties with the commit from which the JAR was built."
+						"Found no git.properties files in $gitPropertiesSearchRoot." +
+								" The '${AgentOptions.GIT_PROPERTIES_JAR_OPTION}' option must point to a" +
+								" Jar/War/Ear/Aar file or a folder that contains a git.properties with the commit from" +
+								" which the profiled code was built."
 					)
 				}
 				if (commitInfo.size > 1) {
 					throw UploaderException(
-						("Found multiple git.properties files in " + jarFile
+						("Found multiple git.properties files in " + gitPropertiesSearchRoot
 								+ ". Uploading to multiple projects is currently not possible with Artifactory. "
 								+ "Please contact CQSE if you need this feature.")
 					)
 				}
 				return commitInfo.firstOrNull()
 			} catch (e: IOException) {
-				throw UploaderException("Could not locate a valid git.properties file in $jarFile", e)
+				throw UploaderException("Could not locate a valid git.properties file in $gitPropertiesSearchRoot", e)
 			} catch (e: InvalidGitPropertiesException) {
-				throw UploaderException("Could not locate a valid git.properties file in $jarFile", e)
+				throw UploaderException("Could not locate a valid git.properties file in $gitPropertiesSearchRoot", e)
 			}
 		}
 	}
