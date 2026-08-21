@@ -6,6 +6,8 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [feature] _agent_: `git-properties-jar` now also accepts a folder, which is searched for `git.properties` files. Previously, a folder was rejected with a warning and no commit was auto-detected.
+
+# 38.0.0
 - [breaking] _agent_: Log lines now show the simple class name (`INFO Agent - ...`) instead of the fully qualified one.
 - [breaking] _agent_: In testwise coverage mode, the test result is now mandatory in the body of `/test/end` requests. Requests without a result (or without a body at all) are rejected with "400 Bad Request" instead of silently producing a report entry without a result. The duration remains optional: if it is omitted, the profiler derives it from the time between the `/test/start` and `/test/end` requests. The profiler additionally logs a warning if no `/test/start` request was received, since the duration cannot be derived reliably in that case.
 - [breaking] _tia-client_: Removed the `ITestwiseCoverageAgentApi.testFinished(testUniformPath)` overload, which sent a `/test/end` request without a body. Since the agent now rejects such requests, use `testFinished(testUniformPath, testExecution)` instead.
