@@ -56,7 +56,7 @@ import kotlin.math.max
  * Parses agent command line options.
  */
 open class AgentOptions(private val logger: ILogger) {
-	/** See [GIT_PROPERTIES_JAR_OPTION]  */
+	/** See [GIT_PROPERTIES_JAR_OPTION]. May be an archive or a folder.  */
 	@JvmField
 	var gitPropertiesJar: File? = null
 
@@ -446,7 +446,7 @@ open class AgentOptions(private val logger: ILogger) {
 						jar.absolutePath + " for a git.properties file."
 			)
 			artifactoryConfig.commitInfo = ArtifactoryConfig.parseGitProperties(
-				jar, searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
+				jar, !jar.isDirectory(), searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
 			)
 		}
 		if (!artifactoryConfig.hasCommitInfo()) {
@@ -472,7 +472,7 @@ open class AgentOptions(private val logger: ILogger) {
 						"auto-detect it by searching the provided " + GIT_PROPERTIES_JAR_OPTION + " at " +
 						jar.absolutePath + " for a git.properties file."
 			)
-			startGitPropertiesSearchInJarFile(uploader, jar)
+			startGitPropertiesSearch(uploader, jar)
 			return uploader
 		}
 
@@ -503,7 +503,7 @@ open class AgentOptions(private val logger: ILogger) {
 						" auto-detect it by searching the provided " + GIT_PROPERTIES_JAR_OPTION + " at " +
 						jar.absolutePath + " for a git.properties file."
 			)
-			startMultiGitPropertiesFileSearchInJarFile(uploader, jar)
+			startMultiGitPropertiesFileSearch(uploader, jar)
 			return uploader
 		}
 		logger.info(
@@ -515,7 +515,7 @@ open class AgentOptions(private val logger: ILogger) {
 		return uploader
 	}
 
-	private fun startGitPropertiesSearchInJarFile(
+	private fun startGitPropertiesSearch(
 		uploader: DelayedUploader<ProjectAndCommit>,
 		gitPropertiesJar: File
 	) {
@@ -523,7 +523,7 @@ open class AgentOptions(private val logger: ILogger) {
 			uploader, searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
 		) { file, isJarFile, recursiveSearch, timeFormat ->
 			getProjectRevisionsFromGitProperties(file, isJarFile, recursiveSearch, timeFormat)
-		}.searchFileForGitPropertiesAsync(gitPropertiesJar, true)
+		}.searchFileForGitPropertiesAsync(gitPropertiesJar, !gitPropertiesJar.isDirectory())
 	}
 
 	private fun registerSingleGitPropertiesLocator(
@@ -556,13 +556,13 @@ open class AgentOptions(private val logger: ILogger) {
 			TeamscaleUploader(teamscaleServer, reportFormat)
 		}
 
-	private fun startMultiGitPropertiesFileSearchInJarFile(
+	private fun startMultiGitPropertiesFileSearch(
 		uploader: DelayedTeamscaleMultiProjectUploader,
 		gitPropertiesJar: File
 	) {
 		GitMultiProjectPropertiesLocator(
 			uploader, searchGitPropertiesRecursively, gitPropertiesCommitTimeFormat
-		).searchFileForGitPropertiesAsync(gitPropertiesJar, true)
+		).searchFileForGitPropertiesAsync(gitPropertiesJar, !gitPropertiesJar.isDirectory())
 	}
 
 	private fun registerMultiGitPropertiesLocator(
@@ -718,7 +718,10 @@ open class AgentOptions(private val logger: ILogger) {
 		const val DEFAULT_EXCLUDES =
 			"kotlin.*:shadow.*:com.sun.*:sun.*:org.eclipse.*:org.junit.*:junit.*:org.apache.*:org.slf4j.*:javax.*:org.gradle.*:java.*:org.jboss.*:org.wildfly.*:org.springframework.*:com.fasterxml.*:jakarta.*:org.aspectj.*:org.h2.*:org.hibernate.*:org.assertj.*:org.mockito.*:org.thymeleaf.*"
 
-		/** Option name that allows to specify a jar file that contains the git commit hash in a git.properties file.  */
+		/**
+		 * Option name that allows to specify a jar/war/ear/aar file or a folder that contains the git commit hash in a
+		 * git.properties file.
+		 */
 		const val GIT_PROPERTIES_JAR_OPTION = "git-properties-jar"
 
 		/**

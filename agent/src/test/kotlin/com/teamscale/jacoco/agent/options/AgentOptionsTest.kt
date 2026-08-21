@@ -267,17 +267,17 @@ class AgentOptionsTest {
 	}
 
 	/**
-	 * Test that agent continues to run if the user provided a folder via the
-	 * [AgentOptions.GIT_PROPERTIES_JAR_OPTION] jar option.
+	 * Test that a folder is accepted for the [AgentOptions.GIT_PROPERTIES_JAR_OPTION] option, since the git.properties
+	 * search handles folders as well as archives.
 	 */
 	@Test
 	@Throws(Exception::class)
-	fun testGitPropertiesJarDoesNotAcceptFolders() {
+	fun testGitPropertiesJarAcceptsFolders() {
 		val jarFile = File(javaClass.getResource("nested-jar.war")!!.file)
 		val agentOptions = parseAndMaybeThrow(
 			"${AgentOptions.GIT_PROPERTIES_JAR_OPTION}=${jarFile.getParent()}"
 		)
-		Assertions.assertThat(agentOptions.gitPropertiesJar).isNull()
+		Assertions.assertThat(agentOptions.gitPropertiesJar).isDirectory()
 	}
 
 	/** Tests that supplying version info is supported in Testwise mode.  */
