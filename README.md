@@ -124,7 +124,7 @@ misconfigured profiler fails silently, and how to attach a debugger to system te
 When master has accumulated changes you want to release, please perform the following on master in a single commit:
 
 - Update [the changelog](CHANGELOG.md) and move all changes from the _Next release_ section to a new version, e.g., `21.3.0`.
-- Update the [build.gradle.kts](build.gradle.kts)'s `appVersion` accordingly.
+- Update the [settings.gradle.kts](settings.gradle.kts)'s `appVersion` accordingly.
 - Commit and push your changes.
 - Create a GitHub Release tag with the same version number and the text from the changelog.
 

@@ -43,7 +43,7 @@ dependencyResolutionManagement {
 // settings script and script object references cannot be serialized.
 run {
     /** The version of the profiler. Released builds use it as is, all others get a snapshot suffix. */
-    val appVersion = "38.0.0"
+    val appVersion = "38.1.0"
     val isTaggedRelease = providers.environmentVariable("GITHUB_REF").map { it.contains("/tags/") }
     val projectVersion = appVersion + if (isTaggedRelease.getOrElse(false)) "" else "-SNAPSHOT"
 

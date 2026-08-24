@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 38.1.0
 - [feature] _agent_: `git-properties-jar` now also accepts a folder, which is searched for `git.properties` files. Previously, a folder was rejected with a warning and no commit was auto-detected.
 
 # 38.0.0
