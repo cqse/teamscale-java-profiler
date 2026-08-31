@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _agent_: A configured dump `interval` smaller than 1h is now applied only once and then raised to 1h to prevent excessive uploads that can overwhelm Teamscale. A warning is logged at startup when this happens.
 
 # 38.1.0
 - [feature] _agent_: `git-properties-jar` now also accepts a folder, which is searched for `git.properties` files. Previously, a folder was rejected with a warning and no commit was auto-detected.

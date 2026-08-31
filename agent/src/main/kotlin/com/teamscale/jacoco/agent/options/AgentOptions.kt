@@ -16,8 +16,6 @@ import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitProperties
 import com.teamscale.jacoco.agent.commit_resolution.git_properties.GitSingleProjectPropertiesLocator
 import com.teamscale.jacoco.agent.commit_resolution.sapnwdi.NwdiMarkerClassLocatingTransformer
 import com.teamscale.jacoco.agent.configuration.ConfigurationViaTeamscale
-import com.teamscale.jacoco.agent.options.AgentOptions.Companion.GIT_PROPERTIES_COMMIT_DATE_FORMAT_OPTION
-import com.teamscale.jacoco.agent.options.AgentOptions.Companion.GIT_PROPERTIES_JAR_OPTION
 import com.teamscale.jacoco.agent.options.sapnwdi.DelayedSapNwdiMultiUploader
 import com.teamscale.jacoco.agent.options.sapnwdi.SapNwdiApplication
 import com.teamscale.jacoco.agent.upload.IUploader
@@ -673,6 +671,12 @@ open class AgentOptions(private val logger: ILogger) {
 		} else teamscaleProxyOptionsForHttps
 
 	companion object {
+		/**
+		 * The smallest allowed value for [dumpIntervalInMinutes] (see PST-122). If a smaller interval is configured,
+		 * it is honored once and then reset to this minimum.
+		 */
+		const val MINIMUM_DUMP_INTERVAL_IN_MINUTES = 60
+
 		/**
 		 * Can be used to format [java.time.LocalDate] to the format "yyyy-MM-dd-HH-mm-ss.SSS"
 		 */
