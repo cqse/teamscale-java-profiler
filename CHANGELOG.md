@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _impacted-test-engine_: Tests in a `@ParameterizedClass` are now collected.
+- [fix] _impacted-test-engine_: A test failure inside a nested test container (e.g. an invocation of a `@ParameterizedClass`) is no longer swallowed.
 
 # 38.1.0
 - [feature] _agent_: `git-properties-jar` now also accepts a folder, which is searched for `git.properties` files. Previously, a folder was rejected with a warning and no commit was auto-detected.

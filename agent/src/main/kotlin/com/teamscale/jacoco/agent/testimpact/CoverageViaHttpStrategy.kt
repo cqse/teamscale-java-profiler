@@ -28,8 +28,8 @@ class CoverageViaHttpStrategy(
 		val builder = TestInfoBuilder(test)
 		val dump = controller.dumpAndReset()
 		reportGenerator.updateClassDirCache()
-		reportGenerator.convert(dump)?.let { builder.setCoverage(it) }
-		builder.setExecution(testExecution)
+		reportGenerator.convert(dump)?.let { builder.addCoverage(it) }
+		builder.addExecution(testExecution)
 		val testInfo = builder.build()
 		logger.debug("Generated test info {}", testInfo)
 		return testInfo

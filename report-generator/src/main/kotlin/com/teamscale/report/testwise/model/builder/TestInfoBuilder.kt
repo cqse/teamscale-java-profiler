@@ -46,15 +46,28 @@ class TestInfoBuilder(val uniformPath: String) {
 		content = details.content
 	}
 
-	/** Sets the test execution fields.  */
-	fun setExecution(execution: TestExecution) {
-		durationSeconds = execution.durationSeconds
-		result = execution.result
-		message = execution.message
+	/**
+	 * Adds a test execution. A test may be executed more than once, e.g. once per parameter set of an enclosing
+	 * `@ParameterizedClass`, in which case the executions are aggregated: the durations are summed up and the most
+	 * severe of the results wins, so that a failure in any of them is not hidden by a later successful execution.
+	 */
+	fun addExecution(execution: TestExecution) {
+		durationSeconds = (durationSeconds ?: 0.0) + execution.durationSeconds
+		val previousResult = result
+		if (previousResult == null || (execution.result != null && execution.result > previousResult)) {
+			result = execution.result
+		}
+		message = listOfNotNull(message, execution.message).takeIf { it.isNotEmpty() }?.joinToString("\n\n")
 	}
 
-	fun setCoverage(coverage: TestCoverageBuilder) {
-		this.coverage = coverage
+	/** Adds coverage of the test, merging it with any coverage that was already added for it.  */
+	fun addCoverage(coverage: TestCoverageBuilder) {
+		val existingCoverage = this.coverage
+		if (existingCoverage == null) {
+			this.coverage = coverage
+		} else {
+			existingCoverage.addAll(coverage.files)
+		}
 	}
 
 	/** Builds a [TestInfo] object of the data in this container.  */

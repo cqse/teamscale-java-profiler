@@ -16,8 +16,11 @@ class TestInfoFactory(testDetails: List<TestDetails>, testExecutions: List<TestE
 	/** Maps uniform paths to test details.  */
 	private val testDetailsMap = mutableMapOf<String, TestDetails>()
 
-	/** Maps uniform paths to test executions.  */
-	private val testExecutionsMap = mutableMapOf<String, TestExecution>()
+	/**
+	 * Maps uniform paths to test executions. A test may have been executed more than once, e.g. once per parameter set
+	 * of an enclosing `@ParameterizedClass`.
+	 */
+	private val testExecutionsMap = mutableMapOf<String, MutableList<TestExecution>>()
 
 	/** Holds all uniform paths for tests that have been written to the outputFile.  */
 	private val processedTestUniformPaths = mutableSetOf<String>()
@@ -28,7 +31,7 @@ class TestInfoFactory(testDetails: List<TestDetails>, testExecutions: List<TestE
 		}
 		testExecutions.forEach { testExecution ->
 			testExecution.uniformPath?.let {
-				testExecutionsMap[it] = testExecution
+				testExecutionsMap.computeIfAbsent(it) { mutableListOf() }.add(testExecution)
 			}
 		}
 	}
@@ -45,12 +48,12 @@ class TestInfoFactory(testDetails: List<TestDetails>, testExecutions: List<TestE
 		processedTestUniformPaths.add(resolvedUniformPath)
 
 		return TestInfoBuilder(resolvedUniformPath).apply {
-			setCoverage(testCoverageBuilder)
+			addCoverage(testCoverageBuilder)
 			testDetailsMap[resolvedUniformPath]?.let { testDetails ->
 				setDetails(testDetails)
 			} ?: System.err.println("No test details found for $resolvedUniformPath")
-			testExecutionsMap[resolvedUniformPath]?.let { execution ->
-				setExecution(execution)
+			testExecutionsMap[resolvedUniformPath]?.forEach { execution ->
+				addExecution(execution)
 			} ?: System.err.println("No test execution found for $resolvedUniformPath")
 		}.build()
 	}
@@ -63,10 +66,10 @@ class TestInfoFactory(testDetails: List<TestDetails>, testExecutions: List<TestE
 			processedTestUniformPaths.add(testDetails.uniformPath)
 			TestInfoBuilder(testDetails.uniformPath).apply {
 				setDetails(testDetails)
-				testExecutionsMap[testDetails.uniformPath]?.let { setExecution(it) }
+				testExecutionsMap[testDetails.uniformPath]?.forEach { addExecution(it) }
 			}.build()
 		}
-		testExecutionsMap.values.forEach { testExecution ->
+		testExecutionsMap.values.flatten().forEach { testExecution ->
 			if (processedTestUniformPaths.contains(testExecution.uniformPath)) return@forEach
 			System.err.println(
 				"Test " + testExecution.uniformPath + " was executed but no coverage was found. " +

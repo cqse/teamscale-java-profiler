@@ -65,6 +65,19 @@ open class JaCoCoTestwiseReportGenerator(
 		return testCoverageBuilders.singleOrNull()
 	}
 
+	/**
+	 * Converts the given dumps to a report, merging the coverage of all dumps that belong to the same test before
+	 * passing it on. A test produces more than one dump if it was executed repeatedly, e.g. once per parameter set of
+	 * an enclosing `@ParameterizedClass`. In contrast to [convertAndConsume] this holds the coverage of all tests in
+	 * memory, which is unavoidable because the dumps of one test are not adjacent.
+	 */
+	@Throws(IOException::class, CoverageGenerationException::class)
+	open fun convertAndConsumePerTest(executionDataFiles: List<File>, consumer: Consumer<TestCoverageBuilder>) {
+		val testwiseCoverage = TestwiseCoverage()
+		executionDataFiles.forEach { testwiseCoverage.add(convert(it)) }
+		testwiseCoverage.tests.values.forEach(consumer::accept)
+	}
+
 	/** Converts the given dumps to a report. */
 	@Throws(IOException::class)
 	open fun convertAndConsume(executionDataFile: File, consumer: Consumer<TestCoverageBuilder>) {

@@ -6,6 +6,7 @@ import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.ReportUtils;
 import com.teamscale.report.testwise.ETestArtifactFormat;
 import com.teamscale.report.testwise.TestwiseCoverageReportWriter;
+import com.teamscale.report.testwise.jacoco.cache.CoverageGenerationException;
 import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator;
 import com.teamscale.report.testwise.model.TestExecution;
 import com.teamscale.report.testwise.model.factory.TestInfoFactory;
@@ -122,20 +123,27 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 					"Could not create the testwise-coverage report folder " + reportsFolder
 							+ ". Check that the parent directory is writable.", e);
 		}
-		List<File> jacocoExecutionDataList = ReportUtils.listFiles(ETestArtifactFormat.JACOCO, reportFileDirectories);
-		String reportFilePath = reportsFolder.resolve("testwise-coverage.json").toString();
+		writeTestwiseCoverageReport(generator, testInfoFactory, reportFileDirectories,
+				reportsFolder.resolve("testwise-coverage.json"));
+	}
 
+	/** Converts the JaCoCo execution data found in the given directories into one testwise coverage report. */
+	private void writeTestwiseCoverageReport(JaCoCoTestwiseReportGenerator generator, TestInfoFactory testInfoFactory,
+			List<File> reportFileDirectories, Path reportFile) throws MojoFailureException {
+		List<File> jacocoExecutionDataList = ReportUtils.listFiles(ETestArtifactFormat.JACOCO, reportFileDirectories);
 		Boolean partial = runImpacted && !runAllTests;
 		try (TestwiseCoverageReportWriter coverageWriter = new TestwiseCoverageReportWriter(testInfoFactory,
-				new File(reportFilePath), splitAfter, partial)) {
-			for (File executionDataFile : jacocoExecutionDataList) {
-				logger.info("Writing execution data for file: " + executionDataFile.getName());
-				generator.convertAndConsume(executionDataFile, coverageWriter);
-			}
+				reportFile.toFile(), splitAfter, partial)) {
+			logger.info("Writing execution data for files: " + jacocoExecutionDataList);
+			generator.convertAndConsumePerTest(jacocoExecutionDataList, coverageWriter);
 		} catch (IOException e) {
 			throw new MojoFailureException(
-					"Could not write the testwise coverage report to " + reportFilePath
+					"Could not write the testwise coverage report to " + reportFile
 							+ ". Check disk space and that the file is not held open by another process.", e);
+		} catch (CoverageGenerationException e) {
+			throw new MojoFailureException(
+					"Could not generate the testwise coverage for " + jacocoExecutionDataList
+							+ ". Check that the class files given to the plugin match the profiled ones.", e);
 		}
 	}
 

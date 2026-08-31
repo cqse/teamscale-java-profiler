@@ -1,5 +1,6 @@
 package com.teamscale.test_impacted.engine.executor
 
+import com.teamscale.test_impacted.test_descriptor.ClassTemplateRegistry
 import org.junit.platform.engine.TestDescriptor
 
 /**
@@ -7,7 +8,7 @@ import org.junit.platform.engine.TestDescriptor
  * Teamscale to select or prioritize tests.
  */
 class NOPTestSorter : ITestSorter {
-	override fun selectAndSort(testDescriptor: TestDescriptor) {
+	override fun selectAndSort(testDescriptor: TestDescriptor, classTemplateRegistry: ClassTemplateRegistry) {
 		// Nothing to do
 	}
 }

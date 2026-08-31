@@ -94,9 +94,7 @@ class Converter
 				arguments.getOutputFile(),
 				arguments.splitAfter, null
 			).use { coverageWriter ->
-				jacocoExecutionDataList.forEach { executionDataFile ->
-					generator.convertAndConsume(executionDataFile, coverageWriter)
-				}
+				generator.convertAndConsumePerTest(jacocoExecutionDataList, coverageWriter)
 			}
 		}
 	}

@@ -2,6 +2,7 @@ package com.teamscale.test_impacted.engine.executor
 
 import com.teamscale.client.TestWithClusterId.Companion.fromClusteredTestDetails
 import com.teamscale.test_impacted.engine.ImpactedTestEngine
+import com.teamscale.test_impacted.test_descriptor.ClassTemplateRegistry
 import com.teamscale.test_impacted.test_descriptor.TestDescriptorUtils.getAvailableTests
 import org.junit.platform.engine.TestDescriptor
 import java.util.*
@@ -12,8 +13,8 @@ import java.util.*
  */
 class ImpactedTestsSorter(private val impactedTestsProvider: ImpactedTestsProvider) : ITestSorter {
 
-	override fun selectAndSort(testDescriptor: TestDescriptor) {
-		val availableTests = getAvailableTests(testDescriptor)
+	override fun selectAndSort(testDescriptor: TestDescriptor, classTemplateRegistry: ClassTemplateRegistry) {
+		val availableTests = getAvailableTests(testDescriptor, classTemplateRegistry)
 
 		val testClusters = impactedTestsProvider.getImpactedTestsFromTeamscale(
 			availableTests.testList

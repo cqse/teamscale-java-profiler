@@ -35,12 +35,14 @@ class TestwiseCoverageGradleSystemTest {
 
 		val testwiseReport = teamscaleMockServer.getOnlyTestwiseCoverageReport("System Tests")
 		assertThat(testwiseReport.partial).isEqualTo(false)
-		assertThat(testwiseReport.tests.first().uniformPath)
-			.isEqualTo("com/example/app/MainTest/testMain()")
-		assertThat(testwiseReport.tests.last().uniformPath)
-			.isEqualTo("com/example/lib/CalculatorTest/testAdd()")
-		assertThat(testwiseReport.tests.first().paths).isNotEmpty()
-		assertThat(testwiseReport.tests.last().paths).isNotEmpty()
+		assertThat(testwiseReport.tests).extracting<String> { it.uniformPath }
+			.containsExactly(
+				"com/example/app/MainTest/testMain()",
+				// Each test method of a @ParameterizedClass is one test, no matter how many parameter sets it ran with.
+				"com/example/lib/CalculatorParameterizedTest/testAddIsCommutative()",
+				"com/example/lib/CalculatorTest/testAdd()"
+			)
+		assertThat(testwiseReport.tests).allMatch { it.paths.isNotEmpty() }
 	}
 
 	@Test
@@ -54,12 +56,15 @@ class TestwiseCoverageGradleSystemTest {
 
 		val testwiseReport = teamscaleMockServer.getOnlyTestwiseCoverageReport("System Tests")
 		assertThat(testwiseReport.partial).isEqualTo(true)
-		assertThat(testwiseReport.tests.first().uniformPath)
-			.isEqualTo("com/example/app/MainTest/testMain()")
-		assertThat(testwiseReport.tests.last().uniformPath)
-			.isEqualTo("com/example/lib/CalculatorTest/testAdd()")
+		assertThat(testwiseReport.tests).extracting<String> { it.uniformPath }
+			.containsExactly(
+				"com/example/app/MainTest/testMain()",
+				"com/example/lib/CalculatorParameterizedTest/testAddIsCommutative()",
+				"com/example/lib/CalculatorTest/testAdd()"
+			)
+		// Only the impacted test was executed, so it is the only one with coverage.
 		assertThat(testwiseReport.tests.first().paths).isNotEmpty()
-		assertThat(testwiseReport.tests.last().paths).isEmpty()
+		assertThat(testwiseReport.tests.drop(1)).allMatch { it.paths.isEmpty() }
 	}
 
 	@Test
@@ -69,8 +74,9 @@ class TestwiseCoverageGradleSystemTest {
 		assertThat(result.isSuccess).isTrue()
 
 		val session = teamscaleMockServer.getOnlySession("Unit Tests")
-		assertThat(session.getReports()).hasSize(3)
-		assertThat(session.getReports(EReportFormat.JUNIT)).hasSize(2)
+		assertThat(session.getReports()).hasSize(4)
+		// One JUnit report per test class: MainTest, CalculatorTest and CalculatorParameterizedTest.
+		assertThat(session.getReports(EReportFormat.JUNIT)).hasSize(3)
 
 		val compactReport = session.getCompactCoverageReport(0)!!
 
@@ -89,8 +95,9 @@ class TestwiseCoverageGradleSystemTest {
 		assertThat(result.isSuccess).isTrue()
 
 		val session = teamscaleMockServer.getOnlySession("Default Tests")
-		assertThat(session.getReports()).hasSize(3)
-		assertThat(session.getReports(EReportFormat.JUNIT)).hasSize(2)
+		assertThat(session.getReports()).hasSize(4)
+		// One JUnit report per test class: MainTest, CalculatorTest and CalculatorParameterizedTest.
+		assertThat(session.getReports(EReportFormat.JUNIT)).hasSize(3)
 
 		val compactReport = session.getCompactCoverageReport(0)!!
 		assertThat(compactReport.coverage.first().filePath).isEqualTo("com/example/app/Main.java")

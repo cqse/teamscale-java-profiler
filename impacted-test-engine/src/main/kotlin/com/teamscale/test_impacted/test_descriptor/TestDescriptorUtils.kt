@@ -5,6 +5,7 @@ import com.teamscale.test_impacted.commons.IndentingWriter
 import com.teamscale.test_impacted.commons.LoggerUtils.createLogger
 import com.teamscale.test_impacted.engine.executor.AvailableTests
 import org.junit.platform.engine.TestDescriptor
+import org.junit.platform.engine.UniqueId
 import org.junit.platform.engine.support.descriptor.ClassSource
 import org.junit.platform.engine.support.descriptor.MethodSource
 import java.util.*
@@ -37,9 +38,32 @@ object TestDescriptorUtils {
 	 */
 	fun TestDescriptor.isRepresentative(): Boolean {
 		val isTestTemplateOrTestFactory = isTestTemplateOrTestFactory()
-		val isNonParameterizedTest = isTest && !parent.get().isTestTemplateOrTestFactory()
+		val isNonParameterizedTest = isTest && parent.orElse(null)?.isTestTemplateOrTestFactory() != true
 		return isNonParameterizedTest || isTestTemplateOrTestFactory
 	}
+
+	/**
+	 * Returns true if a [TestDescriptor] represents a `@ParameterizedClass`.
+	 *
+	 * An example of a [org.junit.platform.engine.UniqueId] of such a [TestDescriptor] is:
+	 *
+	 *
+	 * `[engine:junit-jupiter]/[class:com.example.project.JUnit5Test]/[nested-class-template:WithValueSource]`
+	 */
+	fun TestDescriptor.isClassTemplate(): Boolean {
+		val lastSegmentType = uniqueId.segments.lastOrNull()?.type ?: return false
+		return JUnitJupiterTestDescriptorResolver.CLASS_TEMPLATE_SEGMENT_TYPE == lastSegmentType
+				|| JUnitJupiterTestDescriptorResolver.NESTED_CLASS_TEMPLATE_SEGMENT_TYPE == lastSegmentType
+	}
+
+	/**
+	 * Returns true if a [TestDescriptor] is one of the invocations of a `@ParameterizedClass` or is contained in one.
+	 * These are only registered dynamically during test execution.
+	 */
+	fun TestDescriptor.isInsideClassTemplate() =
+		uniqueId.segments.any {
+			it.type == JUnitJupiterTestDescriptorResolver.CLASS_TEMPLATE_INVOCATION_SEGMENT_TYPE
+		}
 
 	/**
 	 * Returns true if a [TestDescriptor] represents a test template or a test factory.
@@ -61,13 +85,28 @@ object TestDescriptorUtils {
 				|| JUnitJupiterTestDescriptorResolver.TEST_FACTORY_SEGMENT_TYPE == lastSegmentType
 	}
 
-	/** Creates a stream of the test representatives contained by the [TestDescriptor].  */
-	private fun TestDescriptor.streamTestRepresentatives(): Stream<TestDescriptor> {
+	/**
+	 * Creates a stream of the test representatives contained by the [TestDescriptor], each together with the
+	 * [UniqueId] that has to be selected in order to execute it.
+	 *
+	 * Both are the same for an ordinary test. The tests of a `@ParameterizedClass` are taken from the
+	 * [ClassTemplateRegistry], because the JUnit platform pruned them from the test tree, and all of them are selected
+	 * via the class template itself, since JUnit can only execute a `@ParameterizedClass` as a whole.
+	 */
+	private fun TestDescriptor.streamTestRepresentatives(
+		classTemplateRegistry: ClassTemplateRegistry,
+		selectionId: UniqueId?
+	): Stream<Pair<TestDescriptor, UniqueId>> {
+		if (isClassTemplate()) {
+			return classTemplateRegistry.testsOf(this).stream().flatMap {
+				it.streamTestRepresentatives(classTemplateRegistry, selectionId ?: uniqueId)
+			}
+		}
 		if (isRepresentative()) {
-			return Stream.of(this)
+			return Stream.of(this to (selectionId ?: uniqueId))
 		}
 		return children.stream().flatMap {
-			it.streamTestRepresentatives()
+			it.streamTestRepresentatives(classTemplateRegistry, selectionId)
 		}
 	}
 
@@ -90,12 +129,13 @@ object TestDescriptorUtils {
 
 	/** Returns the [AvailableTests] contained within the root [TestDescriptor].  */
 	fun getAvailableTests(
-		rootTestDescriptor: TestDescriptor
+		rootTestDescriptor: TestDescriptor,
+		classTemplateRegistry: ClassTemplateRegistry = ClassTemplateRegistry()
 	): AvailableTests {
 		val availableTests = AvailableTests()
 
-		rootTestDescriptor.streamTestRepresentatives()
-			.forEach { testDescriptor ->
+		rootTestDescriptor.streamTestRepresentatives(classTemplateRegistry, null)
+			.forEach { (testDescriptor, selectionId) ->
 				val engineId = testDescriptor.uniqueId.engineId
 				if (!engineId.isPresent) {
 					LOG.severe {
@@ -131,7 +171,7 @@ object TestDescriptorUtils {
 					null,
 					clusterId
 				)
-				availableTests.add(testDescriptor.uniqueId, testDetails)
+				availableTests.add(selectionId, testDetails)
 			}
 
 
