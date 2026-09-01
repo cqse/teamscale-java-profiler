@@ -22,8 +22,8 @@ internal class TestDescriptorUtilsTest {
 	private val nestedClassTemplateId = outerClassId.append(NESTED_CLASS_TEMPLATE_SEGMENT_TYPE, "NestedParameterized")
 	private val classTemplateId = engineId.append(CLASS_TEMPLATE_SEGMENT_TYPE, "example.ParameterizedTest")
 
-	/** Builds the test tree as it looks during discovery, i.e. before the JUnit platform prunes it. */
-	private fun createUnprunedTestRoot() = SimpleTestDescriptor.testContainer(
+	/** The test tree as it looks during discovery, i.e. before the JUnit platform prunes it. */
+	private val testRoot = SimpleTestDescriptor.testContainer(
 		engineId,
 		SimpleTestDescriptor.testContainer(
 			outerClassId,
@@ -44,10 +44,16 @@ internal class TestDescriptorUtilsTest {
 		)
 	)
 
-	/** Simulates the pruning that the JUnit platform applies to a `@ParameterizedClass` after discovery. */
-	private fun SimpleTestDescriptor.prune() {
+	/** The tests that the engine recorded while the test tree was still complete. */
+	private val registry = ClassTemplateRegistry().apply { record(testRoot) }
+
+	/**
+	 * Simulates the pruning that the JUnit platform applies to a `@ParameterizedClass` after discovery. Must not be
+	 * named `prune`, because [org.junit.platform.engine.TestDescriptor.prune] would shadow it.
+	 */
+	private fun simulatePlatformPruning() {
 		listOf(nestedClassTemplateId, classTemplateId).forEach { classTemplateId ->
-			findByUniqueId(classTemplateId).get().let { classTemplate ->
+			testRoot.findByUniqueId(classTemplateId).get().let { classTemplate ->
 				classTemplate.children.toList().forEach { classTemplate.removeChild(it) }
 			}
 		}
@@ -59,9 +65,7 @@ internal class TestDescriptorUtilsTest {
 	 */
 	@Test
 	fun testParameterizedClassTestsAreAvailableTests() {
-		val testRoot = createUnprunedTestRoot()
-		val registry = ClassTemplateRegistry().apply { record(testRoot) }
-		testRoot.prune()
+		simulatePlatformPruning()
 
 		assertThat(getAvailableTests(testRoot, registry).testList)
 			.extracting<String> { it.uniformPath }
@@ -74,12 +78,23 @@ internal class TestDescriptorUtilsTest {
 			)
 	}
 
+	/** Without the recorded tests, everything below a pruned `@ParameterizedClass` is lost. */
+	@Test
+	fun testPrunedParameterizedClassTestsAreLostWithoutRecording() {
+		simulatePlatformPruning()
+
+		assertThat(getAvailableTests(testRoot, ClassTemplateRegistry()).testList)
+			.extracting<String> { it.uniformPath }
+			.containsExactlyInAnyOrder(
+				"example/OuterTest/testOuter()",
+				"example/OuterTest\$PlainNested/testPlain()"
+			)
+	}
+
 	/** The cluster ID of the tests of a `@ParameterizedClass` is their class, just like for any other test. */
 	@Test
 	fun testParameterizedClassClusterId() {
-		val testRoot = createUnprunedTestRoot()
-		val registry = ClassTemplateRegistry().apply { record(testRoot) }
-		testRoot.prune()
+		simulatePlatformPruning()
 
 		assertThat(getAvailableTests(testRoot, registry).testList)
 			.filteredOn { it.uniformPath.startsWith("example/ParameterizedTest") }
@@ -94,9 +109,7 @@ internal class TestDescriptorUtilsTest {
 	 */
 	@Test
 	fun testParameterizedClassTestsAreSelectedViaTheirClass() {
-		val testRoot = createUnprunedTestRoot()
-		val registry = ClassTemplateRegistry().apply { record(testRoot) }
-		testRoot.prune()
+		simulatePlatformPruning()
 
 		val availableTests = getAvailableTests(testRoot, registry)
 
@@ -111,7 +124,7 @@ internal class TestDescriptorUtilsTest {
 	/** As long as nothing was pruned, the tests of a `@ParameterizedClass` are found in the test tree itself. */
 	@Test
 	fun testParameterizedClassTestsAreFoundWithoutRecording() {
-		assertThat(getAvailableTests(createUnprunedTestRoot()).testList)
+		assertThat(getAvailableTests(testRoot, ClassTemplateRegistry()).testList)
 			.extracting<String> { it.uniformPath }
 			.contains("example/ParameterizedTest/testA()")
 	}

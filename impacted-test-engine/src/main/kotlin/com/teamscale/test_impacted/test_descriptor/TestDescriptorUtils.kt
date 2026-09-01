@@ -127,10 +127,14 @@ object TestDescriptorUtils {
 		}
 	}
 
-	/** Returns the [AvailableTests] contained within the root [TestDescriptor].  */
+	/**
+	 * Returns the [AvailableTests] contained within the root [TestDescriptor], taking the tests of the
+	 * `@ParameterizedClass`es from the given [ClassTemplateRegistry] because the JUnit platform pruned them from the
+	 * test tree.
+	 */
 	fun getAvailableTests(
 		rootTestDescriptor: TestDescriptor,
-		classTemplateRegistry: ClassTemplateRegistry = ClassTemplateRegistry()
+		classTemplateRegistry: ClassTemplateRegistry
 	): AvailableTests {
 		val availableTests = AvailableTests()
 

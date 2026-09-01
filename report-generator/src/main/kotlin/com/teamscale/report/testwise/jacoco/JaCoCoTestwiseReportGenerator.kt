@@ -68,17 +68,58 @@ open class JaCoCoTestwiseReportGenerator(
 	/**
 	 * Converts the given dumps to a report, merging the coverage of all dumps that belong to the same test before
 	 * passing it on. A test produces more than one dump if it was executed repeatedly, e.g. once per parameter set of
-	 * an enclosing `@ParameterizedClass`. In contrast to [convertAndConsume] this holds the coverage of all tests in
-	 * memory, which is unavoidable because the dumps of one test are not adjacent.
+	 * an enclosing `@ParameterizedClass`.
+	 *
+	 * The dumps of one test are neither adjacent nor necessarily in the same file, so a first pass over the files
+	 * determines which tests were dumped repeatedly. Only the coverage of those has to be held back until all files
+	 * have been read; the coverage of every other test is passed on as soon as its dump was read, so that the consumer
+	 * can write it out instead of keeping the whole test run in memory.
 	 */
 	@Throws(IOException::class, CoverageGenerationException::class)
 	open fun convertAndConsumePerTest(executionDataFiles: List<File>, consumer: Consumer<TestCoverageBuilder>) {
-		val testwiseCoverage = TestwiseCoverage()
-		executionDataFiles.forEach { testwiseCoverage.add(convert(it)) }
-		testwiseCoverage.tests.values.forEach(consumer::accept)
+		val repeatedTestIds = findTestsWithMultipleDumps(executionDataFiles)
+		val repeatedTestCoverage = TestwiseCoverage()
+		executionDataFiles.forEach { executionDataFile ->
+			convertAndConsume(executionDataFile) { coverage ->
+				if (coverage.uniformPath in repeatedTestIds) {
+					repeatedTestCoverage.add(coverage)
+				} else {
+					consumer.accept(coverage)
+				}
+			}
+		}
+		repeatedTestCoverage.tests.values.forEach(consumer::accept)
 	}
 
-	/** Converts the given dumps to a report. */
+	/**
+	 * Returns the IDs of the tests for which the given *.exec files contain more than one dump. Only the session
+	 * infos are of interest here, so the execution data itself is read but discarded.
+	 */
+	@Throws(IOException::class)
+	private fun findTestsWithMultipleDumps(executionDataFiles: List<File>): Set<String> {
+		val seenTestIds = mutableSetOf<String>()
+		val repeatedTestIds = mutableSetOf<String>()
+		executionDataFiles.forEach { executionDataFile ->
+			BufferedInputStream(FileInputStream(executionDataFile)).use { input ->
+				ExecutionDataReader(input).apply {
+					setExecutionDataVisitor { }
+					setSessionInfoVisitor { info ->
+						if (info.id.isNotEmpty() && !seenTestIds.add(info.id)) {
+							repeatedTestIds.add(info.id)
+						}
+					}
+					read()
+				}
+			}
+		}
+		return repeatedTestIds
+	}
+
+	/**
+	 * Converts the dumps in the given *.exec file to a report, passing on the coverage of each dump as soon as it was
+	 * read. Use [convertAndConsumePerTest] unless the consumer can handle more than one result for the same test,
+	 * since a test that was executed repeatedly produces one dump per execution.
+	 */
 	@Throws(IOException::class)
 	open fun convertAndConsume(executionDataFile: File, consumer: Consumer<TestCoverageBuilder>) {
 		val dumpConsumer = executionDataReader.buildCoverageConsumer(locationIncludeFilter, consumer)

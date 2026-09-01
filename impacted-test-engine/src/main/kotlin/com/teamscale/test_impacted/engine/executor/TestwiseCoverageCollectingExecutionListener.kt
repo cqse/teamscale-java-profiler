@@ -32,7 +32,7 @@ class TestwiseCoverageCollectingExecutionListener(
 	private val teamscaleAgentNotifier: TeamscaleAgentNotifier,
 	private val testDescriptorResolver: ITestDescriptorResolver,
 	private val delegateEngineExecutionListener: EngineExecutionListener,
-	private val classTemplateRegistry: ClassTemplateRegistry = ClassTemplateRegistry()
+	private val classTemplateRegistry: ClassTemplateRegistry
 ) : EngineExecutionListener {
 	companion object {
 		private val LOG = createLogger()
@@ -55,7 +55,7 @@ class TestwiseCoverageCollectingExecutionListener(
 			// The tests of a @ParameterizedClass were pruned from the test tree, so report the ones that were
 			// recorded during discovery instead of descending into the now empty descriptor. They are not forwarded
 			// to the delegate listener, which only knows the descriptors that are still part of the tree.
-			classTemplateRegistry.testsOf(testDescriptor).forEach { it.reportSkipped(reason) }
+			testDescriptor.reportSkipped(reason)
 			delegateEngineExecutionListener.executionSkipped(testDescriptor, reason)
 			return
 		}

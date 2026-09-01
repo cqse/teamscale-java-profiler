@@ -8,13 +8,16 @@ import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.report.testwise.model.TestwiseCoverage
 import com.teamscale.report.testwise.model.TestwiseCoverageReport
+import com.teamscale.report.testwise.model.builder.TestCoverageBuilder
 import com.teamscale.report.testwise.model.builder.TestwiseCoverageReportBuilder.Companion.createFrom
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.test.TestDataBase
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import java.io.File
 
 /** Tests for the [JaCoCoTestwiseReportGenerator] class.  */
 class JaCoCoTestwiseReportGeneratorTest : TestDataBase() {
@@ -39,17 +42,49 @@ class JaCoCoTestwiseReportGeneratorTest : TestDataBase() {
 		JSONAssert.assertEquals(expected, report, JSONCompareMode.STRICT)
 	}
 
+	/**
+	 * A test that was dumped more than once, e.g. once per parameter set of an enclosing `@ParameterizedClass`, has to
+	 * be passed on exactly once, with the coverage of all of its dumps merged. The dumps of one test may be spread
+	 * over several *.exec files, which is simulated here by converting the same file twice.
+	 */
+	@Test
+	fun testRepeatedDumpsOfTheSameTestAreMerged() {
+		val executionDataFile = useTestFile("jacoco/sample/coverage.exec")
+
+		val oneDumpPerTest = convertAndConsumePerTest(listOf(executionDataFile))
+		val twoDumpsPerTest = convertAndConsumePerTest(listOf(executionDataFile, executionDataFile))
+
+		assertThat(twoDumpsPerTest.map { it.uniformPath })
+			.containsExactlyInAnyOrderElementsOf(oneDumpPerTest.map { it.uniformPath })
+		assertThat(twoDumpsPerTest.asReportString()).isEqualTo(oneDumpPerTest.asReportString())
+	}
+
 	@Throws(Exception::class)
 	private fun runReportGenerator(testDataFolder: String, execFileName: String): String {
-		val classFileFolder = useTestFile(testDataFolder)
-		val includeFilter = ClasspathWildcardIncludeFilter(null, null)
-		val testwiseCoverage = JaCoCoTestwiseReportGenerator(
-			listOf(classFileFolder),
-			includeFilter, EDuplicateClassFileBehavior.IGNORE,
-			Mockito.mock()
-		).convert(useTestFile(execFileName))
+		val testwiseCoverage = createReportGenerator(testDataFolder).convert(useTestFile(execFileName))
 		return getTestwiseCoverageReportAsString(testwiseCoverage.generateDummyReport())
 	}
+
+	/** Collects the coverage that the generator passes on for the tests in the given *.exec files. */
+	private fun convertAndConsumePerTest(executionDataFiles: List<File>): List<TestCoverageBuilder> {
+		val coverage = mutableListOf<TestCoverageBuilder>()
+		createReportGenerator("jacoco/sample/classes.zip")
+			.convertAndConsumePerTest(executionDataFiles, coverage::add)
+		return coverage
+	}
+
+	private fun List<TestCoverageBuilder>.asReportString(): String {
+		val testwiseCoverage = TestwiseCoverage()
+		forEach { testwiseCoverage.add(it) }
+		return getTestwiseCoverageReportAsString(testwiseCoverage.generateDummyReport())
+	}
+
+	private fun createReportGenerator(testDataFolder: String) =
+		JaCoCoTestwiseReportGenerator(
+			listOf(useTestFile(testDataFolder)),
+			ClasspathWildcardIncludeFilter(null, null), EDuplicateClassFileBehavior.IGNORE,
+			Mockito.mock()
+		)
 
 	companion object {
 		/** Generates a fake coverage report object that wraps the given [TestwiseCoverage].  */
