@@ -17,6 +17,20 @@ import java.lang.management.ManagementFactory
  */
 abstract class TeamscalePluginTestBase {
 
+	companion object {
+		/**
+		 * The `-javaagent` option that records the coverage of this plugin, supplied by the
+		 * com.teamscale.spawned-jvm-coverage convention plugin. Absent unless that plugin is applied.
+		 *
+		 * TestKit runs every build below in a daemon of its own, so without this the plugin would be entirely
+		 * uncovered even though these tests exercise all of it. `GRADLE_OPTS` would only reach the launcher,
+		 * which is why the daemon is asked for the agent through `org.gradle.jvmargs`. The option is dropped
+		 * when it contains whitespace, which would break the command line, cf. ProcessUtils.
+		 */
+		private val coverageAgent: String? =
+			System.getProperty("systemTestCoverageAgent")?.takeIf { it.none(Char::isWhitespace) }
+	}
+
 	/** Teamscale mock server to be used during the tests. */
 	protected lateinit var teamscaleMockServer: TeamscaleMockServer
 
@@ -56,6 +70,7 @@ abstract class TeamscalePluginTestBase {
 		val runner = GradleRunner.create()
 		runner.forwardOutput()
 		runnerArgs.add("--stacktrace")
+		coverageAgent?.let { runnerArgs.add("-Dorg.gradle.jvmargs=$it") }
 
 		if (ManagementFactory.getRuntimeMXBean().inputArguments.toString()
 				.contains("-agentlib:jdwp")

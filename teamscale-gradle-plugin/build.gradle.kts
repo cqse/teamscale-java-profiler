@@ -6,7 +6,7 @@ plugins {
 	`java-gradle-plugin`
 	`kotlin-dsl`
 	com.teamscale.`kotlin-convention`
-	com.teamscale.coverage
+	com.teamscale.`spawned-jvm-coverage`
 	com.teamscale.publish
 	alias(libs.plugins.pluginPublish)
 }
