@@ -80,7 +80,7 @@ internal class InternalImpactedTestEngine(
 			}"
 		}
 
-		testSorter.selectAndSort(rootTestDescriptor, classTemplateRegistry)
+		testSorter.selectAndSort(rootTestDescriptor, availableTests)
 
 		LOG.fine {
 			"Starting execution of request for engine ${ImpactedTestEngine.ENGINE_ID}:\n${
