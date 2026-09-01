@@ -91,28 +91,34 @@ open class JaCoCoTestwiseReportGenerator(
 		repeatedTestCoverage.tests.values.forEach(consumer::accept)
 	}
 
-	/**
-	 * Returns the IDs of the tests for which the given *.exec files contain more than one dump. Only the session
-	 * infos are of interest here, so the execution data itself is read but discarded.
-	 */
+	/** Returns the IDs of the tests for which the given *.exec files contain more than one dump. */
 	@Throws(IOException::class)
 	private fun findTestsWithMultipleDumps(executionDataFiles: List<File>): Set<String> {
 		val seenTestIds = mutableSetOf<String>()
 		val repeatedTestIds = mutableSetOf<String>()
 		executionDataFiles.forEach { executionDataFile ->
-			BufferedInputStream(FileInputStream(executionDataFile)).use { input ->
-				ExecutionDataReader(input).apply {
-					setExecutionDataVisitor { }
-					setSessionInfoVisitor { info ->
-						if (info.id.isNotEmpty() && !seenTestIds.add(info.id)) {
-							repeatedTestIds.add(info.id)
-						}
-					}
-					read()
+			readSessionInfos(executionDataFile) { info ->
+				if (info.id.isNotEmpty() && !seenTestIds.add(info.id)) {
+					repeatedTestIds.add(info.id)
 				}
 			}
 		}
 		return repeatedTestIds
+	}
+
+	/**
+	 * Passes the session infos in the given *.exec file to the given visitor. Only the session infos are of interest
+	 * here, so the execution data itself is read but discarded.
+	 */
+	@Throws(IOException::class)
+	private fun readSessionInfos(executionDataFile: File, sessionInfoVisitor: ISessionInfoVisitor) {
+		BufferedInputStream(FileInputStream(executionDataFile)).use { input ->
+			ExecutionDataReader(input).apply {
+				setExecutionDataVisitor { }
+				setSessionInfoVisitor(sessionInfoVisitor)
+				read()
+			}
+		}
 	}
 
 	/**
