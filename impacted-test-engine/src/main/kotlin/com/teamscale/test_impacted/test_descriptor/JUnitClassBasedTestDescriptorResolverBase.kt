@@ -12,8 +12,12 @@ abstract class JUnitClassBasedTestDescriptorResolverBase : ITestDescriptorResolv
 	override fun getUniformPath(descriptor: TestDescriptor): String? =
 		descriptor.getClassName()?.let { className ->
 			val dotName = className.replace(".", "/")
-			"$dotName/${descriptor.legacyReportingName.trim { it <= ' ' }}"
+			"$dotName/${getTestName(descriptor)}"
 		}
+
+	/** Returns the name of the test within its class.  */
+	protected open fun getTestName(descriptor: TestDescriptor): String =
+		descriptor.legacyReportingName.trim { it <= ' ' }
 
 	override fun getClusterId(descriptor: TestDescriptor): String? {
 		val classSegmentName = descriptor.getClassName()

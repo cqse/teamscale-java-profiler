@@ -55,9 +55,14 @@ class SimpleTestDescriptor private constructor(
 	}
 
 	companion object {
-		/** Creates a [TestDescriptor] for a concrete test case without children.  */
-		fun testCase(uniqueId: UniqueId) =
-			SimpleTestDescriptor(uniqueId, TestDescriptor.Type.TEST, getSimpleDisplayName(uniqueId))
+		/**
+		 * Creates a [TestDescriptor] for a concrete test case without children. The display name doubles as the
+		 * descriptor's legacy reporting name, which the jupiter engine e.g. suffixes with the index of the enclosing
+		 * `@ParameterizedClass` invocation.
+		 */
+		@JvmOverloads
+		fun testCase(uniqueId: UniqueId, displayName: String = getSimpleDisplayName(uniqueId)) =
+			SimpleTestDescriptor(uniqueId, TestDescriptor.Type.TEST, displayName)
 
 		private fun getSimpleDisplayName(uniqueId: UniqueId) =
 			uniqueId.segments[uniqueId.segments.size - 1].value
@@ -71,6 +76,15 @@ class SimpleTestDescriptor private constructor(
 			simpleTestDescriptor.dynamicTests.addAll(listOf(*dynamicTestCases))
 			return simpleTestDescriptor
 		}
+
+		/**
+		 * Creates a [TestDescriptor] for a test container (e.g. a `@ParameterizedClass`) which registers all of its
+		 * children dynamically during test execution.
+		 */
+		fun dynamicTestContainer(uniqueId: UniqueId, vararg dynamicChildren: TestDescriptor) =
+			SimpleTestDescriptor(uniqueId, TestDescriptor.Type.CONTAINER, getSimpleDisplayName(uniqueId)).apply {
+				dynamicTests.addAll(dynamicChildren)
+			}
 
 		/**
 		 * Creates a [TestDescriptor] for a test container (e.g., a test class or test engine) containing other

@@ -34,6 +34,8 @@ abstract class ImpactedTestEngineTestBase {
 		Assertions.assertThat(engineDescriptor.uniqueId)
 			.isEqualTo(UniqueId.forEngine(ImpactedTestEngine.ENGINE_ID))
 
+		afterDiscovery()
+
 		whenever(executionRequest.engineExecutionListener)
 			.thenReturn(executionListener)
 		whenever(executionRequest.rootTestDescriptor)
@@ -61,6 +63,14 @@ abstract class ImpactedTestEngineTestBase {
 
 	/** Verifies that the interactions with the executionListener are the ones we would expect.  */
 	abstract fun verifyCallbacks(executionListener: EngineExecutionListener)
+
+	/**
+	 * Hook for changes that the JUnit platform applies to the test tree between discovery and execution, e.g. the
+	 * pruning of the tests of a `@ParameterizedClass`.
+	 */
+	open fun afterDiscovery() {
+		// Nothing to do by default
+	}
 
 	private fun createInternalImpactedTestEngine(engines: List<TestEngine>): InternalImpactedTestEngine {
 		engines.forEach { engine ->

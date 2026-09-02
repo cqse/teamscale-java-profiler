@@ -3,7 +3,9 @@ package com.teamscale.test_impacted.engine.executor
 import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.test_impacted.commons.LoggerUtils.createLogger
+import com.teamscale.test_impacted.test_descriptor.ClassTemplateRegistry
 import com.teamscale.test_impacted.test_descriptor.ITestDescriptorResolver
+import com.teamscale.test_impacted.test_descriptor.TestDescriptorUtils.isClassTemplate
 import com.teamscale.test_impacted.test_descriptor.TestDescriptorUtils.isRepresentative
 import org.junit.platform.engine.EngineExecutionListener
 import org.junit.platform.engine.TestDescriptor
@@ -24,11 +26,13 @@ import java.io.StringWriter
  * @param teamscaleAgentNotifier The notifier responsible for signaling test events to the Teamscale JaCoCo agent.
  * @param testDescriptorResolver A resolver interface used to map [TestDescriptor] objects to uniform paths.
  * @param delegateEngineExecutionListener The underlying [EngineExecutionListener] to which events are delegated.
+ * @param classTemplateRegistry The tests of the `@ParameterizedClass`es as recorded during discovery.
  */
 class TestwiseCoverageCollectingExecutionListener(
 	private val teamscaleAgentNotifier: TeamscaleAgentNotifier,
 	private val testDescriptorResolver: ITestDescriptorResolver,
-	private val delegateEngineExecutionListener: EngineExecutionListener
+	private val delegateEngineExecutionListener: EngineExecutionListener,
+	private val classTemplateRegistry: ClassTemplateRegistry
 ) : EngineExecutionListener {
 	companion object {
 		private val LOG = createLogger()
@@ -47,6 +51,14 @@ class TestwiseCoverageCollectingExecutionListener(
 	}
 
 	override fun executionSkipped(testDescriptor: TestDescriptor, reason: String) {
+		if (testDescriptor.isClassTemplate()) {
+			// The tests of a @ParameterizedClass were pruned from the test tree, so report the ones that were
+			// recorded during discovery instead of descending into the now empty descriptor. They are not forwarded
+			// to the delegate listener, which only knows the descriptors that are still part of the tree.
+			testDescriptor.reportSkipped(reason)
+			delegateEngineExecutionListener.executionSkipped(testDescriptor, reason)
+			return
+		}
 		if (!testDescriptor.isRepresentative()) {
 			delegateEngineExecutionListener.executionStarted(testDescriptor)
 			testDescriptor.children.forEach { executionSkipped(it, reason) }
@@ -65,6 +77,18 @@ class TestwiseCoverageCollectingExecutionListener(
 			)
 			delegateEngineExecutionListener.executionSkipped(testDescriptor, reason)
 		}
+	}
+
+	/** Records a [ETestExecutionResult.SKIPPED] execution for every test below the given descriptor.  */
+	private fun TestDescriptor.reportSkipped(reason: String) {
+		if (isRepresentative()) {
+			testDescriptorResolver.getUniformPath(this)?.let { testUniformPath ->
+				testExecutions.add(TestExecution(testUniformPath, 0L, ETestExecutionResult.SKIPPED, reason))
+			}
+			return
+		}
+		val tests = if (isClassTemplate()) classTemplateRegistry.testsOf(this) else children
+		tests.forEach { it.reportSkipped(reason) }
 	}
 
 	override fun executionStarted(testDescriptor: TestDescriptor) {
@@ -90,6 +114,10 @@ class TestwiseCoverageCollectingExecutionListener(
 			val testExecutionResults = testResultCache.computeIfAbsent(
 				testDescriptor.parent.get().uniqueId
 			) { mutableListOf() }
+			// Containers may be nested arbitrarily deep below their representative, e.g. a @ParameterizedClass
+			// contains one invocation per parameter set which in turn contains the test methods. Hand the results
+			// collected for this container up to its parent so that they reach the representative.
+			testResultCache.remove(testDescriptor.uniqueId)?.let { testExecutionResults.addAll(it) }
 			testExecutionResults.add(testExecutionResult)
 		}
 
@@ -108,14 +136,16 @@ class TestwiseCoverageCollectingExecutionListener(
 		val message = StringBuilder()
 		var status = TestExecutionResult.Status.SUCCESSFUL
 		testExecutionResults.forEach { executionResult ->
-			if (message.isNotEmpty()) {
-				message.append("\n\n")
-			}
-			message.append(executionResult.throwable.orElse(null).buildStacktrace())
 			// Aggregate status here to most severe status according to SUCCESSFUL < ABORTED < FAILED
 			if (status.ordinal < executionResult.status.ordinal) {
 				status = executionResult.status
 			}
+
+			val stacktrace = executionResult.throwable.orElse(null).buildStacktrace() ?: return@forEach
+			if (message.isNotEmpty()) {
+				message.append("\n\n")
+			}
+			message.append(stacktrace)
 		}
 
 		return buildTestExecution(testUniformPath, duration, status, message.toString())

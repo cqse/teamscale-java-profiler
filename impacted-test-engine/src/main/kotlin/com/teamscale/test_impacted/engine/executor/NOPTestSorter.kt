@@ -7,7 +7,7 @@ import org.junit.platform.engine.TestDescriptor
  * Teamscale to select or prioritize tests.
  */
 class NOPTestSorter : ITestSorter {
-	override fun selectAndSort(testDescriptor: TestDescriptor) {
+	override fun selectAndSort(testDescriptor: TestDescriptor, availableTests: AvailableTests) {
 		// Nothing to do
 	}
 }

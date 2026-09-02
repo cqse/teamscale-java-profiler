@@ -37,11 +37,11 @@ class TestwiseCoverageReportBuilder {
 				}
 			}
 			testCoverage.forEach { coverage ->
-				resolveUniformPath(report, coverage.uniformPath)?.setCoverage(coverage)
+				resolveUniformPath(report, coverage.uniformPath)?.addCoverage(coverage)
 			}
 			testExecutions.forEach { testExecution ->
 				val path = testExecution.uniformPath ?: return@forEach
-				resolveUniformPath(report, path)?.setExecution(testExecution)
+				resolveUniformPath(report, path)?.addExecution(testExecution)
 			}
 			return report.build(partial)
 		}

@@ -3,6 +3,7 @@ package com.teamscale.test_impacted.engine
 import com.teamscale.test_impacted.commons.LoggerUtils.createLogger
 import com.teamscale.test_impacted.engine.ImpactedTestEngine.Companion.ENGINE_NAME
 import com.teamscale.test_impacted.engine.executor.TestwiseCoverageCollectingExecutionListener
+import com.teamscale.test_impacted.test_descriptor.ClassTemplateRegistry
 import com.teamscale.test_impacted.test_descriptor.TestDescriptorResolverRegistry.getTestDescriptorResolver
 import com.teamscale.test_impacted.test_descriptor.TestDescriptorUtils.getAvailableTests
 import com.teamscale.test_impacted.test_descriptor.TestDescriptorUtils.getTestDescriptorAsString
@@ -31,6 +32,12 @@ internal class InternalImpactedTestEngine(
 	private val testDataWriter = configuration.testDataWriter
 
 	/**
+	 * The tests of the `@ParameterizedClass`es in the test tree, recorded during discovery because the JUnit platform
+	 * prunes them from the tree before the tests are executed.
+	 */
+	private val classTemplateRegistry = ClassTemplateRegistry()
+
+	/**
 	 * Performs test discovery by aggregating the result of all [TestEngine]s from the [TestEngineRegistry]
 	 * in a single engine [TestDescriptor].
 	 */
@@ -47,6 +54,7 @@ internal class InternalImpactedTestEngine(
 			)
 
 			engineDescriptor.addChild(delegateEngineDescriptor)
+			classTemplateRegistry.record(delegateEngineDescriptor)
 		}
 
 		LOG.fine {
@@ -64,7 +72,7 @@ internal class InternalImpactedTestEngine(
 	 */
 	fun execute(request: ExecutionRequest) {
 		val rootTestDescriptor = request.rootTestDescriptor
-		val availableTests = getAvailableTests(rootTestDescriptor)
+		val availableTests = getAvailableTests(rootTestDescriptor, classTemplateRegistry)
 
 		LOG.fine {
 			"Starting selection and sorting ${ImpactedTestEngine.ENGINE_ID}:\n${
@@ -72,7 +80,7 @@ internal class InternalImpactedTestEngine(
 			}"
 		}
 
-		testSorter.selectAndSort(rootTestDescriptor)
+		testSorter.selectAndSort(rootTestDescriptor, availableTests)
 
 		LOG.fine {
 			"Starting execution of request for engine ${ImpactedTestEngine.ENGINE_ID}:\n${
@@ -105,7 +113,8 @@ internal class InternalImpactedTestEngine(
 				TestwiseCoverageCollectingExecutionListener(
 					teamscaleAgentNotifier,
 					testDescriptorResolver,
-					request.engineExecutionListener
+					request.engineExecutionListener,
+					classTemplateRegistry
 				)
 
 			testEngine.execute(
