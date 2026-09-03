@@ -101,6 +101,7 @@ object ProcessUtils {
 				val exitCode = executeWithoutConcurrencyLimit(
 					builder, input, -1, consoleCharset, stdoutConsumer, stderrConsumer
 				)
+				awaitCoverageOfSingleUseDaemon(commands)
 				return ProcessResult(
 					stdout = stdoutConsumer.content,
 					stderr = stderrConsumer.content,
@@ -117,11 +118,14 @@ object ProcessUtils {
 		 *
 		 * @return ProcessBuilder configured with commands and working directory
 		 */
-		fun build(): ProcessBuilder = ProcessBuilder(commands.withDebuggerArgumentIfRequested()).apply {
-			workingDirectory?.let { directory(it) }
-			environmentVariables?.let { environment().putAll(it) }
-			removeEnvironmentVariables.forEach { environment().remove(it) }
-		}
+		fun build(): ProcessBuilder =
+			ProcessBuilder(commands.withDebuggerArgumentIfRequested().withCoverageArgumentIfRequested()).apply {
+				workingDirectory?.let { directory(it) }
+				// Merged before the caller's variables, so that a test that sets MAVEN_OPTS itself still wins.
+				addCoverageEnvironment(commands)
+				environmentVariables?.let { environment().putAll(it) }
+				removeEnvironmentVariables.forEach { environment().remove(it) }
+			}
 	}
 
 	/**
@@ -147,6 +151,75 @@ object ProcessUtils {
 	/** Whether this command is a `java` executable, with or without a path and the Windows `.exe` extension. */
 	private fun String.isJavaExecutable() =
 		substringAfterLast('/').substringAfterLast('\\').removeSuffix(".exe") == "java"
+
+	/**
+	 * The `-javaagent` option that records the coverage of our own classes in the JVMs a system test spawns, set
+	 * by the com.teamscale.spawned-jvm-coverage convention plugin. Absent unless that plugin is applied.
+	 *
+	 * Both `MAVEN_OPTS` and the Gradle command line split the option on whitespace, so a path containing a space
+	 * would produce a broken JVM command line. Recording coverage is a nice to have, the system tests are not,
+	 * so we rather record nothing in that case.
+	 */
+	private val COVERAGE_AGENT_ARGUMENT: String? =
+		System.getProperty("systemTestCoverageAgent")?.takeIf { it.isNotEmpty() && it.none(Char::isWhitespace) }
+
+	/**
+	 * Attaches [COVERAGE_AGENT_ARGUMENT] to a Gradle invocation, whose build logic runs in the daemon rather than
+	 * in the launcher that `GRADLE_OPTS` would reach. `--no-daemon` makes that daemon exit with the build, which
+	 * is when JaCoCo writes what it recorded.
+	 */
+	private fun List<String>.withCoverageArgumentIfRequested(): List<String> {
+		val agent = COVERAGE_AGENT_ARGUMENT?.takeIf { isLauncherFor("gradlew") } ?: return this
+		return this + listOf("-Dorg.gradle.jvmargs=$agent", "--no-daemon")
+	}
+
+	/**
+	 * Attaches [COVERAGE_AGENT_ARGUMENT] to a Maven invocation. The wrapper boots Maven in the JVM it starts, so
+	 * `MAVEN_OPTS` reaches exactly the JVM the Mojos run in and leaves the forked test JVMs alone. Those already
+	 * have the profiler attached, and a second agent in them would only duplicate what the profiler records.
+	 */
+	private fun ProcessBuilder.addCoverageEnvironment(commands: List<String>) {
+		val agent = COVERAGE_AGENT_ARGUMENT?.takeIf { commands.isLauncherFor("mvnw") } ?: return
+		environment().merge("MAVEN_OPTS", agent) { inherited, added -> "$inherited $added" }
+	}
+
+	/**
+	 * Whether this command line invokes the given wrapper script, with or without a path and the Windows file
+	 * extension. On Windows the script is invoked through `cmd /c`, so it is not necessarily the first argument.
+	 */
+	private fun List<String>.isLauncherFor(wrapperScript: String) = any {
+		it.substringAfterLast('/').substringAfterLast('\\')
+			.removeSuffix(".cmd").removeSuffix(".bat") == wrapperScript
+	}
+
+	/**
+	 * Waits until the single-use daemon of a Gradle build we recorded coverage of has written what it recorded.
+	 *
+	 * `--no-daemon` runs the build in a daemon that the launcher forks and that shuts itself down once the build
+	 * finished, so it outlives the process we just waited for. JaCoCo writes its data from a shutdown hook of
+	 * that daemon, which without this would race the jacocoTestReport task and cost us most of the coverage.
+	 * Maven needs none of this: it runs the build in the very JVM that we started.
+	 */
+	private fun awaitCoverageOfSingleUseDaemon(commands: List<String>) {
+		val destination = COVERAGE_AGENT_ARGUMENT
+			?.takeIf { commands.isLauncherFor("gradlew") }
+			?.substringAfter("destfile=")?.substringBefore(',')
+			?.let { File(it) } ?: return
+		var previousLength = -1L
+		repeat(COVERAGE_FLUSH_POLLS) {
+			val length = if (destination.isFile) destination.length() else 0
+			// Two polls in a row that saw the same non-empty file. JaCoCo holds an exclusive lock while it
+			// writes, so a length that stopped growing means the daemon is done rather than merely slow.
+			if (length > 0 && length == previousLength) return
+			previousLength = length
+			Thread.sleep(COVERAGE_FLUSH_POLL_INTERVAL_MILLIS)
+		}
+	}
+
+	private const val COVERAGE_FLUSH_POLL_INTERVAL_MILLIS = 100L
+
+	/** Polls for at most five seconds, which is far more than the daemon has ever needed to shut down. */
+	private const val COVERAGE_FLUSH_POLLS = 50
 
 	/**
 	 * Immutable result of process execution.
