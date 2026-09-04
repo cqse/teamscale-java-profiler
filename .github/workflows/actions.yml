@@ -11,6 +11,8 @@ jobs:
   build:
     name: Build on Linux & Deploy
     runs-on: ubuntu-latest
+    env:
+      TEAMSCALE_PARTITION: 'Coverage'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
@@ -70,21 +72,25 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_dockerHubUsername: ${{ secrets.DOCKERHUB_USER }}
           ORG_GRADLE_PROJECT_dockerHubPassword: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Upload coverage to Teamscale
-        # Fork pull requests get no secrets, so the upload can only run for pushes and for pull requests
-        # from branches in this repository. github.event.pull_request is null on push events.
+      # Anchored so the Windows job can reuse this step verbatim via *upload-coverage.
+      - &upload-coverage
+        name: Upload coverage to Teamscale
+        # Fork pull requests get no secrets, and renovate branches are excluded from the Teamscale
+        # project, so Teamscale can never resolve their commits. github.event.pull_request is null on
+        # push events, where head.ref therefore reads as the empty string.
         if: >-
           always() && (github.event_name == 'push'
             || github.event.pull_request.head.repo.full_name == github.repository)
+            && !startsWith(github.event.pull_request.head.ref, 'renovate/')
         uses: cqse/teamscale-upload-action@v2.10.0
         with:
           server: 'https://cqse.teamscale.io'
           project: 'teamscale-jacoco-agent'
           user: ${{ secrets.CQSE_TEAMSCALE_IO_USER }}
           accesskey: ${{ secrets.CQSE_TEAMSCALE_IO_ACCESSKEY }}
-          partition: 'Coverage'
+          partition: ${{ env.TEAMSCALE_PARTITION }}
           format: 'JACOCO'
-          message: 'Linux Coverage'
+          message: '${{ runner.os }} Coverage'
           # On pull_request, actions/checkout checks out the synthetic refs/pull/N/merge commit and
           # GitHub sets GITHUB_SHA to it, which is what teamscale-upload's commit auto-detection picks
           # up. That commit is not reachable from any branch, so Teamscale never fetches it and cannot
@@ -95,6 +101,8 @@ jobs:
   test-windows:
     name: Test on Windows
     runs-on: windows-latest
+    env:
+      TEAMSCALE_PARTITION: 'Coverage Windows'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
@@ -104,24 +112,4 @@ jobs:
       - *setup-gradle
       - name: Build with Gradle
         run: ./gradlew build --max-workers=2
-      - name: Upload coverage to Teamscale
-        # Fork pull requests get no secrets, so the upload can only run for pushes and for pull requests
-        # from branches in this repository. github.event.pull_request is null on push events.
-        if: >-
-          always() && (github.event_name == 'push'
-            || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: cqse/teamscale-upload-action@v2.10.0
-        with:
-          server: 'https://cqse.teamscale.io'
-          project: 'teamscale-jacoco-agent'
-          user: ${{ secrets.CQSE_TEAMSCALE_IO_USER }}
-          accesskey: ${{ secrets.CQSE_TEAMSCALE_IO_ACCESSKEY }}
-          partition: 'Coverage Windows'
-          format: 'JACOCO'
-          message: 'Coverage Windows'
-          # On pull_request, actions/checkout checks out the synthetic refs/pull/N/merge commit and
-          # GitHub sets GITHUB_SHA to it, which is what teamscale-upload's commit auto-detection picks
-          # up. That commit is not reachable from any branch, so Teamscale never fetches it and cannot
-          # resolve the revision. Name the pull request's head commit instead.
-          revision: ${{ github.event.pull_request.head.sha || github.sha }}
-          files: '**/jacocoTestReport.xml'
+      - *upload-coverage
