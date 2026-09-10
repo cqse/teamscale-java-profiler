@@ -82,7 +82,7 @@ coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", ve
 
 [plugins]
 nmcp = { id = "com.gradleup.nmcp", version = "1.6.2" }
-pluginPublish = { id = "com.gradle.plugin-publish", version = "2.2.0" }
+pluginPublish = { id = "com.gradle.plugin-publish", version = "2.2.1" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
 shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
 oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.30.0" }
