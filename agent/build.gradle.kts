@@ -1,5 +1,3 @@
-import io.github.sgtsilvio.gradle.oci.dsl.OciImageDefinition
-
 plugins {
 	com.teamscale.`kotlin-convention`
 	com.teamscale.`java-convention`
@@ -138,9 +136,9 @@ tasks.shadowDistZip {
 }
 
 oci {
-	val ociImageTag = providers.gradleProperty("ociImageTag").orElse(appVersion)
-	val configureImage: Action<OciImageDefinition> = Action {
-		imageTag = ociImageTag
+	imageDefinitions.register("main") {
+		imageName = "cqse/teamscale-java-profiler"
+		imageTag = providers.gradleProperty("ociImageTag").orElse(appVersion)
 		allPlatforms {
 			dependencies {
 				runtime("library:alpine:latest")
@@ -165,14 +163,5 @@ oci {
 		}
 		specificPlatform(platform("linux", "amd64"))
 		specificPlatform(platform("linux", "arm64"))
-	}
-
-	imageDefinitions.register("main") {
-		imageName = "cqse/teamscale-java-profiler"
-		configureImage.execute(this)
-	}
-	imageDefinitions.register("legacy") {
-		imageName = "cqse/teamscale-jacoco-agent"
-		configureImage.execute(this)
 	}
 }
