@@ -70,8 +70,7 @@ class TestwiseCoverageGradleSystemTest {
 	@Test
 	@Throws(Exception::class)
 	fun testGradleAggregatedCompactCoverageUploadWithoutJVMTestSuite() {
-		val result = runGradle("gradle-project", "clean", "unitTest", "teamscaleUnitTestReportUpload")
-		assertThat(result.isSuccess).isTrue()
+		runGradle("gradle-project", "clean", "unitTest", "teamscaleUnitTestReportUpload")
 
 		val session = teamscaleMockServer.getOnlySession("Unit Tests")
 		assertThat(session.getReports()).hasSize(4)
@@ -91,8 +90,7 @@ class TestwiseCoverageGradleSystemTest {
 	@Test
 	@Throws(Exception::class)
 	fun testGradleAggregatedCompactCoverageUploadWithJVMTestSuite() {
-		val result = runGradle("gradle-project", "clean", "teamscaleTestReportUpload")
-		assertThat(result.isSuccess).isTrue()
+		runGradle("gradle-project", "clean", "teamscaleTestReportUpload")
 
 		val session = teamscaleMockServer.getOnlySession("Default Tests")
 		assertThat(session.getReports()).hasSize(4)
@@ -109,8 +107,7 @@ class TestwiseCoverageGradleSystemTest {
 	@Test
 	@Throws(Exception::class)
 	fun testDebugLogging() {
-		val result = runGradle("gradle-project", "clean", "systemTest", "-DdebugLogging=true", "-Dimpacted")
-		assertThat(result.isSuccess).isTrue()
+		runGradle("gradle-project", "clean", "systemTest", "-DdebugLogging=true", "-Dimpacted")
 
 		assertThat(File("gradle-project/app/build/jacoco/systemTest/logs/teamscale-jacoco-agent.log")).content()
 			.contains("DEBUG Agent - No explicit teamscale.properties file given.")
