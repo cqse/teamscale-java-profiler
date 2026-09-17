@@ -78,7 +78,8 @@ object SystemTestUtils {
 	}
 
 	/**
-	 * Runs Gradle in the given Gradle project path with the given arguments.
+	 * Runs Gradle in the given Gradle project path with the given arguments. Every caller expects the build to
+	 * succeed, so a build that failed is reported as such instead of being handed back to the test.
 	 *
 	 * @throws IOException if running Gradle fails.
 	 */
@@ -91,8 +92,15 @@ object SystemTestUtils {
 		println("Gradle stdout: ${result.stdout}")
 		println("Gradle stderr: ${result.stderr}")
 
-		if (result.wasTerminatedByTimeoutOrInterruption) {
-			throw IOException("Running Gradle failed: ${result.stdout}\n${result.stderr}")
+		// A build that already fails while configuring writes nothing but the daemon notice to stdout and reports
+		// what went wrong on stderr. Neither ends up in the test report, so without this the test fails on
+		// whatever it asserts about the coverage that the build never produced, which says nothing about the cause.
+		if (!result.isSuccess) {
+			throw IOException(
+				"Running Gradle in $gradleProjectPath with arguments ${gradleArguments.joinToString(" ")} " +
+						"failed with exit code ${result.exitCode}.\n" +
+						"stdout:\n${result.stdout}\nstderr:\n${result.stderr}"
+			)
 		}
 		return result
 	}
