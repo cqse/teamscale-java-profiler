@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [breaking] _agent_: The deprecated Docker image `cqse/teamscale-jacoco-agent` is no longer published. Use `cqse/teamscale-java-profiler` instead, which has replaced it since version 36.5.0.
 - [fix] _impacted-test-engine_: Tests in a `@ParameterizedClass` are now collected.
 - [fix] _impacted-test-engine_: A test failure inside a nested test container (e.g. an invocation of a `@ParameterizedClass`) is no longer swallowed.
 - [fix] _teamscale-jacoco-agent_, _teamscale-maven-plugin_: A test that was executed more than once (e.g. once per parameter set of a `@ParameterizedClass`) is now reported once in the testwise coverage report, with the coverage of all of its executions merged, their durations summed up and the most severe of their results. Previously each execution overwrote the previous one.
