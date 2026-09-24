@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _teamscale-gradle-plugin_: `jacoco.includeNoLocationClasses` and `jacoco.excludeClassLoaders` on a test task now reach the profiler. Previously the plugin dropped both, so neither had any effect on which classes the profiler instruments.
 - [fix] _teamscale-jacoco-agent_: The profiler no longer aborts the JVM during startup under a class loader that records no local file for its own JAR, such as IntelliJ's `PathClassLoader`. It falls back to the JAR named by the `-javaagent` argument.
 - [fix] _impacted-test-engine_: Tests in a `@ParameterizedClass` are now collected.
 - [fix] _impacted-test-engine_: A test failure inside a nested test container (e.g. an invocation of a `@ParameterizedClass`) is no longer swallowed.

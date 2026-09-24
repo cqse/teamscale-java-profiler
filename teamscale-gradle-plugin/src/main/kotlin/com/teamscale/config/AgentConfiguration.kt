@@ -99,6 +99,12 @@ abstract class AgentConfiguration @Inject constructor(
 			argument.append("out", destination.asFile.get())
 			argument.append("includes", jacocoExtension.includes)
 			argument.append("excludes", jacocoExtension.excludes)
+			// The profiler replaces JaCoCo's own agent, so a setting it does not forward has no effect at
+			// all. The agent passes options prefixed `jacoco-` on to JaCoCo.
+			argument.append("jacoco-exclclassloader", jacocoExtension.excludeClassLoaders)
+			if (jacocoExtension.isIncludeNoLocationClasses) {
+				argument.append("jacoco-inclnolocationclasses", true)
+			}
 			argument.append("mode", "testwise")
 			argument.append("http-server-port", url.port)
 			if (debugLogging.getOrElse(false)) {
