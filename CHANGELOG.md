@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [breaking] _agent_: The deprecated Docker image `cqse/teamscale-jacoco-agent` is no longer published. Use `cqse/teamscale-java-profiler` instead, which has replaced it since version 36.5.0.
 - [fix] _teamscale-gradle-plugin_: `jacoco.includeNoLocationClasses` and `jacoco.excludeClassLoaders` on a test task now reach the profiler. Previously the plugin dropped both, so neither had any effect on which classes the profiler instruments.
 - [fix] _teamscale-jacoco-agent_: The profiler no longer aborts the JVM during startup under a class loader that records no local file for its own JAR, such as IntelliJ's `PathClassLoader`. It falls back to the JAR named by the `-javaagent` argument.
 - [fix] _impacted-test-engine_: Tests in a `@ParameterizedClass` are now collected.
