@@ -82,7 +82,7 @@ jobs:
           always() && (github.event_name == 'push'
             || github.event.pull_request.head.repo.full_name == github.repository)
             && !startsWith(github.event.pull_request.head.ref, 'renovate/')
-        uses: cqse/teamscale-upload-action@v2.10.0
+        uses: cqse/teamscale-upload-action@v2.11.0
         with:
           server: 'https://cqse.teamscale.io'
           project: 'teamscale-jacoco-agent'
