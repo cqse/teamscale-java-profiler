@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _agent_: A configured dump `interval` smaller than 1h is now applied only once and then raised to 1h to prevent excessive uploads that can overwhelm Teamscale. A warning is logged at startup when this happens.
 
 # 39.0.0
 - [breaking] _agent_: The deprecated Docker image `cqse/teamscale-jacoco-agent` is no longer published. Use `cqse/teamscale-java-profiler` instead, which has replaced it since version 36.5.0.

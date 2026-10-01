@@ -1,7 +1,6 @@
 package com.teamscale.jacoco.agent
 
 import com.teamscale.client.FileSystemUtils
-import com.teamscale.client.StringUtils
 import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.jacoco.agent.upload.IUploadRetry
@@ -17,8 +16,8 @@ import java.io.File
 import java.io.IOException
 import java.lang.instrument.Instrumentation
 import java.nio.file.Files
-import java.util.Timer
-import kotlin.concurrent.fixedRateTimer
+import java.util.*
+import kotlin.concurrent.schedule
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.time.DurationUnit
@@ -33,6 +32,10 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 	/** Regular dump task.  */
 	private var timer: Timer? = null
 
+	/** Set once the agent is shutting down so no further dumps are rescheduled.  */
+	@Volatile
+	private var stopped = false
+
 	/** Stores the XML files.  */
 	private val uploader = options.createUploader(instrumentation)
 
@@ -41,14 +44,43 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 		retryUnsuccessfulUploads(options, uploader)
 
 		if (options.shouldDumpInIntervals()) {
-			val period = options.dumpIntervalInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
-			timer = fixedRateTimer("Teamscale-Java-Profiler", true, period, period) {
-				dumpReport()
+			timer = Timer("Teamscale-Java-Profiler", true)
+			// Guard against excessively small intervals (see PST-122): first-time users often set a tiny interval to
+			// quickly get an upload and then forget to raise it, flooding Teamscale. We warn right away, honor the
+			// configured interval once, and then raise it to the minimum for all subsequent dumps.
+			if (options.dumpIntervalInMinutes < AgentOptions.MINIMUM_DUMP_INTERVAL_IN_MINUTES) {
+				logger.warn(
+					"You configured an interval smaller than 1h. This causes excessive amounts of data to be sent" +
+							" to Teamscale. Applying this interval only once, then increasing the interval to 1h."
+				)
+			} else {
+				logger.info("Dumping every ${options.dumpIntervalInMinutes} minutes.")
 			}
-			logger.info("Dumping every ${options.dumpIntervalInMinutes} minutes.")
+			scheduleNextDump()
 		}
 		options.teamscaleServer.partition?.let { partition ->
 			controller.sessionId = partition
+		}
+	}
+
+	/**
+	 * Schedules the next interval dump. The configured interval is applied once; when it is below
+	 * [AgentOptions.MINIMUM_DUMP_INTERVAL_IN_MINUTES] it is raised to that minimum after the first dump to avoid
+	 * flooding Teamscale (see PST-122). The warning about this is logged once at startup.
+	 */
+	private fun scheduleNextDump() {
+		if (stopped) return
+		val delayMillis = options.dumpIntervalInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
+		try {
+			timer?.schedule(delayMillis) {
+				dumpReport()
+				if (options.dumpIntervalInMinutes < AgentOptions.MINIMUM_DUMP_INTERVAL_IN_MINUTES) {
+					options.dumpIntervalInMinutes = AgentOptions.MINIMUM_DUMP_INTERVAL_IN_MINUTES
+				}
+				scheduleNextDump()
+			}
+		} catch (_: IllegalStateException) {
+			// The timer was cancelled (agent shutting down) between our check and scheduling; nothing left to do.
 		}
 	}
 
@@ -107,6 +139,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 	}
 
 	override fun prepareShutdown() {
+		stopped = true
 		timer?.cancel()
 		if (options.shouldDumpOnExit) dumpReport()
 
