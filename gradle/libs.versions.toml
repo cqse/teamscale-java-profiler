@@ -85,7 +85,7 @@ nmcp = { id = "com.gradleup.nmcp", version = "1.6.2" }
 pluginPublish = { id = "com.gradle.plugin-publish", version = "2.2.1" }
 mavenPluginDevelopment = { id = "org.gradlex.maven-plugin-development", version = "1.0.3" }
 shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
-oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.30.0" }
+oci = { id = "io.github.sgtsilvio.gradle.oci", version = "0.31.0" }
 jlink = { id = "com.github.iherasymenko.jlink", version = "0.9" }
 extraJavaModuleInfo = { id = "org.gradlex.extra-java-module-info", version = "1.14.2" }
 testRetry = { id = "org.gradle.test-retry", version = "1.6.6" }
