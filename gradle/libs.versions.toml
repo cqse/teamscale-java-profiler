@@ -11,7 +11,7 @@ mockito = "5.24.0"
 mockitoKotlin = "6.4.0"
 picocli = "4.7.7"
 maven = "3.10.0"
-asm = "9.10.1"
+asm = "9.11"
 coroutines = "1.11.0"
 
 [libraries]
