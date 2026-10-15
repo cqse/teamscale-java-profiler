@@ -1,9 +1,11 @@
 package com.teamscale.tia
 
+import com.teamscale.client.EnvironmentVariableChecker
 import com.teamscale.client.JsonUtils
 import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestwiseCoverageReport
 import com.teamscale.test.commons.SystemTestUtils
+import com.teamscale.test.commons.SystemTestUtils.copyMavenProject
 import com.teamscale.test.commons.SystemTestUtils.coverage
 import com.teamscale.test.commons.SystemTestUtils.getReportFileNames
 import com.teamscale.test.commons.SystemTestUtils.runMavenTests
@@ -13,8 +15,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.io.TempDir
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Path
 
 /**
  * Runs several Maven projects' Surefire tests that have the agent attached and one of our JUnit run listeners enabled.
@@ -39,7 +43,31 @@ class TiaMavenDumpToFileSystemTest {
 	fun testMavenTia() {
 		runMavenTests(MAVEN_PROJECT_NAME)
 
-		val unitTestReport = parseDumpedCoverageReport("tia")
+		assertCoverageReportsDumped(MAVEN_PROJECT_NAME)
+	}
+
+	/**
+	 * With `runImpacted=false`, the plugin must not require a commit or revision. So the build must succeed outside of
+	 * a Git checkout and without CI environment variables (TS-48002).
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun testMavenTiaWithoutCommit(@TempDir tmpDir: Path) {
+		val projectPath = copyMavenProject(MAVEN_PROJECT_NAME, tmpDir)
+
+		val result = runMavenTests(
+			projectPath,
+			removeEnvironmentVariables = EnvironmentVariableChecker.COMMIT_ENVIRONMENT_VARIABLES
+		)
+
+		assertThat(result.exitCode)
+			.withFailMessage { "Maven failed:\n${result.stdout}\n${result.stderr}" }
+			.isEqualTo(0)
+		assertCoverageReportsDumped(projectPath)
+	}
+
+	private fun assertCoverageReportsDumped(projectPath: String) {
+		val unitTestReport = parseDumpedCoverageReport(projectPath, "tia")
 		assertThat(unitTestReport.tests).hasSize(2)
 		assertThat(unitTestReport.partial).isFalse()
 		assertAll({
@@ -54,7 +82,7 @@ class TiaMavenDumpToFileSystemTest {
 				.containsExactly("SUT.java:3,6-7", "SUT.java:3,10-11")
 		})
 
-		val integrationTestReport = parseDumpedCoverageReport("tia-integration")
+		val integrationTestReport = parseDumpedCoverageReport(projectPath, "tia-integration")
 		assertThat(integrationTestReport.tests).hasSize(2)
 		assertAll({
 			assertThat(integrationTestReport.tests)
@@ -70,8 +98,8 @@ class TiaMavenDumpToFileSystemTest {
 	}
 
 	@Throws(IOException::class)
-	private fun parseDumpedCoverageReport(folderName: String): TestwiseCoverageReport {
-		val files = getReportFileNames(MAVEN_PROJECT_NAME, folderName)
+	private fun parseDumpedCoverageReport(projectPath: String, folderName: String): TestwiseCoverageReport {
+		val files = getReportFileNames(projectPath, folderName)
 		return JsonUtils.deserialize<TestwiseCoverageReport>(
 			String(Files.readAllBytes(files.first()))
 		)

@@ -2,10 +2,10 @@ package com.teamscale.upload
 
 import com.teamscale.client.EReportFormat
 import com.teamscale.client.EnvironmentVariableChecker
-import com.teamscale.client.FileSystemUtils
 import com.teamscale.client.SystemUtils
 import com.teamscale.test.commons.ProcessUtils
 import com.teamscale.test.commons.SystemTestUtils
+import com.teamscale.test.commons.SystemTestUtils.copyMavenProject
 import com.teamscale.test.commons.SystemTestUtils.runMavenTests
 import com.teamscale.test.commons.TeamscaleMockServer
 import org.assertj.core.api.Assertions
@@ -108,9 +108,7 @@ class MavenExternalUploadSystemTest {
 	@Throws(IOException::class)
 	fun testCiEnvironmentVariableCommitResolution(@TempDir tmpDir: Path) {
 		val fakeCommit = "abc123def456abc123def456abc123def456abc1"
-		FileSystemUtils.copyFiles(File("missing-commit-project"), tmpDir.toFile()) { true }
-		tmpDir.resolve("mvnw").toFile().setExecutable(true)
-		val projectPath = tmpDir.toAbsolutePath().toString()
+		val projectPath = copyMavenProject("missing-commit-project", tmpDir)
 		runMavenTests(projectPath)
 		val result = runCoverageUploadGoal(
 			projectPath,
@@ -131,9 +129,7 @@ class MavenExternalUploadSystemTest {
 	@Test
 	@Throws(IOException::class)
 	fun testErrorMessageOnMissingCommit(@TempDir tmpDir: Path) {
-		FileSystemUtils.copyFiles(File("missing-commit-project"), tmpDir.toFile()) { true }
-		tmpDir.resolve("mvnw").toFile().setExecutable(true)
-		val projectPath = tmpDir.toAbsolutePath().toString()
+		val projectPath = copyMavenProject("missing-commit-project", tmpDir)
 		runMavenTests(projectPath)
 		val result = runCoverageUploadGoal(projectPath, removeEnvironmentVariables = EnvironmentVariableChecker.COMMIT_ENVIRONMENT_VARIABLES)
 		assertThat(result).isNotNull()

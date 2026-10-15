@@ -1,5 +1,6 @@
 package com.teamscale.test.commons
 
+import com.teamscale.client.FileSystemUtils
 import com.teamscale.client.SystemUtils
 import com.teamscale.report.testwise.model.TestInfo
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -48,24 +49,37 @@ object SystemTestUtils {
 	/**
 	 * Runs the clean and verify goal of the Maven project at the given path with the provided arguments
 	 *
+	 * @param removeEnvironmentVariables names of environment variables that Maven does not inherit.
 	 * @throws IOException if running Maven fails.
 	 */
 	@Throws(IOException::class)
-	fun runMavenTests(mavenProjectPath: String, vararg args: String) {
+	fun runMavenTests(
+		mavenProjectPath: String,
+		vararg args: String,
+		removeEnvironmentVariables: List<String> = emptyList()
+	): ProcessUtils.ProcessResult {
 		val allArguments = mutableListOf("clean", "verify").apply {
 			addAll(args)
 		}
-		runMaven(mavenProjectPath, *allArguments.toTypedArray())
+		return runMaven(mavenProjectPath, *allArguments.toTypedArray(), removeEnvironmentVariables = removeEnvironmentVariables)
 	}
 
 	/**
-	 * Runs Maven in the given Maven project path with the given arguments.
+	 * Runs Maven in the given Maven project path with the given arguments. A build that fails does not throw, so the
+	 * caller must check the exit code of the returned result if it expects the build to succeed.
 	 *
+	 * @param removeEnvironmentVariables names of environment variables that Maven does not inherit.
 	 * @throws IOException if running Maven fails.
 	 */
 	@Throws(IOException::class)
-	fun runMaven(mavenProjectPath: String, vararg mavenArguments: String) {
-		val result = buildMavenProcess(mavenProjectPath, *mavenArguments).execute()
+	fun runMaven(
+		mavenProjectPath: String,
+		vararg mavenArguments: String,
+		removeEnvironmentVariables: List<String> = emptyList()
+	): ProcessUtils.ProcessResult {
+		val result = buildMavenProcess(mavenProjectPath, *mavenArguments)
+			.removeEnvironmentVariables(removeEnvironmentVariables)
+			.execute()
 
 		// in case the process succeeded, we still log stdout and stderr in case later assertions fail. This helps
 		// debug test failures
@@ -75,6 +89,20 @@ object SystemTestUtils {
 		if (result.wasTerminatedByTimeoutOrInterruption) {
 			throw IOException("Running Maven failed: ${result.stdout}\n${result.stderr}")
 		}
+		return result
+	}
+
+	/**
+	 * Copies the Maven project at the given path into the given directory and makes its Maven wrapper executable.
+	 * Tests use this to run a Maven project outside of this repository's Git checkout.
+	 *
+	 * @return the absolute path of the copied project.
+	 */
+	@Throws(IOException::class)
+	fun copyMavenProject(mavenProjectPath: String, targetDirectory: Path): String {
+		FileSystemUtils.copyFiles(File(mavenProjectPath), targetDirectory.toFile()) { true }
+		targetDirectory.resolve("mvnw").toFile().setExecutable(true)
+		return targetDirectory.toAbsolutePath().toString()
 	}
 
 	/**

@@ -5,7 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
-
+- [fix] _teamscale-maven-plugin_: `prepare-tia-unit-test` and `prepare-tia-integration-test` no longer require a commit or revision when `runImpacted` is `false`.
 # 39.0.0
 - [breaking] _agent_: The deprecated Docker image `cqse/teamscale-jacoco-agent` is no longer published. Use `cqse/teamscale-java-profiler` instead, which has replaced it since version 36.5.0.
 - [fix] _teamscale-gradle-plugin_: `jacoco.includeNoLocationClasses` and `jacoco.excludeClassLoaders` on a test task now reach the profiler. Previously the plugin dropped both, so neither had any effect on which classes the profiler instruments.

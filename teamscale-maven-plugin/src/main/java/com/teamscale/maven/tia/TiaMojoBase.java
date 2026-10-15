@@ -138,6 +138,8 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 
 	/**
 	 * Executes only impacted tests, not all ones if set. Defaults to true.
+	 * <p>
+	 * The commit or revision of the code under test is only resolved, and therefore only required, if this is set.
 	 */
 	@Parameter(defaultValue = "true", property = "runImpacted")
 	public boolean runImpacted;
@@ -180,7 +182,10 @@ public abstract class TiaMojoBase extends TeamscaleMojoBase {
 		targetDirectory = Paths.get(projectBuildDir, getOutputDirectoryName()).toAbsolutePath();
 		createTargetDirectory();
 
-		resolveCommitOrRevision();
+		// The impacted test engine only needs the commit to query Teamscale for the impacted tests
+		if (runImpacted) {
+			resolveCommitOrRevision();
+		}
 
 		setTiaProperties();
 
