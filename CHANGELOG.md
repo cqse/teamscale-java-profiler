@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _teamscale-gradle-plugin_, _teamscale-maven-plugin_: Testwise coverage reports no longer drop a class directory that contains an archive (JAR, WAR, EAR, ZIP) that contains a JAR.
 
 # 39.0.0
 - [breaking] _agent_: The deprecated Docker image `cqse/teamscale-jacoco-agent` is no longer published. Use `cqse/teamscale-java-profiler` instead, which has replaced it since version 36.5.0.

@@ -9,10 +9,10 @@ import org.jacoco.core.internal.analysis.StringPool
 import org.jacoco.core.internal.data.CRC64
 import org.jacoco.core.internal.flow.ClassProbesAdapter
 import org.jacoco.core.internal.instr.InstrSupport
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
-import java.nio.file.Paths
 
 /**
  * An [AnalyzerCache] instance processes a set of Java class/jar/war/... files and builds a cache for each of the classes.
@@ -55,10 +55,38 @@ class AnalyzerCache(
 
 	/**
 	 * Adds caching for jar files to the analyze jar functionality.
+	 *
+	 * The jar ID of a jar on disk is computed from the file, so the jar is only held in memory while the ID is
+	 * computed. The jar itself is then streamed from [input] while it is analyzed.
 	 */
 	@Throws(IOException::class)
 	override fun analyzeJar(input: InputStream, location: String): Int {
-		val jarId = CRC64.classId(Files.readAllBytes(Paths.get(location)))
+		val file = File(location)
+		// Checks the file system instead of looking for '@' in the location, because real paths may contain '@' as
+		// well (e.g. the Jenkins workspace `workspace@2`). Such jars must still be streamed instead of buffered.
+		if (!file.isFile) {
+			return analyzeJarInsideArchive(input, location)
+		}
+		return analyzeJarWithCache(CRC64.classId(Files.readAllBytes(file.toPath())), input, location)
+	}
+
+	/**
+	 * Analyzes a jar that is an entry of another archive (JAR, WAR, EAR, ZIP, ...). Such a jar has a location like
+	 * `app.war@WEB-INF/lib/inner.jar`, which is not a file on disk. Its bytes are only available from [input], so
+	 * they are buffered to compute the jar ID and to analyze the jar.
+	 */
+	@Throws(IOException::class)
+	private fun analyzeJarInsideArchive(input: InputStream, location: String): Int {
+		val bytes = try {
+			input.readBytes()
+		} catch (e: IOException) {
+			throw analyzerError(location, e)
+		}
+		return analyzeJarWithCache(CRC64.classId(bytes), bytes.inputStream(), location)
+	}
+
+	/** Analyzes the given jar unless a jar with the same [jarId] has been analyzed before.  */
+	private fun analyzeJarWithCache(jarId: Long, input: InputStream, location: String): Int {
 		val probesCountForJarId = probesCache.countForJarId(jarId)
 		if (probesCountForJarId != 0) {
 			return probesCountForJarId
