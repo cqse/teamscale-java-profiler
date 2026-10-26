@@ -60,8 +60,11 @@ class FilteringAnalyzerTest {
 	/** A class file too new for JaCoCo must be logged and skipped instead of failing the whole report. */
 	@Test
 	fun skipsUnsupportedClassFiles() {
+		val futureClassBytes = classBytes.copyOf()
 		// Bytes 6 and 7 hold the class file's major version
-		tempDir.resolve("Future.class").write(classBytes.copyOf().also { it[6] = 0x7F; it[7] = 0x7F })
+		futureClassBytes[6] = 0x7F
+		futureClassBytes[7] = 0x7F
+		tempDir.resolve("Future.class").write(futureClassBytes)
 		tempDir.resolve("Supported.class").write(classBytes)
 		val logger = Mockito.mock<ILogger>()
 
