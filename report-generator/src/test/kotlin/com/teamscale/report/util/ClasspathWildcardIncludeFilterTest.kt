@@ -1,36 +1,50 @@
 package com.teamscale.report.util
 
-import com.teamscale.report.util.ClasspathWildcardIncludeFilter.Companion.getClassName
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class ClasspathWildcardIncludeFilterTest {
-	/** Tests path to class name conversion.  */
+
+	/** Patterns must match the class name with and without leading `*`, given in internal or dotted form. */
 	@Test
-	fun testPathToClassNameConversion() {
-		assertThat(getClassName("file.jar@com/foo/Bar.class")).isEqualTo("com.foo.Bar")
-		assertThat(getClassName("file.jar@com/foo/Bar\$Goo.class")).isEqualTo("com.foo.Bar.Goo")
-		assertThat(getClassName("file1.jar@goo/file2.jar@com/foo/Bar.class")).isEqualTo("com.foo.Bar")
-		assertThat(getClassName("com/foo/Bar.class")).isEqualTo("com.foo.Bar")
-		assertThat(getClassName("com/foo/Bar")).isEqualTo("com.foo.Bar")
-		assertThat(
-			getClassName(
-				"C:\\client-daily\\client\\plugins\\com.customer.something.client_1.2.3.4.1234566778.jar@com/customer/something/SomeClass.class"
-			)
-		).isEqualTo("com.customer.something.SomeClass")
+	fun testIncludes() {
+		val filter = ClasspathWildcardIncludeFilter("com.company.*", null)
+		assertThat(filter.isIncluded("com/company/Foo")).isTrue()
+		assertThat(filter.isIncluded("com.company.Foo")).isTrue()
+		assertThat(filter.isIncluded("com/company/sub/Foo")).isTrue()
+		assertThat(filter.isIncluded("org/company/Foo")).isFalse()
+		assertThat(filter.isIncluded("org/com/company/Foo")).isFalse()
+
+		val filterWithLeadingStar = ClasspathWildcardIncludeFilter("*com.company.*", null)
+		assertThat(filterWithLeadingStar.isIncluded("com/company/Foo")).isTrue()
+		assertThat(filterWithLeadingStar.isIncluded("org/com/company/Foo")).isTrue()
 	}
 
+	@Test
+	fun testExcludes() {
+		val filter = ClasspathWildcardIncludeFilter(null, "org.junit.*")
+		assertThat(filter.isIncluded("org/junit/jupiter/engine/Constants")).isFalse()
+		assertThat(filter.isIncluded("com/company/Foo")).isTrue()
+
+		val filter2 = ClasspathWildcardIncludeFilter("com.company.*", "com.company.generated.*")
+		assertThat(filter2.isIncluded("com/company/Foo")).isTrue()
+		assertThat(filter2.isIncluded("com/company/generated/Foo")).isFalse()
+	}
+
+	/** Like JaCoCo, nested classes keep their `$`. */
+	@Test
+	fun testNestedClasses() {
+		assertThat(ClasspathWildcardIncludeFilter("com.company.Outer$*", null).isIncluded("com/company/Outer\$Inner"))
+			.isTrue()
+		assertThat(ClasspathWildcardIncludeFilter("com.company.Outer.Inner", null).isIncluded("com/company/Outer\$Inner"))
+			.isFalse()
+	}
 
 	@Test
-	fun testMatching() {
-		assertThat(
-			ClasspathWildcardIncludeFilter(null, "org.junit.*")
-				.isIncluded("/junit-jupiter-engine-5.1.0.jar@org/junit/jupiter/engine/Constants.class")
-		).isFalse()
-		assertThat(
-			ClasspathWildcardIncludeFilter(null, "org.junit.*")
-				.isIncluded("org/junit/platform/commons/util/ModuleUtils\$ModuleReferenceScanner.class")
-		).isFalse()
+	fun testMultiplePatterns() {
+		val filter = ClasspathWildcardIncludeFilter("com.*:de.*", null)
+		assertThat(filter.isIncluded("com/foo/Bar")).isTrue()
+		assertThat(filter.isIncluded("de/foo/Bar\$Goo")).isTrue()
+		assertThat(filter.isIncluded("org/foo/Bar")).isFalse()
 	}
 }

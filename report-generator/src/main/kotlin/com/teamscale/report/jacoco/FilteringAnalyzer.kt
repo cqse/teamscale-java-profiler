@@ -5,13 +5,14 @@ import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.report.util.ILogger
 import org.jacoco.core.analysis.ICoverageVisitor
 import org.jacoco.core.data.ExecutionDataStore
+import org.jacoco.core.internal.instr.InstrSupport
 import java.io.IOException
 import java.io.InputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 /**
- * [org.jacoco.core.analysis.Analyzer] that filters the analyzed class files based on a given predicate.
+ * [org.jacoco.core.analysis.Analyzer] that filters the analyzed class files by their class name.
  *
  * @param executionData The execution data store.
  * @param coverageVisitor The coverage visitor.
@@ -27,10 +28,6 @@ open class FilteringAnalyzer(
 	/** {@inheritDoc}  */
 	@Throws(IOException::class)
 	override fun analyzeAll(input: InputStream, location: String): Int {
-		if (location.endsWith(".class") && !locationIncludeFilter.isIncluded(location)) {
-			logger.debug("Excluding class file $location")
-			return 1
-		}
 		if (location.endsWith(".jar")) {
 			return analyzeJar(input, location)
 		}
@@ -40,6 +37,12 @@ open class FilteringAnalyzer(
 	@Throws(IOException::class)
 	override fun analyzeClass(buffer: ByteArray, location: String) {
 		try {
+			// Only reads the constant pool, which is cheap compared to the analysis of the whole class
+			val className = InstrSupport.classReaderFor(buffer).className
+			if (!locationIncludeFilter.isIncluded(className)) {
+				logger.debug("Excluding class file $location ($className)")
+				return
+			}
 			analyzeClass(buffer)
 		} catch (cause: RuntimeException) {
 			if (cause.isUnsupportedClassFile()) {

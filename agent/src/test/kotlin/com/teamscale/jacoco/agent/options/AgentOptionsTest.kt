@@ -49,24 +49,20 @@ class AgentOptionsTest {
 	@Throws(Exception::class)
 	fun testIncludePatternMatching() {
 		Assertions.assertThat(includeFilter("com.*")).accepts(
-			"file.jar@com/foo/Bar.class", $$"file.jar@com/foo/Bar$Goo.class",
-			"file1.jar@goo/file2.jar@com/foo/Bar.class", "com/foo/Bar.class", "com.foo/Bar.class"
+			"com/foo/Bar", $$"com/foo/Bar$Goo", "com.foo.Bar"
 		)
 		Assertions.assertThat(includeFilter("com.*")).rejects(
-			"foo/com/Bar.class", "com.class", "file.jar@com.class",
-			$$"A$com$Bar.class"
+			"foo/com/Bar", "com", $$"A$com$Bar"
 		)
 		Assertions.assertThat(includeFilter("*com.*")).accepts(
-			"file.jar@com/foo/Bar.class", $$"file.jar@com/foo/Bar$Goo.class",
-			"file1.jar@goo/file2.jar@com/foo/Bar.class", "com/foo/Bar.class", "foo/com/goo/Bar.class",
-			$$"A$com$Bar.class", "src/com/foo/Bar.class"
+			"com/foo/Bar", $$"com/foo/Bar$Goo", "foo/com/goo/Bar"
 		)
-		Assertions.assertThat(includeFilter("*com.*;*de.*"))
-			.accepts("file.jar@com/foo/Bar.class", $$"file.jar@de/foo/Bar$Goo.class")
-		Assertions.assertThat(excludeFilter("*com.*;*de.*"))
-			.rejects("file.jar@com/foo/Bar.class", $$"file.jar@de/foo/Bar$Goo.class")
-		Assertions.assertThat(includeFilter("*com.customer.*")).accepts(
-			"C:\\client-daily\\client\\plugins\\com.customer.something.client_1.2.3.4.1234566778.jar@com/customer/something/SomeClass.class"
+		Assertions.assertThat(includeFilter("com.*;de.*"))
+			.accepts("com/foo/Bar", $$"de/foo/Bar$Goo")
+		Assertions.assertThat(excludeFilter("com.*;de.*"))
+			.rejects("com/foo/Bar", $$"de/foo/Bar$Goo")
+		Assertions.assertThat(includeFilter("com.customer.*")).accepts(
+			"com/customer/something/SomeClass"
 		)
 	}
 

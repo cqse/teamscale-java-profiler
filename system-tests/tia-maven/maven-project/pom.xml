@@ -54,7 +54,7 @@
                         <baselineCommit>${baselineCommit}</baselineCommit>
                         <repository>myRepoId</repository>
                         <includes>
-                            <include>*example.*</include>
+                            <include>org.example.*</include>
                         </includes>
                     </configuration>
                 </plugin>
