@@ -3,6 +3,8 @@ package com.teamscale.report.jacoco
 import com.teamscale.report.util.BashFileSkippingInputStream
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.report.util.ILogger
+import org.jacoco.core.JaCoCo
+import org.jacoco.core.analysis.Analyzer
 import org.jacoco.core.analysis.ICoverageVisitor
 import org.jacoco.core.data.ExecutionDataStore
 import org.jacoco.core.internal.instr.InstrSupport
@@ -12,7 +14,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 /**
- * [org.jacoco.core.analysis.Analyzer] that filters the analyzed class files by their class name.
+ * [Analyzer] that filters the analyzed class files by their class name.
  *
  * @param executionData The execution data store.
  * @param coverageVisitor The coverage visitor.
@@ -24,7 +26,7 @@ open class FilteringAnalyzer(
 	coverageVisitor: ICoverageVisitor?,
 	private val locationIncludeFilter: ClasspathWildcardIncludeFilter,
 	private val logger: ILogger
-) : OpenAnalyzer(executionData, coverageVisitor) {
+) : Analyzer(executionData, coverageVisitor) {
 	/** {@inheritDoc}  */
 	@Throws(IOException::class)
 	override fun analyzeAll(input: InputStream, location: String): Int {
@@ -43,7 +45,7 @@ open class FilteringAnalyzer(
 				logger.debug("Excluding class file $location ($className)")
 				return
 			}
-			analyzeClass(buffer)
+			analyzeIncludedClass(buffer, location)
 		} catch (cause: RuntimeException) {
 			if (cause.isUnsupportedClassFile()) {
 				logger.error(
@@ -57,6 +59,27 @@ open class FilteringAnalyzer(
 			}
 		}
 	}
+
+	/**
+	 * Analyzes a class that passed the filter. Errors are thrown as [RuntimeException], so that [analyzeClass] reports
+	 * them uniformly.
+	 */
+	protected open fun analyzeIncludedClass(buffer: ByteArray, location: String) {
+		try {
+			super.analyzeClass(buffer, location)
+		} catch (e: IOException) {
+			// JaCoCo wraps the RuntimeException of the analysis into an IOException
+			throw e.cause as? RuntimeException ?: e
+		}
+	}
+
+	/** Creates an [IOException] which includes the affected file location and JaCoCo version. */
+	protected fun analyzerError(location: String, cause: Exception) = IOException(
+		"Could not analyze coverage for '$location' (JaCoCo ${JaCoCo.VERSION}/${JaCoCo.COMMITID_SHORT}): " +
+				"${cause.message}. Verify that the file is a readable .class, JAR, ZIP, GZ, or Pack200 archive" +
+				" and that it is not corrupt.",
+		cause
+	)
 
 	/**
 	 * Checks if the error indicates that the class file might be newer than what is currently supported by

@@ -17,8 +17,8 @@ import java.nio.file.Files
 /**
  * An [AnalyzerCache] instance processes a set of Java class/jar/war/... files and builds a cache for each of the classes.
  *
- * For every class that gets found, [analyzeClass] is called. A class is identified by its class ID, which
- * is a CRC64 checksum of the class file. We process each class with `CachingClassAnalyzer` to fill a cache.
+ * For every included class that gets found, [analyzeIncludedClass] is called. A class is identified by its class ID,
+ * which is a CRC64 checksum of the class file. We process each class with `CachingClassAnalyzer` to fill a cache.
  */
 class AnalyzerCache(
 	private val probesCache: ProbesCache,
@@ -28,15 +28,15 @@ class AnalyzerCache(
 	private val stringPool = StringPool()
 
 	/**
-	 * Analyzes the given class. Instead of the original implementation in [Analyzer.analyzeClass] we
+	 * Analyzes the given class. Instead of the original implementation in [FilteringAnalyzer.analyzeIncludedClass] we
 	 * don't use concrete execution data, but instead build a probe cache to speed up repeated lookups.
 	 */
-	override fun analyzeClass(source: ByteArray) {
-		val classId = CRC64.classId(source)
+	override fun analyzeIncludedClass(buffer: ByteArray, location: String) {
+		val classId = CRC64.classId(buffer)
 		if (probesCache.containsClassId(classId)) {
 			return
 		}
-		val reader = InstrSupport.classReaderFor(source)
+		val reader = InstrSupport.classReaderFor(buffer)
 
 		// Dummy class coverage object that allows us to subclass ClassAnalyzer with CachingClassAnalyzer and reuse its
 		// IFilterContext implementation

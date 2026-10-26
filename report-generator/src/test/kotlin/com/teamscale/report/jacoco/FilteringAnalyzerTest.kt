@@ -57,10 +57,22 @@ class FilteringAnalyzerTest {
 			.containsExactly("com/teamscale/report/jacoco/FilteringAnalyzerTest\$Nested")
 	}
 
-	private fun analyze(filter: ClasspathWildcardIncludeFilter): List<String> {
+	/** A class file too new for JaCoCo must be logged and skipped instead of failing the whole report. */
+	@Test
+	fun skipsUnsupportedClassFiles() {
+		// Bytes 6 and 7 hold the class file's major version
+		tempDir.resolve("Future.class").write(classBytes.copyOf().also { it[6] = 0x7F; it[7] = 0x7F })
+		tempDir.resolve("Supported.class").write(classBytes)
+		val logger = Mockito.mock<ILogger>()
+
+		assertThat(analyze(ClasspathWildcardIncludeFilter(null, null), logger))
+			.containsExactly("com/teamscale/report/jacoco/FilteringAnalyzerTest")
+		Mockito.verify(logger).error(Mockito.contains("Unsupported class file"), Mockito.any(Throwable::class.java))
+	}
+
+	private fun analyze(filter: ClasspathWildcardIncludeFilter, logger: ILogger = Mockito.mock<ILogger>()): List<String> {
 		val analyzedClasses = mutableListOf<String>()
-		FilteringAnalyzer(ExecutionDataStore(), { analyzedClasses.add(it.name) }, filter, Mockito.mock<ILogger>())
-			.analyzeAll(tempDir)
+		FilteringAnalyzer(ExecutionDataStore(), { analyzedClasses.add(it.name) }, filter, logger).analyzeAll(tempDir)
 		return analyzedClasses
 	}
 
