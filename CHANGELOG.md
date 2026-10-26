@@ -5,8 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
-- [breaking] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` no longer match parts of the class file's path outside of its package (e.g. `*target.classes.*`), and nested classes are matched with `$` (e.g. `com.company.Outer$Inner`) instead of `.`, like JaCoCo does during instrumentation.
-- [fix] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` are now matched against the class name read from the class file when generating coverage reports. Previously, they were matched against a name derived from the file location, so a pattern without a leading `*` (e.g. `com.company.*`) excluded all classes from class directories and from `BOOT-INF/classes` or `WEB-INF/classes` in archives, which resulted in an empty testwise coverage report, and `excludes` had no effect for these classes.
+- [breaking] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` only match the class name, no longer parts of the class file's path (e.g. `*target.classes.*`). Nested classes are written with `$` (e.g. `com.company.Outer$Inner`).
+- [fix] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` patterns no longer need a leading `*`. Previously, e.g. `com.company.*` led to an empty testwise coverage report.
 - [fix] _teamscale-maven-plugin_: `prepare-tia-unit-test` and `prepare-tia-integration-test` no longer require a commit or revision when `runImpacted` is `false`.
 - [fix] _teamscale-gradle-plugin_, _teamscale-maven-plugin_: Testwise coverage reports no longer drop a class directory that contains an archive (JAR, WAR, EAR, ZIP) that contains a JAR.
 
