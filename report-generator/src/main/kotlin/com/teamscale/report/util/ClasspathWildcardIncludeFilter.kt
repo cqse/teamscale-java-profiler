@@ -5,7 +5,7 @@ import org.jacoco.core.runtime.WildcardMatcher
 
 /***
  * Tests class names against wildcard include and exclude patterns, the same way JaCoCo's agent does.
- * E.g. "com/example/Test" and "com.example.Test" match "com.example.*" or "com.example.Test".
+ * E.g. "com/example/Test" matches "com.example.*" or "com.example.Test".
  */
 open class ClasspathWildcardIncludeFilter(
 	locationIncludeFilters: String?,
@@ -39,11 +39,11 @@ open class ClasspathWildcardIncludeFilter(
 	}
 
 	/**
-	 * Tests if the given class name (e.g. "com/example/Outer$Inner" or "com.example.Outer$Inner") is included. Like
-	 * JaCoCo, only slashes are replaced by dots, so nested classes keep their "$".
+	 * Tests if the class with the given JVM internal name (e.g. "com/example/Outer$Inner") is included. Like JaCoCo,
+	 * only slashes are replaced by dots, so nested classes keep their "$".
 	 */
-	fun isIncluded(className: String): Boolean {
-		val dottedClassName = className.replace('/', '.')
+	fun isIncluded(internalClassName: String): Boolean {
+		val dottedClassName = internalClassName.replace('/', '.')
 		if (locationIncludeFilters != null && locationIncludeFilters?.matches(dottedClassName) == false) {
 			return false
 		}

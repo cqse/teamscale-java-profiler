@@ -49,7 +49,7 @@ class AgentOptionsTest {
 	@Throws(Exception::class)
 	fun testIncludePatternMatching() {
 		Assertions.assertThat(includeFilter("com.*")).accepts(
-			"com/foo/Bar", $$"com/foo/Bar$Goo", "com.foo.Bar"
+			"com/foo/Bar", $$"com/foo/Bar$Goo"
 		)
 		Assertions.assertThat(includeFilter("com.*")).rejects(
 			"foo/com/Bar", "com", $$"A$com$Bar"

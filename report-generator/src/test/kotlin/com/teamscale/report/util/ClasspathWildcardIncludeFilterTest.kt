@@ -5,12 +5,11 @@ import org.junit.jupiter.api.Test
 
 class ClasspathWildcardIncludeFilterTest {
 
-	/** Patterns must match the class name with and without leading `*`, given in internal or dotted form. */
+	/** Patterns must match the class name with and without leading `*`. */
 	@Test
 	fun testIncludes() {
 		val filter = ClasspathWildcardIncludeFilter("com.company.*", null)
 		assertThat(filter.isIncluded("com/company/Foo")).isTrue()
-		assertThat(filter.isIncluded("com.company.Foo")).isTrue()
 		assertThat(filter.isIncluded("com/company/sub/Foo")).isTrue()
 		assertThat(filter.isIncluded("org/company/Foo")).isFalse()
 		assertThat(filter.isIncluded("org/com/company/Foo")).isFalse()
