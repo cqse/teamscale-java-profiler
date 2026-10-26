@@ -57,6 +57,16 @@ class FilteringAnalyzerTest {
 			.containsExactly("com/teamscale/report/jacoco/FilteringAnalyzerTest\$Nested")
 	}
 
+	/** A JAR with a shell script in front, e.g. a Spring Boot executable JAR, must be analyzed like a plain JAR. */
+	@Test
+	fun analyzesExecutableJars() {
+		tempDir.resolve("app.jar").write(classBytes("/com/teamscale/report/util/spring-boot-executable-example.jar"))
+
+		assertThat(analyze(ClasspathWildcardIncludeFilter("org.springframework.boot.loader.jar.*", null)))
+			.contains("org/springframework/boot/loader/jar/Bytes")
+			.allMatch { it.startsWith("org/springframework/boot/loader/jar/") }
+	}
+
 	/** A class file too new for JaCoCo must be logged and skipped instead of failing the whole report. */
 	@Test
 	fun skipsUnsupportedClassFiles() {

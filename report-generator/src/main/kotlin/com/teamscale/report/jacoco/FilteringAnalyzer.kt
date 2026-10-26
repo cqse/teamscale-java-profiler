@@ -10,8 +10,6 @@ import org.jacoco.core.data.ExecutionDataStore
 import org.jacoco.core.internal.instr.InstrSupport
 import java.io.IOException
 import java.io.InputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 
 /**
  * [Analyzer] that filters the analyzed class files by their class name.
@@ -90,24 +88,10 @@ open class FilteringAnalyzer(
 		this is IllegalArgumentException && message?.startsWith("Unsupported") == true
 
 	/**
-	 * Copied from [org.jacoco.core.analysis.Analyzer.analyzeZip] renamed to analyzeJar
-	 * and added wrapping [BashFileSkippingInputStream].
+	 * Analyzes a JAR, skipping a shell script in front of it (e.g. Spring Boot executable JARs) that would otherwise
+	 * keep JaCoCo from detecting the ZIP format.
 	 */
 	@Throws(IOException::class)
-	protected open fun analyzeJar(input: InputStream, location: String): Int {
-		val zip = ZipInputStream(BashFileSkippingInputStream(input))
-		return generateSequence { zip.nextEntry(location) }
-				.map { entry -> analyzeAll(zip, "$location@${entry.name}") }
-				.sum()
-	}
-
-	/** Copied from [org.jacoco.core.analysis.Analyzer.nextEntry].  */
-	@Throws(IOException::class)
-	private fun ZipInputStream.nextEntry(location: String): ZipEntry? {
-		try {
-			return nextEntry
-		} catch (e: IOException) {
-			throw analyzerError(location, e)
-		}
-	}
+	protected open fun analyzeJar(input: InputStream, location: String) =
+		super.analyzeAll(BashFileSkippingInputStream(input), location)
 }
