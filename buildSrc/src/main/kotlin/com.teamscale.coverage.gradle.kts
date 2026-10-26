@@ -4,7 +4,7 @@ plugins {
 }
 
 jacoco {
-	toolVersion = "0.8.15"
+	toolVersion = versionCatalogs.named("libs").findVersion("jacoco").get().requiredVersion
 }
 
 tasks.jacocoTestReport {
