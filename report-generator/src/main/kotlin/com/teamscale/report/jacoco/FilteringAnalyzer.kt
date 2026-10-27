@@ -9,6 +9,7 @@ import org.jacoco.core.analysis.ICoverageVisitor
 import org.jacoco.core.data.ExecutionDataStore
 import org.jacoco.core.internal.instr.InstrSupport
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.Opcodes
 import java.io.IOException
 import java.io.InputStream
 
@@ -46,13 +47,15 @@ open class FilteringAnalyzer(
 	override fun analyzeClass(buffer: ByteArray, location: String) {
 		try {
 			val (reader, className) = readHeader(buffer, location) ?: return
-			if (!locationIncludeFilter.isIncluded(className)) {
-				logger.debug("Excluding class file $location ($className)")
-				return
+			if (isIncluded(className, location)) {
+				analyzeIncludedClass(buffer, reader, location)
 			}
-			analyzeIncludedClass(buffer, reader, location)
 		} catch (cause: RuntimeException) {
 			if (cause.isUnsupportedClassFile()) {
+				val className = readClassNameOfUnsupportedClassFile(buffer)
+				if (className != null && !isIncluded(className, location)) {
+					return
+				}
 				logger.error(
 					"Unsupported class file in '$location': ${cause.message}." +
 							" This is usually a class file compiled for a Java version newer than the profiler supports" +
@@ -84,6 +87,30 @@ open class FilteringAnalyzer(
 			)
 			return null
 		}
+	}
+
+	/**
+	 * Reads the class name of a class file whose version ASM does not support from a copy with a supported version, so
+	 * that such a class file can still be excluded. Returns `null` if the class name cannot be read anyway, e.g.
+	 * because the class file uses constant pool entries that ASM does not know.
+	 */
+	private fun readClassNameOfUnsupportedClassFile(buffer: ByteArray): String? {
+		val supportedCopy = buffer.copyOf()
+		InstrSupport.setMajorVersion(Opcodes.V1_8, supportedCopy)
+		return try {
+			ClassReader(supportedCopy).className
+		} catch (_: RuntimeException) {
+			null
+		}
+	}
+
+	/** Tests if the class with the given JVM internal name passes the filter and logs if it does not. */
+	private fun isIncluded(className: String, location: String): Boolean {
+		if (locationIncludeFilter.isIncluded(className)) {
+			return true
+		}
+		logger.debug("Excluding class file $location ($className)")
+		return false
 	}
 
 	/**

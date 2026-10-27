@@ -2,6 +2,7 @@ package com.teamscale.report.jacoco
 
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.report.util.ILogger
+import com.teamscale.test.zip
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jacoco.core.data.ExecutionDataStore
@@ -10,12 +11,9 @@ import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.Mockito
-import java.io.ByteArrayOutputStream
 import java.io.EOFException
 import java.io.File
 import java.io.IOException
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 /** Tests that [FilteringAnalyzer] filters class files by their class name, independent of their location. */
 class FilteringAnalyzerTest {
@@ -23,7 +21,7 @@ class FilteringAnalyzerTest {
 	@TempDir
 	private lateinit var tempDir: File
 
-	private val classBytes = classBytes("FilteringAnalyzerTest.class")
+	private val classBytes = resourceBytes("FilteringAnalyzerTest.class")
 
 	/**
 	 * The location of a class file must not influence whether it is included: class directories may contain further
@@ -40,21 +38,25 @@ class FilteringAnalyzerTest {
 		"com.teamscale.*, com.teamscale.report.jacoco.*, false",
 	)
 	fun filtersByClassNameIndependentOfLocation(includes: String?, excludes: String?, expectedIncluded: Boolean) {
-		tempDir.resolve("build/classes/main/com/teamscale/report/jacoco/FilteringAnalyzerTest.class").write(classBytes)
-		tempDir.resolve("flat/FilteringAnalyzerTest.class").write(classBytes)
-		tempDir.resolve("app.jar").write(zip("BOOT-INF/classes/com/teamscale/report/jacoco/FilteringAnalyzerTest.class"))
-		tempDir.resolve("app.war").write(zip("WEB-INF/classes/com/teamscale/report/jacoco/FilteringAnalyzerTest.class"))
+		val locations = mapOf(
+			"build/classes/main/com/teamscale/report/jacoco/FilteringAnalyzerTest.class" to classBytes,
+			"flat/FilteringAnalyzerTest.class" to classBytes,
+			"app.jar" to zip("BOOT-INF/classes/com/teamscale/report/jacoco/FilteringAnalyzerTest.class" to classBytes),
+			"app.war" to zip("WEB-INF/classes/com/teamscale/report/jacoco/FilteringAnalyzerTest.class" to classBytes),
+		)
+		locations.forEach { (path, content) -> tempDir.resolve(path).write(content) }
+		val filter = ClasspathWildcardIncludeFilter(includes, excludes)
 
-		val analyzedClasses = analyze(ClasspathWildcardIncludeFilter(includes, excludes))
+		val includedLocations = locations.keys.filter { analyze(filter, file = tempDir.resolve(it)).isNotEmpty() }
 
-		assertThat(analyzedClasses).hasSize(if (expectedIncluded) 4 else 0)
+		assertThat(includedLocations).isEqualTo(if (expectedIncluded) locations.keys.toList() else emptyList())
 	}
 
 	/** Like JaCoCo, nested classes are matched with their `$`. */
 	@Test
 	fun matchesNestedClassesWithDollar() {
 		tempDir.resolve("Outer.class").write(classBytes)
-		tempDir.resolve("Nested.class").write(classBytes("FilteringAnalyzerTest\$Nested.class"))
+		tempDir.resolve("Nested.class").write(resourceBytes("FilteringAnalyzerTest\$Nested.class"))
 
 		assertThat(analyze(ClasspathWildcardIncludeFilter("com.teamscale.report.jacoco.FilteringAnalyzerTest$*", null)))
 			.containsExactly("com/teamscale/report/jacoco/FilteringAnalyzerTest\$Nested")
@@ -63,7 +65,7 @@ class FilteringAnalyzerTest {
 	/** A JAR with a shell script in front, e.g. a Spring Boot executable JAR, must be analyzed like a plain JAR. */
 	@Test
 	fun analyzesExecutableJars() {
-		tempDir.resolve("app.jar").write(classBytes("/com/teamscale/report/util/spring-boot-executable-example.jar"))
+		tempDir.resolve("app.jar").write(resourceBytes("/com/teamscale/report/util/spring-boot-executable-example.jar"))
 
 		assertThat(analyze(ClasspathWildcardIncludeFilter("org.springframework.boot.loader.jar.*", null)))
 			.contains("org/springframework/boot/loader/jar/Bytes")
@@ -73,17 +75,24 @@ class FilteringAnalyzerTest {
 	/** A class file too new for JaCoCo must be logged and skipped instead of failing the whole report. */
 	@Test
 	fun skipsUnsupportedClassFiles() {
-		val futureClassBytes = classBytes.copyOf()
-		// Bytes 6 and 7 hold the class file's major version
-		futureClassBytes[6] = 0x7F
-		futureClassBytes[7] = 0x7F
-		tempDir.resolve("Future.class").write(futureClassBytes)
+		tempDir.resolve("Future.class").write(withUnsupportedVersion(classBytes))
 		tempDir.resolve("Supported.class").write(classBytes)
 		val logger = Mockito.mock<ILogger>()
 
 		assertThat(analyze(ClasspathWildcardIncludeFilter(null, null), logger))
 			.containsExactly("com/teamscale/report/jacoco/FilteringAnalyzerTest")
 		Mockito.verify(logger).error(Mockito.contains("Unsupported class file"), Mockito.any(Throwable::class.java))
+	}
+
+	/** A class file too new for JaCoCo must be skipped without an error if it is excluded, as the error recommends. */
+	@Test
+	fun skipsExcludedUnsupportedClassFilesWithoutError() {
+		tempDir.resolve("Future.class").write(withUnsupportedVersion(classBytes))
+		val logger = Mockito.mock<ILogger>()
+
+		assertThat(analyze(ClasspathWildcardIncludeFilter(null, "com.teamscale.*"), logger)).isEmpty()
+		Mockito.verify(logger).debug(Mockito.contains("Excluding class file"))
+		Mockito.verifyNoMoreInteractions(logger)
 	}
 
 	/**
@@ -105,7 +114,7 @@ class FilteringAnalyzerTest {
 	/** An archive that JaCoCo cannot read must be reported with its location, the cause and a hint. */
 	@Test
 	fun reportsUnreadableArchives() {
-		val jar = zip("com/teamscale/report/jacoco/FilteringAnalyzerTest.class")
+		val jar = zip("com/teamscale/report/jacoco/FilteringAnalyzerTest.class" to classBytes)
 		// Cuts the JAR in the middle of the class file's data
 		tempDir.resolve("app.jar").write(jar.copyOf(jar.size / 2))
 
@@ -116,9 +125,13 @@ class FilteringAnalyzerTest {
 			.hasCauseInstanceOf(EOFException::class.java)
 	}
 
-	private fun analyze(filter: ClasspathWildcardIncludeFilter, logger: ILogger = Mockito.mock<ILogger>()): List<String> {
+	private fun analyze(
+		filter: ClasspathWildcardIncludeFilter,
+		logger: ILogger = Mockito.mock<ILogger>(),
+		file: File = tempDir
+	): List<String> {
 		val analyzedClasses = mutableListOf<String>()
-		FilteringAnalyzer(ExecutionDataStore(), { analyzedClasses.add(it.name) }, filter, logger).analyzeAll(tempDir)
+		FilteringAnalyzer(ExecutionDataStore(), { analyzedClasses.add(it.name) }, filter, logger).analyzeAll(file)
 		return analyzedClasses
 	}
 
@@ -127,16 +140,15 @@ class FilteringAnalyzerTest {
 		writeBytes(content)
 	}
 
-	private fun classBytes(name: String) = javaClass.getResourceAsStream(name)!!.use { it.readBytes() }
+	private fun resourceBytes(name: String) = javaClass.getResourceAsStream(name)!!.use { it.readBytes() }
 
-	private fun zip(entryName: String): ByteArray {
-		val output = ByteArrayOutputStream()
-		ZipOutputStream(output).use { zip ->
-			zip.putNextEntry(ZipEntry(entryName))
-			zip.write(classBytes)
-			zip.closeEntry()
-		}
-		return output.toByteArray()
+	/** Returns a copy of the given class file with a major version that is too new for JaCoCo. */
+	private fun withUnsupportedVersion(classBytes: ByteArray): ByteArray {
+		val unsupportedClassBytes = classBytes.copyOf()
+		// Bytes 6 and 7 hold the class file's major version
+		unsupportedClassBytes[6] = 0x7F
+		unsupportedClassBytes[7] = 0x7F
+		return unsupportedClassBytes
 	}
 
 	/** A nested class to test the matching of nested class names. */
