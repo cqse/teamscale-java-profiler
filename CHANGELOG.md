@@ -9,6 +9,7 @@ We use [semantic versioning](http://semver.org/):
 - [fix] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` patterns no longer need a leading `*`. Previously, e.g. `com.company.*` led to an empty testwise coverage report.
 - [fix] _teamscale-maven-plugin_: `prepare-tia-unit-test` and `prepare-tia-integration-test` no longer require a commit or revision when `runImpacted` is `false`.
 - [fix] _teamscale-gradle-plugin_, _teamscale-maven-plugin_: Testwise coverage reports no longer drop a class directory that contains an archive (JAR, WAR, EAR, ZIP) that contains a JAR.
+- [fix] _agent_: With `duplicates=FAIL`, the error for a duplicate, non-identical class now names the class and how to resolve the problem.
 
 # 39.0.0
 - [breaking] _agent_: The deprecated Docker image `cqse/teamscale-jacoco-agent` is no longer published. Use `cqse/teamscale-java-profiler` instead, which has replaced it since version 36.5.0.

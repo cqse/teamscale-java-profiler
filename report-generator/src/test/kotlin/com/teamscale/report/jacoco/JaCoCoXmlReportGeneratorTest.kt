@@ -59,6 +59,7 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 			)
 		}.isInstanceOf(IOException::class.java)
 			.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
+			.hasMessageContaining("Duplicate non-identical class")
 	}
 
 	/**
@@ -107,6 +108,7 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 			)
 		}.isInstanceOf(IOException::class.java)
 			.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
+			.hasMessageContaining("Duplicate non-identical class")
 	}
 
 	/**
