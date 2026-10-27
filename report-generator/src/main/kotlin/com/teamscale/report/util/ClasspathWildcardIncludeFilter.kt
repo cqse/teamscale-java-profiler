@@ -1,16 +1,11 @@
 package com.teamscale.report.util
 
-import com.teamscale.client.FileSystemUtils
-import com.teamscale.client.StringUtils
 import org.jacoco.core.runtime.WildcardMatcher
-import org.jacoco.report.JavaNames
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 
 
 /***
- * Tests given class file paths against call name patterns.
- * E.g. "/some/file/path/test.jar@my/package/Test.class" matches "my/package/ *" or "my/package/Test"
+ * Tests class names against wildcard include and exclude patterns, the same way JaCoCo's agent does.
+ * E.g. "com/example/Test" matches "com.example.*" or "com.example.Test".
  */
 open class ClasspathWildcardIncludeFilter(
 	locationIncludeFilters: String?,
@@ -44,43 +39,14 @@ open class ClasspathWildcardIncludeFilter(
 	}
 
 	/**
-	 * Tests if the given file path (e.g. "/some/file/path/test.jar@my/package/Test.class" or "org/mypackage/MyClass"
+	 * Tests if the class with the given JVM internal name (e.g. "com/example/Outer$Inner") is included. Like JaCoCo,
+	 * only slashes are replaced by dots, so nested classes keep their "$".
 	 */
-	fun isIncluded(path: String): Boolean {
-		val className = getClassName(path)
-		if (locationIncludeFilters != null && locationIncludeFilters?.matches(className) == false) {
+	fun isIncluded(internalClassName: String): Boolean {
+		val dottedClassName = internalClassName.replace('/', '.')
+		if (locationIncludeFilters != null && locationIncludeFilters?.matches(dottedClassName) == false) {
 			return false
 		}
-		return locationExcludeFilters == null || locationExcludeFilters?.matches(className) == false
-	}
-
-
-	companion object {
-		private val AT_REGEX = "@".toRegex()
-		private val JAVA_NAMES = JavaNames()
-
-		private val classNameCache = ConcurrentHashMap<String, String>(1024)
-
-		/**
-		 * Returns the normalized class name of the given class file's path. I.e. turns something like
-		 * "/opt/deploy/some.jar@com/teamscale/Class.class" into something like "com.teamscale.Class".
-		 */
-		fun getClassName(path: String): String =
-			classNameCache.computeIfAbsent(path) { computeClassName(it) }
-
-		private fun computeClassName(path: String): String {
-			val parts = FileSystemUtils.normalizeSeparators(path)
-				.split(AT_REGEX).dropLastWhile { it.isEmpty() }
-				.toTypedArray()
-			if (parts.isEmpty()) {
-				return ""
-			}
-
-			var pathInsideJar = parts[parts.size - 1]
-			if (path.lowercase(Locale.getDefault()).endsWith(".class")) {
-				pathInsideJar = StringUtils.removeLastPart(pathInsideJar, '.')
-			}
-			return JAVA_NAMES.getQualifiedClassName(pathInsideJar)
-		}
+		return locationExcludeFilters == null || locationExcludeFilters?.matches(dottedClassName) == false
 	}
 }

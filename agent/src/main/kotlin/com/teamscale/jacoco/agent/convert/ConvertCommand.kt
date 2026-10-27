@@ -38,10 +38,10 @@ class ConvertCommand : ICommand {
 	 */
 	@Parameter(
 		names = ["--includes"], description = (""
-				+ "Wildcard include patterns to apply to all found class file locations during JaCoCo's traversal of class files."
-				+ " Note that zip contents are separated from zip files with @ and that you can filter only"
-				+ " class files, not intermediate folders/zips. Use with great care as missing class files"
-				+ " lead to broken coverage files! Turn on debug logging to see which locations are being filtered."
+				+ "Wildcard include patterns for the fully qualified names of the analyzed classes (e.g. com.company.*)."
+				+ " Nested classes are written with \$ (e.g. com.company.Outer\$Inner). Use with great care as missing"
+				+ " class files lead to broken coverage files! Turn on debug logging to see which class files are"
+				+ " being filtered."
 				+ " Defaults to no filtering. Excludes overrule includes.")
 	)
 	var locationIncludeFilters = mutableListOf<String>()
@@ -51,10 +51,10 @@ class ConvertCommand : ICommand {
 	 */
 	@Parameter(
 		names = ["--excludes", "-e"], description = (""
-				+ "Wildcard exclude patterns to apply to all found class file locations during JaCoCo's traversal of class files."
-				+ " Note that zip contents are separated from zip files with @ and that you can filter only"
-				+ " class files, not intermediate folders/zips. Use with great care as missing class files"
-				+ " lead to broken coverage files! Turn on debug logging to see which locations are being filtered."
+				+ "Wildcard exclude patterns for the fully qualified names of the analyzed classes (e.g. com.company.*)."
+				+ " Nested classes are written with \$ (e.g. com.company.Outer\$Inner). Use with great care as missing"
+				+ " class files lead to broken coverage files! Turn on debug logging to see which class files are"
+				+ " being filtered."
 				+ " Defaults to no filtering. Excludes overrule includes.")
 	)
 	var locationExcludeFilters = mutableListOf<String>()

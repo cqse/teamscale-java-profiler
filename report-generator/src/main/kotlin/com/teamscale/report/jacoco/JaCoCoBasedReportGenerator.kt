@@ -155,10 +155,10 @@ abstract class JaCoCoBasedReportGenerator<Visitor : ICoverageVisitor>(
 					return
 				}
 
-				EDuplicateClassFileBehavior.FAIL -> error {
+				EDuplicateClassFileBehavior.FAIL -> error(
 					"Duplicate non-identical class '${coverage.name}' encountered with 'duplicates=FAIL'." +
 							" Either resolve the duplicate in your application or set 'duplicates=WARN'."
-				}
+				)
 			}
 		}
 	}

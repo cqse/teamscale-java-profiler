@@ -74,9 +74,8 @@ class ProbesCache(
 	): FileCoverageBuilder? {
 		val classId = executionData.id
 		if (!containsClassId(classId)) {
-			val fullyQualifiedClassName = JavaNames().getQualifiedClassName(executionData.name)
-			if (locationIncludeFilter.isIncluded("$fullyQualifiedClassName.class")) {
-				classNotFoundLogger.log(fullyQualifiedClassName)
+			if (locationIncludeFilter.isIncluded(executionData.name)) {
+				classNotFoundLogger.log(JavaNames().getQualifiedClassName(executionData.name))
 			}
 			return null
 		}

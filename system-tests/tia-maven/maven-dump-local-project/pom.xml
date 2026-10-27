@@ -51,7 +51,7 @@
                     <runAllTests>true</runAllTests>
                     <runImpacted>false</runImpacted>
                     <includes>
-                        <include>*foo.*</include>
+                        <include>foo.*</include>
                     </includes>
                 </configuration>
             </plugin>

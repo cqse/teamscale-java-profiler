@@ -1,6 +1,5 @@
 package com.teamscale.config
 
-import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.utils.ArgumentAppender
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -62,14 +61,6 @@ abstract class AgentConfiguration @Inject constructor(
 	@JvmOverloads
 	fun useRemoteAgent(url: String = "http://127.0.0.1:8124/") {
 		remoteAgent = TeamscaleAgent(url.toHttpUrl())
-	}
-
-	/** Returns a filter predicate that respects the configured wildcard include and exclude patterns. */
-	fun getPredicate(): ClasspathWildcardIncludeFilter {
-		return ClasspathWildcardIncludeFilter(
-			jacocoExtension.includes?.joinToString(":") { "*$it".replace('/', '.') },
-			jacocoExtension.excludes?.joinToString(":") { "*$it".replace('/', '.') }
-		)
 	}
 
 	inner class TeamscaleAgent(val url: HttpUrl) {

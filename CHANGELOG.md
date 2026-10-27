@@ -5,9 +5,13 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [breaking] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` only match the class name, no longer parts of the class file's path (e.g. `*target.classes.*`). Nested classes are written with `$` (e.g. `com.company.Outer$Inner`).
 - [feature] _agent_: Added official support for Java 27 and experimental support for Java 28 (via JaCoCo 0.8.16)
+- [fix] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` patterns no longer need a leading `*`. Previously, e.g. `com.company.*` led to an empty testwise coverage report.
 - [fix] _teamscale-maven-plugin_: `prepare-tia-unit-test` and `prepare-tia-integration-test` no longer require a commit or revision when `runImpacted` is `false`.
 - [fix] _teamscale-gradle-plugin_, _teamscale-maven-plugin_: Testwise coverage reports no longer drop a class directory that contains an archive (JAR, WAR, EAR, ZIP) that contains a JAR.
+- [fix] _agent_: With `duplicates=FAIL`, the error for a duplicate, non-identical class now names the class and how to resolve the problem.
+- [fix] _agent_, _teamscale-gradle-plugin_, _teamscale-maven-plugin_: A corrupt class file whose class name cannot be read is skipped with a warning instead of failing the coverage report.
 
 # 39.0.0
 - [breaking] _agent_: The deprecated Docker image `cqse/teamscale-jacoco-agent` is no longer published. Use `cqse/teamscale-java-profiler` instead, which has replaced it since version 36.5.0.
