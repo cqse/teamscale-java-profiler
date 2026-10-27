@@ -28,10 +28,17 @@ open class FilteringAnalyzer(
 	/** {@inheritDoc}  */
 	@Throws(IOException::class)
 	override fun analyzeAll(input: InputStream, location: String): Int {
-		if (location.endsWith(".jar")) {
-			return analyzeJar(input, location)
+		try {
+			if (location.endsWith(".jar")) {
+				return analyzeJar(input, location)
+			}
+			return super.analyzeAll(input, location)
+		} catch (e: AnalyzerException) {
+			throw e
+		} catch (e: IOException) {
+			// JaCoCo's error for this location (e.g. a corrupt ZIP) lacks the message of its cause and a hint
+			throw analyzerError(location, e.cause as? Exception ?: e)
 		}
-		return super.analyzeAll(input, location)
 	}
 
 	@Throws(IOException::class)
@@ -72,12 +79,15 @@ open class FilteringAnalyzer(
 	}
 
 	/** Creates an [IOException] which includes the affected file location and JaCoCo version. */
-	protected fun analyzerError(location: String, cause: Exception) = IOException(
+	protected fun analyzerError(location: String, cause: Exception): IOException = AnalyzerException(
 		"Could not analyze coverage for '$location' (JaCoCo ${JaCoCo.VERSION}/${JaCoCo.COMMITID_SHORT}): " +
 				"${cause.message}. Verify that the file is a readable .class, JAR, ZIP, GZ, or Pack200 archive" +
 				" and that it is not corrupt.",
 		cause
 	)
+
+	/** Error of [analyzerError], which [analyzeAll] passes on unchanged to the locations that contain its location. */
+	private class AnalyzerException(message: String, cause: Exception) : IOException(message, cause)
 
 	/**
 	 * Checks if the error indicates that the class file might be newer than what is currently supported by

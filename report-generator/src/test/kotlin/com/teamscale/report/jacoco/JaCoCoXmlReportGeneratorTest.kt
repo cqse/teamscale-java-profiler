@@ -57,7 +57,7 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 				"different-duplicate-classes",
 				EDuplicateClassFileBehavior.FAIL
 			)
-		}.isExactlyInstanceOf(IOException::class.java)
+		}.isInstanceOf(IOException::class.java)
 			.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
 	}
 
@@ -105,7 +105,7 @@ class JaCoCoXmlReportGeneratorTest : TestDataBase() {
 				"different-duplicate-classes",
 				EDuplicateClassFileBehavior.FAIL
 			)
-		}.isExactlyInstanceOf(IOException::class.java)
+		}.isInstanceOf(IOException::class.java)
 			.hasCauseExactlyInstanceOf(IllegalStateException::class.java)
 	}
 

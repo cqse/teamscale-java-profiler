@@ -3,6 +3,7 @@ package com.teamscale.report.jacoco
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.report.util.ILogger
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jacoco.core.data.ExecutionDataStore
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -10,7 +11,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.Mockito
 import java.io.ByteArrayOutputStream
+import java.io.EOFException
 import java.io.File
+import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -81,6 +84,20 @@ class FilteringAnalyzerTest {
 		assertThat(analyze(ClasspathWildcardIncludeFilter(null, null), logger))
 			.containsExactly("com/teamscale/report/jacoco/FilteringAnalyzerTest")
 		Mockito.verify(logger).error(Mockito.contains("Unsupported class file"), Mockito.any(Throwable::class.java))
+	}
+
+	/** An archive that JaCoCo cannot read must be reported with its location, the cause and a hint. */
+	@Test
+	fun reportsUnreadableArchives() {
+		val jar = zip("com/teamscale/report/jacoco/FilteringAnalyzerTest.class")
+		// Cuts the JAR in the middle of the class file's data
+		tempDir.resolve("app.jar").write(jar.copyOf(jar.size / 2))
+
+		assertThatThrownBy { analyze(ClasspathWildcardIncludeFilter(null, null)) }
+			.isInstanceOf(IOException::class.java)
+			.hasMessageContaining("app.jar@com/teamscale/report/jacoco/FilteringAnalyzerTest.class")
+			.hasMessageContaining("Verify that the file is a readable")
+			.hasCauseInstanceOf(EOFException::class.java)
 	}
 
 	private fun analyze(filter: ClasspathWildcardIncludeFilter, logger: ILogger = Mockito.mock<ILogger>()): List<String> {
