@@ -86,6 +86,22 @@ class FilteringAnalyzerTest {
 		Mockito.verify(logger).error(Mockito.contains("Unsupported class file"), Mockito.any(Throwable::class.java))
 	}
 
+	/**
+	 * A class file whose class name cannot be read must be logged and skipped instead of failing the whole report,
+	 * since it may be excluded.
+	 */
+	@Test
+	fun skipsCorruptClassFiles() {
+		// Cuts the class file in its constant pool, which holds the class name
+		tempDir.resolve("Corrupt.class").write(classBytes.copyOf(40))
+		tempDir.resolve("Supported.class").write(classBytes)
+		val logger = Mockito.mock<ILogger>()
+
+		assertThat(analyze(ClasspathWildcardIncludeFilter(null, null), logger))
+			.containsExactly("com/teamscale/report/jacoco/FilteringAnalyzerTest")
+		Mockito.verify(logger).warn(Mockito.contains("Corrupt.class"), Mockito.any(Throwable::class.java))
+	}
+
 	/** An archive that JaCoCo cannot read must be reported with its location, the cause and a hint. */
 	@Test
 	fun reportsUnreadableArchives() {

@@ -45,10 +45,9 @@ open class FilteringAnalyzer(
 	@Throws(IOException::class)
 	override fun analyzeClass(buffer: ByteArray, location: String) {
 		try {
-			// Only reads the constant pool, which is cheap compared to the analysis of the whole class
-			val reader = InstrSupport.classReaderFor(buffer)
-			if (!locationIncludeFilter.isIncluded(reader.className)) {
-				logger.debug("Excluding class file $location (${reader.className})")
+			val (reader, className) = readHeader(buffer, location) ?: return
+			if (!locationIncludeFilter.isIncluded(className)) {
+				logger.debug("Excluding class file $location ($className)")
 				return
 			}
 			analyzeIncludedClass(buffer, reader, location)
@@ -63,6 +62,27 @@ open class FilteringAnalyzer(
 			} else {
 				throw analyzerError(location, cause)
 			}
+		}
+	}
+
+	/**
+	 * Creates a reader for the class file and reads its class name. This only reads the constant pool, which is cheap
+	 * compared to the analysis of the whole class. A corrupt class file is logged and skipped by returning `null` instead
+	 * of failing the analysis: without its class name, we cannot tell whether it is excluded.
+	 */
+	private fun readHeader(buffer: ByteArray, location: String): Pair<ClassReader, String>? {
+		try {
+			val reader = InstrSupport.classReaderFor(buffer)
+			return reader to reader.className
+		} catch (cause: RuntimeException) {
+			if (cause.isUnsupportedClassFile()) {
+				throw cause
+			}
+			logger.warn(
+				"Skipping class file '$location', whose class name cannot be read ($cause). The file is probably corrupt.",
+				cause
+			)
+			return null
 		}
 	}
 
