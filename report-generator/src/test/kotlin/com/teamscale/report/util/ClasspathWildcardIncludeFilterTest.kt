@@ -1,49 +1,36 @@
 package com.teamscale.report.util
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 class ClasspathWildcardIncludeFilterTest {
 
-	/** Patterns must match the class name with and without leading `*`. */
-	@Test
-	fun testIncludes() {
-		val filter = ClasspathWildcardIncludeFilter("com.company.*", null)
-		assertThat(filter.isIncluded("com/company/Foo")).isTrue()
-		assertThat(filter.isIncluded("com/company/sub/Foo")).isTrue()
-		assertThat(filter.isIncluded("org/company/Foo")).isFalse()
-		assertThat(filter.isIncluded("org/com/company/Foo")).isFalse()
-
-		val filterWithLeadingStar = ClasspathWildcardIncludeFilter("*com.company.*", null)
-		assertThat(filterWithLeadingStar.isIncluded("com/company/Foo")).isTrue()
-		assertThat(filterWithLeadingStar.isIncluded("org/com/company/Foo")).isTrue()
-	}
-
-	@Test
-	fun testExcludes() {
-		val filter = ClasspathWildcardIncludeFilter(null, "org.junit.*")
-		assertThat(filter.isIncluded("org/junit/jupiter/engine/Constants")).isFalse()
-		assertThat(filter.isIncluded("com/company/Foo")).isTrue()
-
-		val filter2 = ClasspathWildcardIncludeFilter("com.company.*", "com.company.generated.*")
-		assertThat(filter2.isIncluded("com/company/Foo")).isTrue()
-		assertThat(filter2.isIncluded("com/company/generated/Foo")).isFalse()
-	}
-
-	/** Like JaCoCo, nested classes keep their `$`. */
-	@Test
-	fun testNestedClasses() {
-		assertThat(ClasspathWildcardIncludeFilter("com.company.Outer$*", null).isIncluded("com/company/Outer\$Inner"))
-			.isTrue()
-		assertThat(ClasspathWildcardIncludeFilter("com.company.Outer.Inner", null).isIncluded("com/company/Outer\$Inner"))
-			.isFalse()
-	}
-
-	@Test
-	fun testMultiplePatterns() {
-		val filter = ClasspathWildcardIncludeFilter("com.*:de.*", null)
-		assertThat(filter.isIncluded("com/foo/Bar")).isTrue()
-		assertThat(filter.isIncluded("de/foo/Bar\$Goo")).isTrue()
-		assertThat(filter.isIncluded("org/foo/Bar")).isFalse()
+	/** Tests the include and exclude patterns against JVM internal class names. */
+	@ParameterizedTest
+	@CsvSource(
+		// Patterns must match the class name with and without leading `*`
+		"com.company.*, , com/company/Foo, true",
+		"com.company.*, , com/company/sub/Foo, true",
+		"com.company.*, , org/company/Foo, false",
+		"com.company.*, , org/com/company/Foo, false",
+		"*com.company.*, , com/company/Foo, true",
+		"*com.company.*, , org/com/company/Foo, true",
+		// Excludes overrule includes
+		", org.junit.*, org/junit/jupiter/engine/Constants, false",
+		", org.junit.*, com/company/Foo, true",
+		"com.company.*, com.company.generated.*, com/company/Foo, true",
+		"com.company.*, com.company.generated.*, com/company/generated/Foo, false",
+		// Like JaCoCo, nested classes keep their `$`
+		"com.company.Outer$*, , com/company/Outer\$Inner, true",
+		"com.company.Outer.Inner, , com/company/Outer\$Inner, false",
+		// Multiple patterns are separated by colons
+		"com.*:de.*, , com/foo/Bar, true",
+		"com.*:de.*, , de/foo/Bar\$Goo, true",
+		"com.*:de.*, , org/foo/Bar, false",
+	)
+	fun testIsIncluded(includes: String?, excludes: String?, internalClassName: String, expectedIncluded: Boolean) {
+		assertThat(ClasspathWildcardIncludeFilter(includes, excludes).isIncluded(internalClassName))
+			.isEqualTo(expectedIncluded)
 	}
 }

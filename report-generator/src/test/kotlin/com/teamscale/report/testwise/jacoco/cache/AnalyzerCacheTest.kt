@@ -3,6 +3,7 @@ package com.teamscale.report.testwise.jacoco.cache
 import com.teamscale.report.EDuplicateClassFileBehavior
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.report.util.ILogger
+import com.teamscale.test.zip
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jacoco.core.internal.data.CRC64
@@ -11,11 +12,8 @@ import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.Mockito
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 /** Tests for the [AnalyzerCache] class.  */
 class AnalyzerCacheTest {
@@ -44,6 +42,17 @@ class AnalyzerCacheTest {
 		assertThat(probesCache.containsClassId(CRC64.classId(classBytes))).isTrue()
 	}
 
+	/** Excluded classes must not be added to the cache. */
+	@Test
+	fun skipsExcludedClasses() {
+		tempDir.resolve("AnalyzerCacheTest.class").writeBytes(classBytes)
+		val excludingAnalyzer = AnalyzerCache(probesCache, ClasspathWildcardIncludeFilter(null, "com.teamscale.*"), logger)
+
+		excludingAnalyzer.analyzeAll(tempDir)
+
+		assertThat(probesCache.containsClassId(CRC64.classId(classBytes))).isFalse()
+	}
+
 	/** A nested JAR that cannot be read must be reported with its location, so that users can find it. */
 	@Test
 	fun reportsLocationOfUnreadableNestedJar() {
@@ -54,17 +63,5 @@ class AnalyzerCacheTest {
 		assertThatThrownBy { analyzer.analyzeAll(tempDir) }
 			.isInstanceOf(IOException::class.java)
 			.hasMessageContaining("outer.jar@lib/inner.jar")
-	}
-
-	private fun zip(vararg entries: Pair<String, ByteArray>): ByteArray {
-		val output = ByteArrayOutputStream()
-		ZipOutputStream(output).use { zip ->
-			entries.forEach { (name, content) ->
-				zip.putNextEntry(ZipEntry(name))
-				zip.write(content)
-				zip.closeEntry()
-			}
-		}
-		return output.toByteArray()
 	}
 }
