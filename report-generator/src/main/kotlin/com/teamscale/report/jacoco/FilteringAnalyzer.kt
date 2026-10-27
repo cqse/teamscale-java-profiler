@@ -135,7 +135,12 @@ open class FilteringAnalyzer(
 		cause
 	)
 
-	/** Error of [analyzerError], which [analyzeAll] passes on unchanged to the locations that contain its location. */
+	/**
+	 * Error of [analyzerError], which [analyzeAll] passes on unchanged to the locations that contain its location.
+	 *
+	 * @param message The exception message.
+	 * @param cause The error that occurred during the analysis.
+	 */
 	private class AnalyzerException(message: String, cause: Exception) : IOException(message, cause)
 
 	/**
