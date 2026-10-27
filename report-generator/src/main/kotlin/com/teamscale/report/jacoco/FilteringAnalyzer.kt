@@ -8,6 +8,7 @@ import org.jacoco.core.analysis.Analyzer
 import org.jacoco.core.analysis.ICoverageVisitor
 import org.jacoco.core.data.ExecutionDataStore
 import org.jacoco.core.internal.instr.InstrSupport
+import org.objectweb.asm.ClassReader
 import java.io.IOException
 import java.io.InputStream
 
@@ -45,12 +46,12 @@ open class FilteringAnalyzer(
 	override fun analyzeClass(buffer: ByteArray, location: String) {
 		try {
 			// Only reads the constant pool, which is cheap compared to the analysis of the whole class
-			val className = InstrSupport.classReaderFor(buffer).className
-			if (!locationIncludeFilter.isIncluded(className)) {
-				logger.debug("Excluding class file $location ($className)")
+			val reader = InstrSupport.classReaderFor(buffer)
+			if (!locationIncludeFilter.isIncluded(reader.className)) {
+				logger.debug("Excluding class file $location (${reader.className})")
 				return
 			}
-			analyzeIncludedClass(buffer, location)
+			analyzeIncludedClass(buffer, reader, location)
 		} catch (cause: RuntimeException) {
 			if (cause.isUnsupportedClassFile()) {
 				logger.error(
@@ -66,10 +67,11 @@ open class FilteringAnalyzer(
 	}
 
 	/**
-	 * Analyzes a class that passed the filter. Errors are thrown as [RuntimeException], so that [analyzeClass] reports
+	 * Analyzes a class that passed the filter. [reader] is the filter's reader of [buffer], which JaCoCo's analysis
+	 * cannot take, so only subclasses reuse it. Errors are thrown as [RuntimeException], so that [analyzeClass] reports
 	 * them uniformly.
 	 */
-	protected open fun analyzeIncludedClass(buffer: ByteArray, location: String) {
+	protected open fun analyzeIncludedClass(buffer: ByteArray, reader: ClassReader, location: String) {
 		try {
 			super.analyzeClass(buffer, location)
 		} catch (e: IOException) {

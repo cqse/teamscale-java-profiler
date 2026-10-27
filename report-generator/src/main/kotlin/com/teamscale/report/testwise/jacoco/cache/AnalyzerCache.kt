@@ -8,7 +8,7 @@ import org.jacoco.core.internal.analysis.ClassCoverageImpl
 import org.jacoco.core.internal.analysis.StringPool
 import org.jacoco.core.internal.data.CRC64
 import org.jacoco.core.internal.flow.ClassProbesAdapter
-import org.jacoco.core.internal.instr.InstrSupport
+import org.objectweb.asm.ClassReader
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -31,12 +31,11 @@ class AnalyzerCache(
 	 * Analyzes the given class. Instead of the original implementation in [FilteringAnalyzer.analyzeIncludedClass] we
 	 * don't use concrete execution data, but instead build a probe cache to speed up repeated lookups.
 	 */
-	override fun analyzeIncludedClass(buffer: ByteArray, location: String) {
+	override fun analyzeIncludedClass(buffer: ByteArray, reader: ClassReader, location: String) {
 		val classId = CRC64.classId(buffer)
 		if (probesCache.containsClassId(classId)) {
 			return
 		}
-		val reader = InstrSupport.classReaderFor(buffer)
 
 		// Dummy class coverage object that allows us to subclass ClassAnalyzer with CachingClassAnalyzer and reuse its
 		// IFilterContext implementation
