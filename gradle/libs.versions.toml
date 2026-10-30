@@ -3,8 +3,7 @@
 # check the comment in the JaCoCoPreMain.java and CachingInstructionsBuilder.java
 # and update the internal_xxxxxx hash included in the imports in LenientCoverageTransformer.java and JaCoCoPreMain.java.
 jacoco = "0.8.16"
-# We need to stay on the 1.3.x release line as 1.4.x requires Java 11
-logback = "1.3.16"
+logback = "1.6.6"
 retrofit = "3.0.0"
 okhttp = "5.5.1"
 mockito = "5.24.0"
@@ -15,7 +14,8 @@ asm = "9.11.1"
 coroutines = "1.11.0"
 
 [libraries]
-jersey-bom = { module = "org.glassfish.jersey:jersey-bom", version = "2.48" }
+# We need to stay on the 3.1.x release line as 4.x requires Java 17
+jersey-bom = { module = "org.glassfish.jersey:jersey-bom", version = "3.1.12" }
 jersey-server = { module = "org.glassfish.jersey.core:jersey-server" }
 jersey-containerJdkHttp = { module = "org.glassfish.jersey.containers:jersey-container-jdk-http" }
 jersey-mediaJsonJackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackson" }
@@ -24,7 +24,7 @@ jersey-hk2 = { module = "org.glassfish.jersey.inject:jersey-hk2" }
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.23.0" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 
-jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version = "1.2.2" }
+jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version = "2.1.4" }
 
 jacoco-core = { module = "org.jacoco:org.jacoco.core", version.ref = "jacoco" }
 jacoco-report = { module = "org.jacoco:org.jacoco.report", version.ref = "jacoco" }
@@ -40,7 +40,8 @@ okhttp-core = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
 
 spark = { module = "com.sparkjava:spark-core", version = "2.9.4" }
-jcommander = { module = "com.beust:jcommander", version = "1.82" }
+# We need to stay on the 2.x release line as 3.x requires Java 17
+jcommander = { module = "org.jcommander:jcommander", version = "2.0" }
 commonsCodec = { module = "commons-codec:commons-codec", version = "1.23.0" }
 commonsLang = { module = "org.apache.commons:commons-lang3", version = "3.22.0" }
 commonsIo = { module = "commons-io:commons-io", version = "2.22.0" }

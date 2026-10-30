@@ -1,3 +1,5 @@
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.internal.os.OperatingSystem
 
@@ -15,12 +17,26 @@ java {
 }
 
 tasks.compileJava {
-	options.release = 8
-	options.compilerArgs.add("-Xlint:-options")
+	options.release = 11
 }
 
 tasks.compileTestJava {
 	options.release = 21
+}
+
+// --release only restricts our own classes, so check that the dependencies run on the same Java version.
+val verifyBytecodeVersion by tasks.registering(VerifyBytecodeVersion::class) {
+	// File dependencies like the Gradle API of the Gradle plugin are provided by the environment we run in.
+	classpath.from(configurations.runtimeClasspath.map { configuration ->
+		configuration.incoming.artifactView {
+			componentFilter { it is ModuleComponentIdentifier || it is ProjectComponentIdentifier }
+		}.files
+	})
+	javaVersion = tasks.compileJava.flatMap { it.options.release }
+}
+
+tasks.check {
+	dependsOn(verifyBytecodeVersion)
 }
 
 tasks.test {

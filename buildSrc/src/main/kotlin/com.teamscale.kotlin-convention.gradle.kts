@@ -7,6 +7,6 @@ plugins {
 
 tasks.compileKotlin {
 	compilerOptions {
-		jvmTarget = JvmTarget.JVM_1_8
+		jvmTarget = JvmTarget.JVM_11
 	}
 }

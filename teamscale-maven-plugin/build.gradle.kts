@@ -10,6 +10,11 @@ publishAs {
 	description = "Maven Plugin for Teamscale"
 }
 
+// JGit requires Java 17
+tasks.compileJava {
+	options.release = 17
+}
+
 mavenPlugin {
 	helpMojoPackage = "com.teamscale.maven.help"
 }

@@ -89,7 +89,7 @@ class TeamscalePluginTestwiseCoverageTest : TeamscalePluginTestBase() {
 		assertThat(build.output).contains("FAILURE (21 tests, 14 successes, 1 failures, 6 skipped)")
 			.doesNotContain("you did not provide all relevant class files")
 			.doesNotContain("WARNING: JAXBContext implementation could not be found. WADL feature is disabled.")
-			.doesNotContain("WARNING: A class javax.activation.DataSource for a default provider")
+			.doesNotContain("WARNING: A class jakarta.activation.DataSource for a default provider")
 		val testwiseCoverageReportFile =
 			rootProject.buildDir.resolve("reports/testwise-coverage/unitTestReport.json")
 		assertThat(testwiseCoverageReportFile).exists()

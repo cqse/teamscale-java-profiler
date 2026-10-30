@@ -11,13 +11,14 @@ plugins {
 	alias(libs.plugins.pluginPublish)
 }
 
+// JGit requires Java 17
 tasks.compileJava {
-	options.release = 11
+	options.release = 17
 }
 
 tasks.compileKotlin {
 	compilerOptions {
-		jvmTarget = JvmTarget.JVM_11
+		jvmTarget = JvmTarget.JVM_17
 		// Needed to support older Gradle versions
 		languageVersion = KotlinVersion.KOTLIN_2_1
 		apiVersion = KotlinVersion.KOTLIN_2_1

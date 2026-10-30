@@ -25,7 +25,7 @@
 
 ## Project Architecture
 
-This is a multi-module Gradle project (Java 21 toolchain, targets Java 8) that provides a JVM profiler for collecting code coverage and uploading it to Teamscale.
+This is a multi-module Gradle project (Java 21 toolchain, targets Java 11) that provides a JVM profiler for collecting code coverage and uploading it to Teamscale.
 
 ### Core Modules
 
