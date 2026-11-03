@@ -141,7 +141,7 @@ class TeamscalePlugin : Plugin<Project> {
 			AgentPortGenerator::class.java
 		) {}
 		project.tasks.withType<Test> {
-			jacoco.excludes?.addAll(DEFAULT_EXCLUDES)
+			jacoco.excludes?.let { buildExcludes -> jacoco.excludes = buildExcludes + DEFAULT_EXCLUDES }
 
 			val extension = this.extensions.create<TeamscaleTaskExtension>(
 				TEAMSCALE_EXTENSION_NAME, teamscaleJacocoAgentConfiguration, jacoco

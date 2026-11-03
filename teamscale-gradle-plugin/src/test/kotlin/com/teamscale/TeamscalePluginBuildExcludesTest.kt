@@ -1,0 +1,59 @@
+package com.teamscale
+
+import org.assertj.core.api.Assertions.assertThat
+import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.withType
+import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.junit.jupiter.api.Test as JUnitTest
+
+/** Tests how the plugin combines its default excludes with the JaCoCo excludes that the build sets. */
+class TeamscalePluginBuildExcludesTest {
+
+	private val buildExclude = "*\$MockitoMock\$*"
+
+	@JUnitTest
+	fun `plugin appends its default excludes to read-only excludes of the build`() {
+		val excludes = testTaskExcludesAfterApplyingPlugin(listOf(buildExclude))
+
+		assertThat(excludes)
+			.`as`("The excludes should be the excludes of the build followed by the default excludes")
+			.containsExactlyElementsOf(listOf(buildExclude) + defaultExcludes())
+	}
+
+	@JUnitTest
+	fun `plugin appends its default excludes to mutable excludes of the build`() {
+		val excludes = testTaskExcludesAfterApplyingPlugin(mutableListOf(buildExclude))
+
+		assertThat(excludes)
+			.`as`("The excludes should be the excludes of the build followed by the default excludes")
+			.containsExactlyElementsOf(listOf(buildExclude) + defaultExcludes())
+	}
+
+	private fun testTaskExcludesAfterApplyingPlugin(buildExcludes: List<String>): List<String>? {
+		val project = ProjectBuilder.builder().build()
+		project.pluginManager.apply(JavaPlugin::class.java)
+		project.pluginManager.apply(JacocoPlugin::class.java)
+		project.tasks.withType<Test>().configureEach {
+			extensions.configure<JacocoTaskExtension> { excludes = buildExcludes }
+		}
+
+		project.pluginManager.apply(TeamscalePlugin::class.java)
+		return testTaskExcludesOf(project)
+	}
+
+	private fun defaultExcludes(): List<String> {
+		val project = ProjectBuilder.builder().build()
+		project.pluginManager.apply(TeamscalePlugin::class.java)
+		return testTaskExcludesOf(project).orEmpty()
+	}
+
+	private fun testTaskExcludesOf(project: Project) =
+		project.tasks.named<Test>("test").get().extensions.getByType<JacocoTaskExtension>().excludes
+}
