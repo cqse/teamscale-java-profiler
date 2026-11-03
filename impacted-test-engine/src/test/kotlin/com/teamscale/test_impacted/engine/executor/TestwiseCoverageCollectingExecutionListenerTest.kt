@@ -17,6 +17,7 @@ import org.junit.platform.engine.EngineExecutionListener
 import org.junit.platform.engine.TestExecutionResult
 import org.junit.platform.engine.UniqueId
 import org.mockito.kotlin.*
+import org.opentest4j.TestAbortedException
 
 /** Tests for [TestwiseCoverageCollectingExecutionListener].  */
 internal class TestwiseCoverageCollectingExecutionListenerTest {
@@ -260,6 +261,25 @@ internal class TestwiseCoverageCollectingExecutionListenerTest {
 		Assertions.assertThat(listener.testExecutions.single().message)
 			.contains("expected")
 			.doesNotContain("null")
+	}
+
+	/** A failing assumption aborts the test, so the test is reported as skipped together with the assumption's message. */
+	@Test
+	fun testAbortedTestIsReportedAsSkipped() {
+		val jupiterRootId = UniqueId.forEngine("junit-jupiter")
+		val testClassId = jupiterRootId.append(CLASS_SEGMENT_TYPE, "example.AssumptionTest")
+		val testCase = SimpleTestDescriptor.testCase(testClassId.append(METHOD_SEGMENT_TYPE, "testA()"))
+		val testClass = SimpleTestDescriptor.testContainer(testClassId, testCase)
+		val testRoot = SimpleTestDescriptor.testContainer(jupiterRootId, testClass)
+
+		val listener = jupiterListener()
+		listOf(testRoot, testClass, testCase).forEach { listener.executionStarted(it) }
+		listener.executionFinished(testCase, TestExecutionResult.aborted(TestAbortedException("assumption was not met")))
+		listOf(testClass, testRoot).forEach { listener.executionFinished(it, TestExecutionResult.successful()) }
+
+		Assertions.assertThat(listener.testExecutions.map { it.uniformPath to it.result })
+			.containsExactly("example/AssumptionTest/testA()" to ETestExecutionResult.SKIPPED)
+		Assertions.assertThat(listener.testExecutions.single().message).contains("assumption was not met")
 	}
 
 	/** The tests of a skipped `@ParameterizedClass` are no longer in the test tree, but must still be reported. */
