@@ -51,7 +51,12 @@ class TeamscalePluginBuildExcludesTest {
 	private fun defaultExcludes(): List<String> {
 		val project = ProjectBuilder.builder().build()
 		project.pluginManager.apply(TeamscalePlugin::class.java)
-		return testTaskExcludesOf(project).orEmpty()
+		val defaultExcludes = testTaskExcludesOf(project).orEmpty()
+
+		assertThat(defaultExcludes)
+			.`as`("The plugin should add default excludes to a test task without excludes of the build")
+			.isNotEmpty()
+		return defaultExcludes
 	}
 
 	private fun testTaskExcludesOf(project: Project) =
