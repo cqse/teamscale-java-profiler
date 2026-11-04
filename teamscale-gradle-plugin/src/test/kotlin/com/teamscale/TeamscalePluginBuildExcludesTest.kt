@@ -3,7 +3,7 @@ package com.teamscale
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.Test as TestTask
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
@@ -11,14 +11,14 @@ import org.gradle.kotlin.dsl.withType
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
-import org.junit.jupiter.api.Test as JUnitTest
+import org.junit.jupiter.api.Test
 
 /** Tests how the plugin combines its default excludes with the JaCoCo excludes that the build sets. */
 class TeamscalePluginBuildExcludesTest {
 
 	private val buildExclude = "*\$MockitoMock\$*"
 
-	@JUnitTest
+	@Test
 	fun `plugin appends its default excludes to read-only excludes of the build`() {
 		val excludes = testTaskExcludesAfterApplyingPlugin(listOf(buildExclude))
 
@@ -27,7 +27,7 @@ class TeamscalePluginBuildExcludesTest {
 			.containsExactlyElementsOf(listOf(buildExclude) + defaultExcludes())
 	}
 
-	@JUnitTest
+	@Test
 	fun `plugin appends its default excludes to mutable excludes of the build`() {
 		val excludes = testTaskExcludesAfterApplyingPlugin(mutableListOf(buildExclude))
 
@@ -40,7 +40,7 @@ class TeamscalePluginBuildExcludesTest {
 		val project = ProjectBuilder.builder().build()
 		project.pluginManager.apply(JavaPlugin::class.java)
 		project.pluginManager.apply(JacocoPlugin::class.java)
-		project.tasks.withType<Test>().configureEach {
+		project.tasks.withType<TestTask>().configureEach {
 			extensions.configure<JacocoTaskExtension> { excludes = buildExcludes }
 		}
 
@@ -55,5 +55,5 @@ class TeamscalePluginBuildExcludesTest {
 	}
 
 	private fun testTaskExcludesOf(project: Project) =
-		project.tasks.named<Test>("test").get().extensions.getByType<JacocoTaskExtension>().excludes
+		project.tasks.named<TestTask>("test").get().extensions.getByType<JacocoTaskExtension>().excludes
 }
