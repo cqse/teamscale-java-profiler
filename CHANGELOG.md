@@ -12,6 +12,7 @@ We use [semantic versioning](http://semver.org/):
 - [fix] _teamscale-gradle-plugin_, _teamscale-maven-plugin_: Testwise coverage reports no longer drop a class directory that contains an archive (JAR, WAR, EAR, ZIP) that contains a JAR.
 - [fix] _agent_: With `duplicates=FAIL`, the error for a duplicate, non-identical class now names the class and how to resolve the problem.
 - [fix] _agent_, _teamscale-gradle-plugin_, _teamscale-maven-plugin_: A corrupt class file whose class name cannot be read is skipped with a warning instead of failing the coverage report.
+- [fix] _impacted-test-engine_: A test that a failing assumption aborts is reported as skipped instead of as an error.
 - [fix] _teamscale-gradle-plugin_: The plugin now works when the build sets `jacoco.excludes` or the JUnit Platform `excludeEngines` of a test task to a read-only collection (for example, `listOf(...)` or `setOf(...)` in the Kotlin DSL). Previously, applying the plugin or running the test task failed with an `UnsupportedOperationException`.
 
 # 39.0.0

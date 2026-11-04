@@ -175,7 +175,7 @@ class TestwiseCoverageCollectingExecutionListener(
 		)
 
 		TestExecutionResult.Status.ABORTED -> TestExecution(
-			testUniformPath, duration, ETestExecutionResult.ERROR, message
+			testUniformPath, duration, ETestExecutionResult.SKIPPED, message
 		)
 
 		TestExecutionResult.Status.FAILED -> TestExecution(
