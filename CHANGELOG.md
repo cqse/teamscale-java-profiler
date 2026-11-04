@@ -12,6 +12,7 @@ We use [semantic versioning](http://semver.org/):
 - [fix] _teamscale-gradle-plugin_, _teamscale-maven-plugin_: Testwise coverage reports no longer drop a class directory that contains an archive (JAR, WAR, EAR, ZIP) that contains a JAR.
 - [fix] _agent_: With `duplicates=FAIL`, the error for a duplicate, non-identical class now names the class and how to resolve the problem.
 - [fix] _agent_, _teamscale-gradle-plugin_, _teamscale-maven-plugin_: A corrupt class file whose class name cannot be read is skipped with a warning instead of failing the coverage report.
+- [fix] _impacted-test-engine_: A test that a failing assumption aborts is reported as skipped instead of as an error.
 
 # 39.0.0
 - [breaking] _agent_: The deprecated Docker image `cqse/teamscale-jacoco-agent` is no longer published. Use `cqse/teamscale-java-profiler` instead, which has replaced it since version 36.5.0.
