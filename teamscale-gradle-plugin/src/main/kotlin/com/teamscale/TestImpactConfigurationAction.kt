@@ -53,7 +53,7 @@ class TestImpactConfigurationAction(
 			writeProperty("excludedEngines", testFrameworkOptions.excludeEngines.joinToString(","))
 			testFrameworkOptions.includeEngines = setOf(IMPACTED_TEST_ENGINE_ID)
 		} else {
-			testFrameworkOptions.excludeEngines.add(IMPACTED_TEST_ENGINE_ID)
+			testFrameworkOptions.excludeEngines = testFrameworkOptions.excludeEngines + IMPACTED_TEST_ENGINE_ID
 		}
 	}
 
