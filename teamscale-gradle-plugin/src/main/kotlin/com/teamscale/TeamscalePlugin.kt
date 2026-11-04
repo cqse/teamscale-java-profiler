@@ -58,8 +58,8 @@ class TeamscalePlugin : Plugin<Project> {
 			"okhttp3.*",
 			"okio.*",
 			"retrofit2.*",
-			"*.MockitoMock.*",
-			"*.FastClassByGuice.*",
+			"*\$MockitoMock\$*",
+			"*\$\$FastClassByGuice\$\$*",
 			"*.ConstructorAccess"
 		)
 
