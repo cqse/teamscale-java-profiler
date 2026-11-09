@@ -31,6 +31,9 @@ abstract class TeamscalePluginTestBase {
 			System.getProperty("systemTestCoverageAgent")?.takeIf { it.none(Char::isWhitespace) }
 	}
 
+	/** The Gradle version to run the builds with, or null for the Gradle distribution that runs the tests. */
+	protected open val gradleVersion: String? = TeamscalePlugin.MINIMUM_SUPPORTED_VERSION.version
+
 	/** Teamscale mock server to be used during the tests. */
 	protected lateinit var teamscaleMockServer: TeamscaleMockServer
 
@@ -87,7 +90,7 @@ abstract class TeamscalePluginTestBase {
 			.withProjectDir(rootProject.projectDir)
 			.withPluginClasspath()
 			.withArguments(runnerArgs)
-			.withGradleVersion(TeamscalePlugin.MINIMUM_SUPPORTED_VERSION.version)
+		gradleVersion?.let { runner.withGradleVersion(it) }
 
 		return runner
 	}

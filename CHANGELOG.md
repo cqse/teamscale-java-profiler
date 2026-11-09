@@ -14,6 +14,7 @@ We use [semantic versioning](http://semver.org/):
 - [fix] _agent_, _teamscale-gradle-plugin_, _teamscale-maven-plugin_: A corrupt class file whose class name cannot be read is skipped with a warning instead of failing the coverage report.
 - [fix] _impacted-test-engine_: A test that a failing assumption aborts is reported as skipped instead of as an error.
 - [fix] _teamscale-gradle-plugin_: The plugin now works when the build sets `jacoco.excludes` or the JUnit Platform `excludeEngines` of a test task to a read-only collection (for example, `listOf(...)` or `setOf(...)` in the Kotlin DSL). Previously, applying the plugin or running the test task failed with an `UnsupportedOperationException`.
+- [fix] _teamscale-gradle-plugin_: Applying `com.teamscale.aggregation` no longer emits deprecation warnings on Gradle 9.6 and newer.
 - [fix] _teamscale-gradle-plugin_: The default excludes now match Mockito mocks (e.g. `com.company.IFoo$MockitoMock$123`) and Guice fast classes (e.g. `com.company.Foo$$FastClassByGuice$$abc`). Previously the profiler instrumented them, and the testwise coverage report warned that it found coverage for classes that were not provided.
 
 # 39.0.0

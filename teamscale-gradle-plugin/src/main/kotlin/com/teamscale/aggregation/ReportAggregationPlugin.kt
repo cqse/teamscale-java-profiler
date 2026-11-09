@@ -48,24 +48,22 @@ abstract class ReportAggregationPlugin : Plugin<Project> {
 	@get:Inject
 	protected abstract val jvmPluginServices: JvmPluginServices
 
-	@Suppress("DEPRECATION")
 	override fun apply(project: Project) {
 		val configurations = project.configurations
 		val reportAggregation =
 			configurations.dependencyScope(REPORT_AGGREGATION_CONFIGURATION_NAME) {
 				description = "A configuration to collect reports across projects."
-				isVisible = false
 			}.get()
 
 		val aggregateReportResults = configurations.resolvable(AGGREGATE_REPORT_RESULTS_CONFIGURATION_NAME) {
 			extendsFrom(reportAggregation)
 			description =
 				"Resolvable configuration used to gather files for report aggregation via ArtifactViews, not intended to be used directly"
-			isVisible = false
 		}.get()
 
 		project.plugins.withType<JavaBasePlugin> {
-			reportAggregation.dependencies.add(project.dependencyFactory.create(project))
+			// The map notation is the only way to create a project dependency that works on Gradle 8 and is not deprecated on Gradle 9.
+			reportAggregation.dependencies.add(project.dependencies.project(mapOf("path" to project.path)))
 			// If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
 			jvmPluginServices.configureAsRuntimeElements(aggregateReportResults)
 		}
