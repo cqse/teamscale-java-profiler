@@ -71,7 +71,7 @@ object HttpUtils {
 
 	/**
 	 * Java and/or OkHttp do not pick up the http.proxy* and https.proxy* system properties reliably. We need to teach
-	 * OkHttp to always pick them up.
+	 * OkHttp to always pick them up. Hosts that match the non-proxy hosts are contacted without the proxy.
 	 *
 	 *
 	 * Sources: [https://memorynotfound.com/configure-http-proxy-settings-java/](https://memorynotfound.com/configure-http-proxy-settings-java/)
@@ -99,7 +99,9 @@ object HttpUtils {
 			}
 
 			val host = proxySystemProperties.proxyHost ?: return false
-			useProxyServer(httpClientBuilder, host, proxySystemProperties.proxyPort)
+			useProxyServer(
+				httpClientBuilder, host, proxySystemProperties.proxyPort, proxySystemProperties.nonProxyHosts
+			)
 		} catch (e: ProxySystemProperties.IncorrectPortFormatException) {
 			LOGGER.warn(
 				"Ignoring invalid proxy port from system properties (http.proxyPort/https.proxyPort): {}." +
@@ -118,8 +120,18 @@ object HttpUtils {
 		return true
 	}
 
-	private fun useProxyServer(httpClientBuilder: Builder, proxyHost: String, proxyPort: Int) {
-		httpClientBuilder.proxy(Proxy(Proxy.Type.HTTP, InetSocketAddress(proxyHost, proxyPort)))
+	/**
+	 * Uses a [java.net.ProxySelector] rather than a fixed proxy, since OkHttp never consults the selector, and thus
+	 * the non-proxy hosts, once a fixed proxy is set.
+	 */
+	private fun useProxyServer(
+		httpClientBuilder: Builder,
+		proxyHost: String,
+		proxyPort: Int,
+		nonProxyHosts: String?
+	) {
+		val proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(proxyHost, proxyPort))
+		httpClientBuilder.proxySelector(NonProxyHostsProxySelector(proxy, nonProxyHosts))
 	}
 
 	private fun useProxyAuthenticator(httpClientBuilder: Builder, user: String, password: String) {
