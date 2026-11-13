@@ -337,6 +337,24 @@ class AgentOptionsParserTest {
 
 	@Test
 	@Throws(Exception::class)
+	fun coberturaOptionSelectsTheCoberturaFormat() {
+		Assertions.assertThat(parseAndThrow("cobertura=true").normalModeReportFormat)
+			.isEqualTo(EAgentReportFormat.COBERTURA)
+		Assertions.assertThat(parseAndThrow("report-format=COBERTURA").normalModeReportFormat)
+			.isEqualTo(EAgentReportFormat.COBERTURA)
+	}
+
+	@Test
+	@Throws(Exception::class)
+	fun coberturaOptionSetToFalseKeepsTheConfiguredFormat() {
+		Assertions.assertThat(parseAndThrow("cobertura=false").normalModeReportFormat)
+			.isEqualTo(EAgentReportFormat.TEAMSCALE_COMPACT_COVERAGE)
+		Assertions.assertThat(parseAndThrow("report-format=JACOCO,cobertura=false").normalModeReportFormat)
+			.isEqualTo(EAgentReportFormat.JACOCO)
+	}
+
+	@Test
+	@Throws(Exception::class)
 	fun reportFormatRejectsUnknownValue() {
 		Assertions.assertThatThrownBy { parseAndThrow("report-format=xml") }
 			.hasMessageContaining("Invalid value for option `report-format`")

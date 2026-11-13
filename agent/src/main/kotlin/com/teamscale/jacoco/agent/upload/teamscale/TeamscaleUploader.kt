@@ -42,10 +42,11 @@ class TeamscaleUploader(
 		server.userName = teamscaleServer.userName
 		server.url = teamscaleServer.url
 		server.message = properties.getProperty(ETeamscaleServerProperties.MESSAGE.name)
-		// Infer the format from the on-disk file extension so retries survive a change in the
-		// agent's default report format between runs. Fall back to JACOCO for legacy files
-		// without one of the known coverage extensions.
-		val retryFormat = EAgentReportFormat.fromFileExtension(coverageFile.extension)?.reportFormat
+		// Infer the format from the on-disk file name so retries survive a change in the agent's default report
+		// format between runs. The file name prefix rather than the extension identifies the format, because JaCoCo
+		// XML and Cobertura share the .xml extension. Fall back to JACOCO for legacy files that follow neither
+		// naming convention.
+		val retryFormat = EAgentReportFormat.fromFileName(coverageFile.name)?.reportFormat
 			?: EReportFormat.JACOCO
 		doUpload(coverageFile, server, retryFormat)
 	}

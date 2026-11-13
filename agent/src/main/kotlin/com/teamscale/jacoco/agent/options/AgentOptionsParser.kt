@@ -318,6 +318,14 @@ class AgentOptionsParser @VisibleForTesting internal constructor(
 				options.normalModeReportFormat = parseEnumValue(key, value)
 				return true
 			}
+			"cobertura" -> {
+				// Convenience alias for report-format=COBERTURA. Setting it to false is a no-op so that it never
+				// overrides a format that report-format selected, regardless of the order of the two options.
+				if (value.toBoolean()) {
+					options.normalModeReportFormat = EAgentReportFormat.COBERTURA
+				}
+				return true
+			}
 			"includes" -> {
 				options.jacocoIncludes = value.replace(";".toRegex(), ":")
 				return true

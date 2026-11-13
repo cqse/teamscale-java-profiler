@@ -97,10 +97,7 @@ class DelayedUploader<T> internal constructor(
 				return
 			}
 			val coverageFiles = cacheDir.listDirectoryEntries().filter { path ->
-				val fileName = path.fileName.toString()
-				EAgentReportFormat.entries.any { format ->
-					fileName.startsWith("${format.fileNamePrefix}-") && fileName.endsWith(".${format.fileExtension}")
-				}
+				EAgentReportFormat.fromFileName(path.fileName.toString()) != null
 			}
 			coverageFiles.forEach { path -> wrappedUploader?.upload(CoverageFile(path.toFile())) }
 			logger.debug("Finished upload of cached coverage files to {}", wrappedUploader?.describe())
