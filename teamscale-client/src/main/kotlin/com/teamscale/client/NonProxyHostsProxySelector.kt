@@ -9,12 +9,13 @@ import java.util.*
 import java.util.regex.Pattern
 
 /**
- * Routes every request through the given [proxy], except requests to hosts that match [nonProxyHosts].
+ * Routes every request through the given proxy, except requests to hosts that match the non-proxy hosts.
  *
- * [nonProxyHosts] is interpreted like the JVM's `http.nonProxyHosts` (see `sun.net.spi.DefaultProxySelector`):
- * `|`-separated, case-insensitive host patterns, each with an optional `*` wildcard at its start and/or end. The
- * JVM's default exclusions ([JVM_DEFAULT_NON_PROXY_HOSTS]) apply if [nonProxyHosts] is `null` and are added to any
- * non-empty value. An empty value excludes no host.
+ * @param proxy The proxy for all hosts that do not match [nonProxyHosts].
+ * @param nonProxyHosts The hosts to contact without the proxy, in the format of the JVM's `http.nonProxyHosts` (see
+ * `sun.net.spi.DefaultProxySelector`): `|`-separated, case-insensitive host patterns, each with an optional `*`
+ * wildcard at its start and/or end. The JVM's default exclusions ([JVM_DEFAULT_NON_PROXY_HOSTS]) apply if this is
+ * `null` and are added to any non-empty value. An empty value excludes no host.
  */
 internal class NonProxyHostsProxySelector(private val proxy: Proxy, nonProxyHosts: String?) : ProxySelector() {
 
