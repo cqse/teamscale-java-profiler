@@ -8,16 +8,18 @@ import java.net.URI
 import java.util.*
 import java.util.regex.Pattern
 
-/**
- * Routes every request through the given proxy, except requests to hosts that match the non-proxy hosts.
- *
- * @param proxy The proxy for all hosts that do not match [nonProxyHosts].
- * @param nonProxyHosts The hosts to contact without the proxy, in the format of the JVM's `http.nonProxyHosts` (see
- * `sun.net.spi.DefaultProxySelector`): `|`-separated, case-insensitive host patterns, each with an optional `*`
- * wildcard at its start and/or end. The JVM's default exclusions ([JVM_DEFAULT_NON_PROXY_HOSTS]) apply if this is
- * `null` and are added to any non-empty value. An empty value excludes no host.
- */
-internal class NonProxyHostsProxySelector(private val proxy: Proxy, nonProxyHosts: String?) : ProxySelector() {
+/** Routes every request through the given proxy, except requests to hosts that match the non-proxy hosts. */
+internal class NonProxyHostsProxySelector(
+	/** The proxy for all hosts that do not match [nonProxyHosts]. */
+	private val proxy: Proxy,
+	/**
+	 * The hosts to contact without the proxy, in the format of the JVM's `http.nonProxyHosts` (see
+	 * `sun.net.spi.DefaultProxySelector`): `|`-separated, case-insensitive host patterns, each with an optional
+	 * `*` wildcard at its start and/or end. The JVM's default exclusions ([JVM_DEFAULT_NON_PROXY_HOSTS]) apply if
+	 * this is `null` and are added to any non-empty value. An empty value excludes no host.
+	 */
+	nonProxyHosts: String?
+) : ProxySelector() {
 
 	private val nonProxyHostsPattern = toPattern(
 		when {
