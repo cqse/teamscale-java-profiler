@@ -33,6 +33,10 @@ internal class TeamscaleServiceGeneratorProxyServerTest {
 	@BeforeEach
 	@Throws(IOException::class)
 	fun setUp() {
+		// The JVM may preset properties, e.g. http.nonProxyHosts from the macOS network settings
+		proxySystemProperties.clear()
+		teamscaleProxySystemProperties.clear()
+
 		mockProxyServer = MockWebServer()
 		mockProxyServer?.start()
 	}
@@ -66,9 +70,12 @@ internal class TeamscaleServiceGeneratorProxyServerTest {
 		teamscaleProxySystemProperties.proxyHost = mockProxyServer?.hostName
 		teamscaleProxySystemProperties.proxyPort = mockProxyServer?.port ?: 1
 
+		// Answers right away if the request wrongly goes through the proxy, instead of blocking until the read timeout
+		mockProxyServer?.enqueue(MockResponse().setResponseCode(502))
+
 		MockWebServer().use { teamscaleServer ->
 			teamscaleServer.enqueue(MockResponse().setResponseCode(200))
-			sendHeartbeat(teamscaleServer.url("/"))
+			sendHeartbeat(teamscaleServer.url("/").newBuilder().host("localhost").build())
 
 			Assertions.assertThat(teamscaleServer.requestCount).isEqualTo(1)
 			Assertions.assertThat(mockProxyServer?.requestCount).isEqualTo(0)

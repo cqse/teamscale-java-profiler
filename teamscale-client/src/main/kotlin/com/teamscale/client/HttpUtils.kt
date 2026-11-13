@@ -71,7 +71,8 @@ object HttpUtils {
 
 	/**
 	 * Java and/or OkHttp do not pick up the http.proxy* and https.proxy* system properties reliably. We need to teach
-	 * OkHttp to always pick them up. Hosts that match the non-proxy hosts are contacted without the proxy.
+	 * OkHttp to always pick them up. The HTTPS proxy, or else the HTTP proxy, is used for requests of both schemes.
+	 * Hosts that match the non-proxy hosts are contacted without the proxy.
 	 *
 	 *
 	 * Sources: [https://memorynotfound.com/configure-http-proxy-settings-java/](https://memorynotfound.com/configure-http-proxy-settings-java/)

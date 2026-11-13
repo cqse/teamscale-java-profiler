@@ -3,6 +3,7 @@ package com.teamscale.client
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class ProxySystemPropertiesTest {
@@ -10,8 +11,9 @@ internal class ProxySystemPropertiesTest {
 	private val httpsProperties = ProxySystemProperties(ProxySystemProperties.Protocol.HTTPS)
 	private val teamscaleProperties = TeamscaleProxySystemProperties(ProxySystemProperties.Protocol.HTTPS)
 
+	@BeforeEach
 	@AfterEach
-	fun teardown() {
+	fun clearProperties() {
 		properties.clear()
 		httpsProperties.clear()
 		teamscaleProperties.clear()
@@ -50,15 +52,33 @@ internal class ProxySystemPropertiesTest {
 	}
 
 	@Test
-	fun testNonProxyHosts() {
+	fun testNonProxyHostsIsUnsetByDefault() {
 		assertThat(teamscaleProperties.nonProxyHosts).isNull()
+	}
 
+	@Test
+	fun testNonProxyHostsFallsBackToJvmProperty() {
 		// The JVM applies http.nonProxyHosts to HTTPS, too
 		System.setProperty("http.nonProxyHosts", "*.mycompany.com")
-		assertThat(teamscaleProperties.nonProxyHosts).isEqualTo("*.mycompany.com")
 
+		assertThat(teamscaleProperties.nonProxyHosts).isEqualTo("*.mycompany.com")
+	}
+
+	@Test
+	fun testTeamscaleNonProxyHostsTakesPrecedence() {
+		System.setProperty("http.nonProxyHosts", "*.mycompany.com")
 		teamscaleProperties.nonProxyHosts = "teamscale.mycompany.com"
+
 		assertThat(System.getProperty("teamscale.https.nonProxyHosts")).isEqualTo("teamscale.mycompany.com")
 		assertThat(teamscaleProperties.nonProxyHosts).isEqualTo("teamscale.mycompany.com")
+	}
+
+	@Test
+	fun testJvmNonProxyHostsIsSharedByBothProtocols() {
+		httpsProperties.nonProxyHosts = "*.mycompany.com"
+
+		assertThat(System.getProperty("http.nonProxyHosts")).isEqualTo("*.mycompany.com")
+		assertThat(System.getProperty("https.nonProxyHosts")).isNull()
+		assertThat(properties.nonProxyHosts).isEqualTo("*.mycompany.com")
 	}
 }

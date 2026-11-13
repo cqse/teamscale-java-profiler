@@ -8,7 +8,7 @@ package com.teamscale.client
  * - http.proxyPassword
  * - http.nonProxyHosts
  *
- * Or their HTTPS counterparts (https.*).
+ * Or their HTTPS counterparts (https.*), except for http.nonProxyHosts, which the JVM uses for both protocols.
  * These values set the proxy server and credentials used to reach Teamscale, and the hosts that are reached without
  * the proxy.
  */
@@ -83,14 +83,21 @@ open class ProxySystemProperties(private val protocol: Protocol) {
 		}
 
 	/**
-	 * The hosts that are reached without the proxy, in the format of the JVM's `http.nonProxyHosts`. Falls back to
-	 * `http.nonProxyHosts`, which the JVM also applies to HTTPS.
+	 * The hosts that are reached without the proxy, in the format of the JVM's `http.nonProxyHosts`. Without a
+	 * [propertyPrefix], this is `http.nonProxyHosts` for both protocols, like in the JVM. With a prefix, it is
+	 * protocol-specific (e.g. `teamscale.https.nonProxyHosts`) and falls back to `http.nonProxyHosts`.
 	 */
 	var nonProxyHosts: String?
-		get() = getProperty(NON_PROXY_HOSTS_SYSTEM_PROPERTY)
-			?: System.getProperty(JVM_NON_PROXY_HOSTS_SYSTEM_PROPERTY)
+		get() = System.getProperty(nonProxyHostsKey) ?: System.getProperty(JVM_NON_PROXY_HOSTS_SYSTEM_PROPERTY)
 		set(value) {
-			setProperty(NON_PROXY_HOSTS_SYSTEM_PROPERTY, value)
+			setSystemProperty(nonProxyHostsKey, value)
+		}
+
+	private val nonProxyHostsKey: String
+		get() = if (propertyPrefix.isEmpty()) {
+			JVM_NON_PROXY_HOSTS_SYSTEM_PROPERTY
+		} else {
+			key(NON_PROXY_HOSTS_SYSTEM_PROPERTY)
 		}
 
 	/**
@@ -112,10 +119,15 @@ open class ProxySystemProperties(private val protocol: Protocol) {
 	 * @param property The property key.
 	 * @param value The property value to set.
 	 */
-	private fun setProperty(property: String, value: String?) {
+	private fun setProperty(property: String, value: String?) = setSystemProperty(key(property), value)
+
+	/**
+	 * Sets the system property with the given full key, unless the value is `null`.
+	 */
+	private fun setSystemProperty(key: String, value: String?) {
 		value?.let {
 			check(it.isNotBlank()) { "Value must not be blank" }
-			System.setProperty(key(property), it)
+			System.setProperty(key, it)
 		}
 	}
 
@@ -141,7 +153,7 @@ open class ProxySystemProperties(private val protocol: Protocol) {
 		System.clearProperty(key(PROXY_PORT_SYSTEM_PROPERTY))
 		System.clearProperty(key(PROXY_USER_SYSTEM_PROPERTY))
 		System.clearProperty(key(PROXY_PASSWORD_SYSTEM_PROPERTY))
-		System.clearProperty(key(NON_PROXY_HOSTS_SYSTEM_PROPERTY))
+		System.clearProperty(nonProxyHostsKey)
 	}
 
 	/**
