@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 40.0.0
 - [breaking] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` only match the class name, no longer parts of the class file's path (e.g. `*target.classes.*`). Nested classes are written with `$` (e.g. `com.company.Outer$Inner`).
 - [feature] _agent_: Added official support for Java 27 and experimental support for Java 28 (via JaCoCo 0.8.16)
 - [fix] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` patterns no longer need a leading `*`. Previously, e.g. `com.company.*` led to an empty testwise coverage report.
