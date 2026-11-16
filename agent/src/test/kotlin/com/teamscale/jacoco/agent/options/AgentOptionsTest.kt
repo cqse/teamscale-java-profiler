@@ -607,7 +607,8 @@ class AgentOptionsTest {
 				optionsString += ",$proxyPasswordFileOption"
 			}
 
-			val credentials = TeamscaleCredentials("http://localhost:80".toHttpUrlOrNull(), "unused", "unused")
+			// Not localhost, which is never proxied by default
+			val credentials = TeamscaleCredentials("http://teamscale.example.com:80".toHttpUrlOrNull(), "unused", "unused")
 			return getAgentOptionsParserWithDummyLoggerAndCredentials(credentials).parse(optionsString)
 		}
 

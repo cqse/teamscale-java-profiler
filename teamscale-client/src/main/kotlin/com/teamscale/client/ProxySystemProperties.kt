@@ -6,9 +6,11 @@ package com.teamscale.client
  * - http.proxyPort
  * - http.proxyUser
  * - http.proxyPassword
+ * - http.nonProxyHosts
  *
- * Or their HTTPS counterparts (https.*).
- * These values set the proxy server and credentials used to reach Teamscale.
+ * Or their HTTPS counterparts (https.*), except for http.nonProxyHosts, which the JVM uses for both protocols.
+ * These values set the proxy server and credentials used to reach Teamscale, and the hosts that are reached without
+ * the proxy.
  */
 open class ProxySystemProperties(private val protocol: Protocol) {
 
@@ -17,6 +19,10 @@ open class ProxySystemProperties(private val protocol: Protocol) {
 		private const val PROXY_PORT_SYSTEM_PROPERTY = ".proxyPort"
 		private const val PROXY_USER_SYSTEM_PROPERTY = ".proxyUser"
 		private const val PROXY_PASSWORD_SYSTEM_PROPERTY = ".proxyPassword"
+		private const val NON_PROXY_HOSTS_SYSTEM_PROPERTY = ".nonProxyHosts"
+
+		/** The JVM's exclusion list, which the JVM applies to both HTTP and HTTPS. */
+		private const val JVM_NON_PROXY_HOSTS_SYSTEM_PROPERTY = "http.nonProxyHosts"
 	}
 
 	/**
@@ -77,13 +83,35 @@ open class ProxySystemProperties(private val protocol: Protocol) {
 		}
 
 	/**
+	 * The hosts that are reached without the proxy, in the format of the JVM's `http.nonProxyHosts`. Without a
+	 * [propertyPrefix], this is `http.nonProxyHosts` for both protocols, like in the JVM. With a prefix, it is
+	 * protocol-specific (e.g. `teamscale.https.nonProxyHosts`) and falls back to `http.nonProxyHosts`.
+	 */
+	var nonProxyHosts: String?
+		get() = System.getProperty(nonProxyHostsKey) ?: System.getProperty(JVM_NON_PROXY_HOSTS_SYSTEM_PROPERTY)
+		set(value) {
+			setSystemProperty(nonProxyHostsKey, value)
+		}
+
+	private val nonProxyHostsKey: String
+		get() = if (propertyPrefix.isEmpty()) {
+			JVM_NON_PROXY_HOSTS_SYSTEM_PROPERTY
+		} else {
+			key(NON_PROXY_HOSTS_SYSTEM_PROPERTY)
+		}
+
+	/**
+	 * Returns the full system property key, e.g. `teamscale.https.proxyHost`, for the given property suffix.
+	 */
+	private fun key(property: String) = "$propertyPrefix$protocol$property"
+
+	/**
 	 * Retrieves the system property value for the given property key.
 	 *
 	 * @param property The property key.
 	 * @return The property value or null if not set.
 	 */
-	private fun getProperty(property: String) =
-		System.getProperty("$propertyPrefix${protocol}.$property")
+	private fun getProperty(property: String): String? = System.getProperty(key(property))
 
 	/**
 	 * Sets the system property value for the given property key.
@@ -91,10 +119,15 @@ open class ProxySystemProperties(private val protocol: Protocol) {
 	 * @param property The property key.
 	 * @param value The property value to set.
 	 */
-	private fun setProperty(property: String, value: String?) {
+	private fun setProperty(property: String, value: String?) = setSystemProperty(key(property), value)
+
+	/**
+	 * Sets the system property with the given full key, unless the value is `null`.
+	 */
+	private fun setSystemProperty(key: String, value: String?) {
 		value?.let {
 			check(it.isNotBlank()) { "Value must not be blank" }
-			System.setProperty("$propertyPrefix${protocol}.$property", it)
+			System.setProperty(key, it)
 		}
 	}
 
@@ -116,10 +149,11 @@ open class ProxySystemProperties(private val protocol: Protocol) {
 	 * Clears all proxy system properties.
 	 */
 	fun clear() {
-		System.clearProperty("$propertyPrefix${protocol}.$PROXY_HOST_SYSTEM_PROPERTY")
-		System.clearProperty("$propertyPrefix${protocol}.$PROXY_PORT_SYSTEM_PROPERTY")
-		System.clearProperty("$propertyPrefix${protocol}.$PROXY_USER_SYSTEM_PROPERTY")
-		System.clearProperty("$propertyPrefix${protocol}.$PROXY_PASSWORD_SYSTEM_PROPERTY")
+		System.clearProperty(key(PROXY_HOST_SYSTEM_PROPERTY))
+		System.clearProperty(key(PROXY_PORT_SYSTEM_PROPERTY))
+		System.clearProperty(key(PROXY_USER_SYSTEM_PROPERTY))
+		System.clearProperty(key(PROXY_PASSWORD_SYSTEM_PROPERTY))
+		System.clearProperty(nonProxyHostsKey)
 	}
 
 	/**
