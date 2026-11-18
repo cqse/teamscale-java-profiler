@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _installer_: The bundled Java runtime disables the Base64 intrinsic affected by CVE-2026-114938.
 
 # 40.0.0
 - [breaking] _agent_, _teamscale-maven-plugin_: `includes` and `excludes` only match the class name, no longer parts of the class file's path (e.g. `*target.classes.*`). Nested classes are written with `$` (e.g. `com.company.Outer$Inner`).

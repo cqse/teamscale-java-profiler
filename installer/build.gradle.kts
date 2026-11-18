@@ -76,6 +76,8 @@ application {
 		// Ensure that no stack traces are lost.
 		// See <https://stackoverflow.com/questions/2411487/nullpointerexception-in-java-with-no-stacktrace>
 		"-XX:-OmitStackTraceInFastThrow",
+		// Mitigates CVE-2026-114938 in the bundled runtime: the AVX-512 Base64 intrinsic can corrupt the heap.
+		"-XX:-UseBASE64Intrinsics",
 	)
 }
 
