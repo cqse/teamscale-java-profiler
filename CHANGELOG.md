@@ -5,6 +5,8 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+
+# 40.0.1
 - [fix] _installer_: The bundled Java runtime disables the Base64 intrinsic affected by CVE-2026-114938.
 
 # 40.0.0
