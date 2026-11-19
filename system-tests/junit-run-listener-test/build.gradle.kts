@@ -6,5 +6,10 @@ plugins {
 
 tasks.test {
     // install dependencies needed by the Maven test projects
-    dependsOn(":publishToMavenLocal")
+    usesMavenLocalPublicationsOf(
+        ":report-generator",
+        ":teamscale-client",
+        ":tia-client",
+        ":tia-runlisteners",
+    )
 }

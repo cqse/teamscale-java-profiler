@@ -11,5 +11,11 @@ dependencies {
 
 tasks.test {
 	// install dependencies needed by the Maven test project
-	dependsOn(":publishToMavenLocal")
+	usesMavenLocalPublicationsOf(
+		":agent",
+		":impacted-test-engine",
+		":report-generator",
+		":teamscale-client",
+		":teamscale-maven-plugin",
+	)
 }

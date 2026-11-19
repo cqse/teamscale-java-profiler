@@ -74,9 +74,11 @@ dependencies {
 }
 
 tasks.test {
-	dependsOn(":agent:publishToMavenLocal")
-	dependsOn(":impacted-test-engine:publishToMavenLocal")
-	dependsOn(":teamscale-client:publishToMavenLocal")
-	dependsOn(":tia-client:publishToMavenLocal")
-	dependsOn(":report-generator:publishToMavenLocal")
+	usesMavenLocalPublicationsOf(
+		":agent",
+		":impacted-test-engine",
+		":teamscale-client",
+		":tia-client",
+		":report-generator",
+	)
 }

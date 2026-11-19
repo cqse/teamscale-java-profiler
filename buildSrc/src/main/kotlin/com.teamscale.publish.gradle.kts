@@ -74,3 +74,18 @@ fun PublicationContainer.configureMavenPublication() {
 tasks.withType<GenerateModuleMetadata> {
 	dependsOn(tasks.named("jar"))
 }
+
+// Shares the files that publishToMavenLocal installs with the tests that run builds against the local Maven
+// repository, cf. usesMavenLocalPublicationsOf. The provider defers reading the publications until a consumer
+// resolves them, because reading their artifacts earlier would freeze them before they are fully configured.
+configurations.consumable(MAVEN_LOCAL_CONFIGURATION) {
+	val installedFiles = provider {
+		publishing.publications.withType<MavenPublication>().flatMap { publication ->
+			publication.artifacts.map { it.file }
+		} + tasks.withType<GenerateMavenPom>().map { it.destination } +
+				tasks.withType<GenerateModuleMetadata>().map { it.outputFile.get().asFile }
+	}
+	outgoing.artifacts(installedFiles) {
+		builtBy(tasks.named("publishToMavenLocal"))
+	}
+}
