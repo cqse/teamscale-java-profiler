@@ -9,6 +9,7 @@ import kotlin.time.Duration.Companion.minutes
  */
 class IntervalDumper(
 	private val configuredIntervalInMinutes: Int,
+	/** Whether the agent sends its coverage to a server, rather than only writing it to the local disk. */
 	isUploading: Boolean,
 	private val logger: Logger,
 	private val scheduler: PeriodicScheduler,

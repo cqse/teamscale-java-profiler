@@ -6,7 +6,12 @@ package com.teamscale.jacoco.agent
  * Users set a short interval to see a first upload soon. They often forget to raise it again. An agent that only
  * writes to the local disk keeps a short interval. No server receives its coverage.
  */
-class DumpIntervalGuard(configuredIntervalInMinutes: Int, isUploading: Boolean) {
+class DumpIntervalGuard(
+	/** The minutes between two interval dumps, as the `interval` option sets them. */
+	configuredIntervalInMinutes: Int,
+	/** Whether the agent sends its coverage to a server, rather than only writing it to the local disk. */
+	isUploading: Boolean
+) {
 
 	/** Whether the configured interval applies only until the first successful upload. */
 	val isShortUploadInterval =

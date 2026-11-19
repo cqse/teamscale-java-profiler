@@ -153,17 +153,8 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 			return
 		}
 
-		val format = options.normalModeReportFormat
-		val generator = options.createReportGenerator(LoggingUtils.wrap(logger))
-
 		try {
-			var hasUploaded = false
-			benchmark("Generating the coverage report") {
-				val outputFile = options.createNewFileInOutputDirectory(format.fileNamePrefix, format.fileExtension)
-				val coverageFile = generator.convertSingleDumpToReport(dump, outputFile)
-				hasUploaded = uploader.upload(coverageFile)
-			}
-			if (hasUploaded) {
+			if (uploadReport(dump)) {
 				intervalDumper?.recordSuccessfulUpload()
 			}
 		} catch (e: IOException) {
@@ -179,5 +170,18 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 				e.message
 			)
 		}
+	}
+
+	/** Converts [dump] to a coverage report and returns whether the uploader uploaded that report. */
+	private fun uploadReport(dump: Dump): Boolean {
+		val format = options.normalModeReportFormat
+		val generator = options.createReportGenerator(LoggingUtils.wrap(logger))
+		var hasUploaded = false
+		benchmark("Generating the coverage report") {
+			val outputFile = options.createNewFileInOutputDirectory(format.fileNamePrefix, format.fileExtension)
+			val coverageFile = generator.convertSingleDumpToReport(dump, outputFile)
+			hasUploaded = uploader.upload(coverageFile)
+		}
+		return hasUploaded
 	}
 }

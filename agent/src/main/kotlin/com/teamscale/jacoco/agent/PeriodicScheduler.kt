@@ -14,7 +14,10 @@ interface PeriodicScheduler {
 }
 
 /** Runs actions periodically on a daemon [Timer] thread with the given name. */
-class TimerScheduler(threadName: String) : PeriodicScheduler {
+class TimerScheduler(
+	/** The name of the thread that runs the actions. */
+	threadName: String
+) : PeriodicScheduler {
 	private val timer = Timer(threadName, true)
 
 	override fun schedule(period: Duration, action: () -> Unit): () -> Unit {

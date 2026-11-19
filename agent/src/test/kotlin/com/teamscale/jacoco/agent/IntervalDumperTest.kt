@@ -102,10 +102,14 @@ class IntervalDumperTest {
 	}
 
 	private class FakeScheduler : PeriodicScheduler {
+		/** Every schedule made, in order, the cancelled ones included. */
 		val schedules = mutableListOf<Schedule>()
 
+		/** Whether [shutdown] was called. */
 		var isShutDown = false
+			private set
 
+		/** The schedules that nobody cancelled. */
 		val activeSchedules
 			get() = schedules.filterNot { it.isCancelled }
 
@@ -119,7 +123,14 @@ class IntervalDumperTest {
 			isShutDown = true
 		}
 
+		/**
+		 * One call of [FakeScheduler.schedule].
+		 *
+		 * @property period The time between two runs of [action].
+		 * @property action The action the call scheduled.
+		 */
 		class Schedule(val period: Duration, val action: () -> Unit) {
+			/** Whether the function that [FakeScheduler.schedule] returned was called. */
 			var isCancelled = false
 		}
 	}
