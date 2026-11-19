@@ -87,22 +87,35 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoFailureException {
-		List<File> projectBuildDirectories = collectProjectBuildDirectories();
+		List<MavenProject> projects = DependencyUtils.findDependencies(reactorProjects, project,
+				Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME, Artifact.SCOPE_PROVIDED);
+		List<File> projectBuildDirectories = collectBuildDirectories(projects);
 		logger.info("Generating the testwise coverage report");
-		JaCoCoTestwiseReportGenerator generator = createJaCoCoTestwiseReportGenerator(projectBuildDirectories);
+		JaCoCoTestwiseReportGenerator generator = createJaCoCoTestwiseReportGenerator(
+				collectClassDirectories(projects));
 
 		generateTestwiseCoverageReport(generator, projectBuildDirectories, TiaUnitTestMojo.OUTPUT_DIR_NAME);
 		generateTestwiseCoverageReport(generator, projectBuildDirectories, TiaIntegrationTestMojo.OUTPUT_DIR_NAME);
 	}
 
-	private @NotNull List<File> collectProjectBuildDirectories() {
-		List<File> projectBuildDirectories = new ArrayList<>();
-		List<MavenProject> dependantProjects = DependencyUtils.findDependencies(reactorProjects, project,
-				Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME, Artifact.SCOPE_PROVIDED);
-		for (MavenProject dependantProject : dependantProjects) {
-			projectBuildDirectories.add(new File(dependantProject.getBuild().getDirectory()));
+	/** Returns the build directories of the given projects, below which the TIA mojos write the execution data. */
+	private static @NotNull List<File> collectBuildDirectories(List<MavenProject> projects) {
+		return projects.stream()
+				.map(mavenProject -> new File(mavenProject.getBuild().getDirectory()))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Returns the output and test output directories of the given projects. Other files below the build directories,
+	 * e.g. archives of earlier builds, are left out since the tests did not run their classes.
+	 */
+	private static @NotNull List<File> collectClassDirectories(List<MavenProject> projects) {
+		List<File> classDirectories = new ArrayList<>();
+		for (MavenProject mavenProject : projects) {
+			classDirectories.add(new File(mavenProject.getBuild().getOutputDirectory()));
+			classDirectories.add(new File(mavenProject.getBuild().getTestOutputDirectory()));
 		}
-		return projectBuildDirectories;
+		return classDirectories;
 	}
 
 	private void generateTestwiseCoverageReport(JaCoCoTestwiseReportGenerator generator,
@@ -169,7 +182,7 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 		}
 	}
 
-	private JaCoCoTestwiseReportGenerator createJaCoCoTestwiseReportGenerator(List<File> classFiles) {
+	private JaCoCoTestwiseReportGenerator createJaCoCoTestwiseReportGenerator(List<File> classDirectories) {
 		String includes = null;
 		if (this.includes != null) {
 			includes = String.join(":", this.includes);
@@ -178,7 +191,7 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 		if (this.excludes != null) {
 			excludes = String.join(":", this.excludes);
 		}
-		return new JaCoCoTestwiseReportGenerator(classFiles,
+		return new JaCoCoTestwiseReportGenerator(classDirectories,
 				new ClasspathWildcardIncludeFilter(includes, excludes), EDuplicateClassFileBehavior.WARN, logger);
 	}
 }

@@ -6,15 +6,22 @@ import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestwiseCoverageReport
 import com.teamscale.test.commons.SystemTestUtils
 import com.teamscale.test.commons.SystemTestUtils.coverage
+import com.teamscale.test.commons.SystemTestUtils.runMaven
 import com.teamscale.test.commons.SystemTestUtils.runMavenTests
 import com.teamscale.test.commons.TeamscaleMockServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
+import javax.tools.ToolProvider
 
 /**
  * Runs several Maven projects' Surefire tests that have the agent attached, and one of our JUnit run listeners enabled.
@@ -160,7 +167,44 @@ class TiaMavenSystemTest {
 		checkExpectedUnitTestCoverage(testwiseCoverageReport)
 	}
 
+	/**
+	 * Tests that the testwise coverage report ignores class files that an earlier build left in the build directory,
+	 * e.g. a JAR of an older version of the project (TS-48721).
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun testStaleClassFilesInBuildDirectoryAreIgnored(@TempDir compilerOutput: Path) {
+		assertThat(runMaven("maven-project", "clean").exitCode).isZero()
+		writeStaleJar(compilerOutput, File("maven-project/sub-project-A/target/sub-project-A-0.9-SNAPSHOT.jar"))
+
+		val result = runMaven("maven-project", "verify", "-Dtia")
+
+		assertThat(result.exitCode).isZero()
+		assertThat(result.stdout + result.stderr).doesNotContain("Non-identical class file")
+		checkExpectedUnitTestCoverage(teamscaleMockServer.getSession("Unit Tests").onlyTestwiseCoverageReport)
+	}
+
 	companion object {
+		/**
+		 * Writes a JAR to the given file that contains a class file of `SUTA` that is not identical to the one Maven
+		 * compiles, since it lacks the debug information.
+		 */
+		private fun writeStaleJar(compilerOutput: Path, jarFile: File) {
+			val compiler = ToolProvider.getSystemJavaCompiler()
+			val exitCode = compiler.run(
+				null, null, null, "-g:none", "--release", "8", "-d", compilerOutput.toString(),
+				"maven-project/sub-project-A/src/main/java/org/example/SUTA.java"
+			)
+			assertThat(exitCode).isZero()
+
+			jarFile.parentFile.mkdirs()
+			JarOutputStream(jarFile.outputStream()).use { jar ->
+				jar.putNextEntry(JarEntry("org/example/SUTA.class"))
+				Files.copy(compilerOutput.resolve("org/example/SUTA.class"), jar)
+				jar.closeEntry()
+			}
+		}
+
 		private fun checkExpectedUnitTestCoverage(testwiseCoverageReport: TestwiseCoverageReport?) {
 			assertThat(testwiseCoverageReport).isNotNull()
 			assertThat(testwiseCoverageReport!!.tests)
