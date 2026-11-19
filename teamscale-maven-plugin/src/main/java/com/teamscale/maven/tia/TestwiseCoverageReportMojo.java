@@ -2,6 +2,7 @@ package com.teamscale.maven.tia;
 
 import com.teamscale.client.TestDetails;
 import com.teamscale.maven.DependencyUtils;
+import com.teamscale.maven.MavenLogger;
 import com.teamscale.report.EDuplicateClassFileBehavior;
 import com.teamscale.report.ReportUtils;
 import com.teamscale.report.testwise.ETestArtifactFormat;
@@ -11,7 +12,6 @@ import com.teamscale.report.testwise.jacoco.JaCoCoTestwiseReportGenerator;
 import com.teamscale.report.testwise.model.TestExecution;
 import com.teamscale.report.testwise.model.factory.TestInfoFactory;
 import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
-import com.teamscale.report.util.CommandLineLogger;
 import com.teamscale.report.util.ILogger;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -83,10 +83,12 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 	@Parameter(property = "reactorProjects", readonly = true)
 	private List<MavenProject> reactorProjects;
 
-	private final ILogger logger = new CommandLineLogger();
+	private ILogger logger;
 
 	@Override
 	public void execute() throws MojoFailureException {
+		// Maven injects the log after construction, so the constructor would only see the default log
+		logger = new MavenLogger(getLog());
 		List<File> projectBuildDirectories = collectProjectBuildDirectories();
 		logger.info("Generating the testwise coverage report");
 		JaCoCoTestwiseReportGenerator generator = createJaCoCoTestwiseReportGenerator(projectBuildDirectories);
