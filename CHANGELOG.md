@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _agent_: A configured dump `interval` smaller than 1h is now applied only once and then raised to 1h to prevent excessive uploads that can overwhelm Teamscale. A warning is logged at startup when this happens.
 
 # 40.0.1
 - [fix] _installer_: The bundled Java runtime disables the Base64 intrinsic affected by CVE-2026-114938.
