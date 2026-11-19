@@ -18,13 +18,8 @@ import java.io.File
 import java.io.IOException
 import java.lang.instrument.Instrumentation
 import java.nio.file.Files
-import java.util.Timer
-import java.util.TimerTask
-import kotlin.concurrent.scheduleAtFixedRate
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.listDirectoryEntries
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 /**
  * A wrapper around the JaCoCo Java agent that automatically triggers a dump and XML conversion based on a time
@@ -32,47 +27,28 @@ import kotlin.time.toDuration
  */
 class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBase(options) {
 
-	/** Runs the regular dumps. Null when the agent dumps in no interval or shuts down.  */
-	private var timer: Timer? = null
-
-	/** The task of [timer] that dumps in the current interval.  */
-	private var intervalDumpTask: TimerTask? = null
-
 	/** Stores the XML files.  */
 	private val uploader = options.createUploader(instrumentation)
 
-	private val dumpIntervalGuard = DumpIntervalGuard(options.dumpIntervalInMinutes, uploader !is LocalDiskUploader)
+	/** Runs the regular dumps. Null when the agent dumps in no interval.  */
+	private val intervalDumper = if (options.shouldDumpInIntervals()) {
+		IntervalDumper(
+			options.dumpIntervalInMinutes,
+			uploader !is LocalDiskUploader,
+			logger,
+			TimerScheduler("Teamscale-Java-Profiler")
+		) { dumpReport() }
+	} else {
+		null
+	}
 
 	init {
 		logger.info("Upload method: {}", uploader.describe())
 		retryUnsuccessfulUploads(options, uploader)
-
-		if (options.shouldDumpInIntervals()) {
-			timer = Timer("Teamscale-Java-Profiler", true)
-			logDumpInterval()
-			scheduleIntervalDumps()
-		}
+		intervalDumper?.start()
 		options.teamscaleServer.partition?.let { partition ->
 			controller.sessionId = partition
 		}
-	}
-
-	private fun logDumpInterval() {
-		if (dumpIntervalGuard.isShortUploadInterval) {
-			logger.warn(
-				"You configured an interval smaller than 1h. This causes excessive amounts of data to be sent to" +
-						" Teamscale. Applying this interval only once, then increasing the interval to 1h."
-			)
-		} else {
-			logger.info("Dumping every ${options.dumpIntervalInMinutes} minutes.")
-		}
-	}
-
-	private fun scheduleIntervalDumps() {
-		val timer = timer ?: return
-		intervalDumpTask?.cancel()
-		val period = dumpIntervalGuard.dumpIntervalInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
-		intervalDumpTask = timer.scheduleAtFixedRate(period, period) { dumpReport() }
 	}
 
 	/**
@@ -130,10 +106,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 	}
 
 	override fun prepareShutdown() {
-		synchronized(this) {
-			timer?.cancel()
-			timer = null
-		}
+		intervalDumper?.stop()
 		if (options.shouldDumpOnExit) dumpReport()
 
 		val dir = options.outputDirectory ?: return
@@ -191,7 +164,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 				hasUploaded = uploader.upload(coverageFile)
 			}
 			if (hasUploaded) {
-				raiseShortDumpInterval()
+				intervalDumper?.recordSuccessfulUpload()
 			}
 		} catch (e: IOException) {
 			logger.error(
@@ -206,17 +179,5 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 				e.message
 			)
 		}
-	}
-
-	private fun raiseShortDumpInterval() {
-		if (!dumpIntervalGuard.raiseAfterSuccessfulUpload()) {
-			return
-		}
-
-		logger.info(
-			"Increased the coverage dump interval from ${options.dumpIntervalInMinutes}" +
-					" to ${dumpIntervalGuard.dumpIntervalInMinutes} minutes."
-		)
-		scheduleIntervalDumps()
 	}
 }

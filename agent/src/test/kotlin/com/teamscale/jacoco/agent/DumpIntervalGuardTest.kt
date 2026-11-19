@@ -3,6 +3,8 @@ package com.teamscale.jacoco.agent
 import com.teamscale.jacoco.agent.DumpIntervalGuard.Companion.MINIMUM_UPLOAD_INTERVAL_IN_MINUTES
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 class DumpIntervalGuardTest {
 	@Test
@@ -40,15 +42,14 @@ class DumpIntervalGuardTest {
 			.isFalse()
 	}
 
-	@Test
-	fun appliesIntervalOfOneHourOrMoreAsConfigured() {
-		val oneHour = DumpIntervalGuard(60, isUploading = true)
-		val eightHours = DumpIntervalGuard(480, isUploading = true)
+	@ParameterizedTest
+	@ValueSource(ints = [60, 480])
+	fun appliesIntervalOfOneHourOrMoreAsConfigured(intervalInMinutes: Int) {
+		val guard = DumpIntervalGuard(intervalInMinutes, isUploading = true)
 
-		assertThat(oneHour.isShortUploadInterval).`as`("An interval of one hour should not count as short").isFalse()
-		assertThat(oneHour.raiseAfterSuccessfulUpload()).`as`("An interval of one hour should never be raised").isFalse()
-		assertThat(eightHours.raiseAfterSuccessfulUpload()).`as`("A long interval should never be raised").isFalse()
-		assertThat(eightHours.dumpIntervalInMinutes).`as`("A long interval should stay as configured").isEqualTo(480)
+		assertThat(guard.isShortUploadInterval).`as`("An interval of one hour or more should not count as short").isFalse()
+		assertThat(guard.raiseAfterSuccessfulUpload()).`as`("An interval of one hour or more should never be raised").isFalse()
+		assertThat(guard.dumpIntervalInMinutes).`as`("An interval of one hour or more should stay as configured").isEqualTo(intervalInMinutes)
 	}
 
 	@Test

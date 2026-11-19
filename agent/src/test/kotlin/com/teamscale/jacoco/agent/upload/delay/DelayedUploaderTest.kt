@@ -1,10 +1,13 @@
 package com.teamscale.jacoco.agent.upload.delay
 
 import com.teamscale.jacoco.agent.util.InMemoryUploader
+import com.teamscale.jacoco.agent.util.StubUploader
 import com.teamscale.report.jacoco.CoverageFile
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -107,16 +110,17 @@ class DelayedUploaderTest {
 			.isFalse()
 	}
 
-	@Test
-	fun reportsUploadOfWrappedUploaderOnceCommitIsKnown(@TempDir outputPath: Path) {
+	@ParameterizedTest
+	@ValueSource(booleans = [true, false])
+	fun reportsResultOfWrappedUploaderOnceCommitIsKnown(hasWrappedUploaderUploaded: Boolean, @TempDir outputPath: Path) {
 		val coverageFile = CoverageFile(Files.createFile(outputPath.resolve("jacoco-1.xml")).toFile())
-		val store = DelayedUploader<String>(outputPath) { _ -> InMemoryUploader() }
+		val store = DelayedUploader<String>(outputPath) { _ -> StubUploader(hasWrappedUploaderUploaded) }
 
 		store.setCommitAndTriggerAsynchronousUpload("a2afb54566aaa")
 
 		Assertions.assertThat(store.upload(coverageFile))
-			.`as`("An upload through the wrapped uploader should count as an upload")
-			.isTrue()
+			.`as`("Once the commit is known, the delayed uploader should report what the wrapped uploader reports")
+			.isEqualTo(hasWrappedUploaderUploaded)
 	}
 }
 

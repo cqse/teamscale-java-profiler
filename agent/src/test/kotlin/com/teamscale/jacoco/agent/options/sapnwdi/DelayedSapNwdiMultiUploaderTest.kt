@@ -1,7 +1,7 @@
 package com.teamscale.jacoco.agent.options.sapnwdi
 
 import com.teamscale.client.CommitDescriptor
-import com.teamscale.jacoco.agent.upload.IUploader
+import com.teamscale.jacoco.agent.util.StubUploader
 import com.teamscale.report.jacoco.CoverageFile
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -12,7 +12,7 @@ import java.util.function.BiFunction
 class DelayedSapNwdiMultiUploaderTest {
 	@Test
 	fun reportsNoUploadBeforeAnyCommitIsKnown(@TempDir tmpDir: File) {
-		val multiUploader = DelayedSapNwdiMultiUploader(BiFunction { _, _ -> uploaderReporting(true) })
+		val multiUploader = DelayedSapNwdiMultiUploader(BiFunction { _, _ -> StubUploader(true) })
 
 		assertThat(multiUploader.upload(coverageFileIn(tmpDir)))
 			.`as`("A dump that no application can take should not count as an upload")
@@ -20,23 +20,33 @@ class DelayedSapNwdiMultiUploaderTest {
 	}
 
 	@Test
-	fun reportsUploadWhenOneOfSeveralApplicationsUploaded(@TempDir tmpDir: File) {
-		val failingApplication = SapNwdiApplication("com.example.Failing", "failing")
+	fun uploadsToEveryApplicationAndReportsUploadWhenOneSucceeded(@TempDir tmpDir: File) {
+		val uploading = StubUploader(true)
+		val failing = StubUploader(false)
 		val uploadingApplication = SapNwdiApplication("com.example.Uploading", "uploading")
 		val multiUploader = DelayedSapNwdiMultiUploader(BiFunction { _, application ->
-			uploaderReporting(application == uploadingApplication)
+			if (application == uploadingApplication) uploading else failing
 		})
-		multiUploader.setCommitForApplication(CommitDescriptor("master", 1), failingApplication)
-		multiUploader.setCommitForApplication(CommitDescriptor("master", 2), uploadingApplication)
+		multiUploader.setCommitForApplication(CommitDescriptor("master", 1), uploadingApplication)
+		multiUploader.setCommitForApplication(
+			CommitDescriptor("master", 2), SapNwdiApplication("com.example.Failing", "failing")
+		)
+		val coverageFile = coverageFileIn(tmpDir)
 
-		assertThat(multiUploader.upload(coverageFileIn(tmpDir)))
+		val hasUploaded = multiUploader.upload(coverageFile)
+
+		assertThat(hasUploaded)
 			.`as`("One successful upload among several targets should count as an upload")
 			.isTrue()
+		assertThat(failing.receivedFiles)
+			.`as`("A target after a successful one should still receive the coverage")
+			.containsExactly(coverageFile)
+		assertThat(uploading.receivedFiles).containsExactly(coverageFile)
 	}
 
 	@Test
 	fun reportsNoUploadWhenEveryApplicationFailed(@TempDir tmpDir: File) {
-		val multiUploader = DelayedSapNwdiMultiUploader(BiFunction { _, _ -> uploaderReporting(false) })
+		val multiUploader = DelayedSapNwdiMultiUploader(BiFunction { _, _ -> StubUploader(false) })
 		multiUploader.setCommitForApplication(CommitDescriptor("master", 1), SapNwdiApplication("com.example.A", "a"))
 		multiUploader.setCommitForApplication(CommitDescriptor("master", 2), SapNwdiApplication("com.example.B", "b"))
 
@@ -47,10 +57,4 @@ class DelayedSapNwdiMultiUploaderTest {
 
 	private fun coverageFileIn(directory: File) =
 		CoverageFile(File(directory, "jacoco.xml").apply { createNewFile() })
-
-	private fun uploaderReporting(hasUploaded: Boolean) = object : IUploader {
-		override fun upload(coverageFile: CoverageFile) = hasUploaded
-
-		override fun describe() = "uploader reporting $hasUploaded"
-	}
 }
