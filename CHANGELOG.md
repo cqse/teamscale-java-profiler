@@ -6,6 +6,7 @@ We use [semantic versioning](http://semver.org/):
 
 # Next version
 - [feature] _agent_: An `interval` below 60 minutes now applies only until the first successful upload. After that, the agent dumps every 60 minutes, so a forgotten test value no longer floods Teamscale with uploads. The agent warns about a short interval at startup and logs the increase. An agent that only writes to the local disk keeps its interval.
+- [fix] _teamscale-maven-plugin_: `testwise-coverage-report` logs through Maven, so its debug messages (e.g. one per excluded class file) only show with `-X`.
 
 # 40.0.1
 - [fix] _installer_: The bundled Java runtime disables the Base64 intrinsic affected by CVE-2026-114938.

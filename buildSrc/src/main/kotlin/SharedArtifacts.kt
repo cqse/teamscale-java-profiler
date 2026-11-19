@@ -9,3 +9,9 @@ const val AGENT_JAR_CONFIGURATION = "agentJarElements"
 
 /** The jlink runtime image of the installer, produced by :installer and shipped in the :agent distribution. */
 const val JLINK_IMAGE_CONFIGURATION = "jlinkImageElements"
+
+/**
+ * The files that a project's publishToMavenLocal task installs, produced by every project applying the
+ * com.teamscale.publish convention plugin. Consumed via [usesMavenLocalPublicationsOf].
+ */
+const val MAVEN_LOCAL_CONFIGURATION = "mavenLocalElements"
