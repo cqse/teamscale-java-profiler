@@ -41,9 +41,11 @@ class TiaMavenDumpToFileSystemTest {
 	@Test
 	@Throws(Exception::class)
 	fun testMavenTia() {
-		runMavenTests(MAVEN_PROJECT_NAME)
+		val result = runMavenTests(MAVEN_PROJECT_NAME)
 
 		assertCoverageReportsDumped(MAVEN_PROJECT_NAME)
+		// The include pattern excludes the test classes in package bar. Their debug messages must only show with -X.
+		assertThat(result.stdout).doesNotContain("Excluding class file")
 	}
 
 	/**
