@@ -35,8 +35,10 @@ class MavenLoggerTest {
 	/** Maven's default SystemStreamLog throws a NullPointerException if it is passed a null throwable. */
 	@Test
 	void omitsNullThrowable() {
-		logger.warn("warn", null);
-		logger.error("error", null);
+		Throwable noThrowable = null;
+
+		logger.warn("warn", noThrowable);
+		logger.error("error", noThrowable);
 
 		verify(log).warn("warn");
 		verify(log).error("error");
