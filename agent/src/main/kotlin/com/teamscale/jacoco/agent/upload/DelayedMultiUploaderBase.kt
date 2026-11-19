@@ -13,7 +13,7 @@ abstract class DelayedMultiUploaderBase : IUploader {
 	protected val logger: Logger = getLogger(this)
 
 	@Synchronized
-	override fun upload(coverageFile: CoverageFile) {
+	override fun upload(coverageFile: CoverageFile): Boolean {
 		val wrappedUploaders = this.wrappedUploaders
 		wrappedUploaders.forEach { _ -> coverageFile.acquireReference() }
 		if (wrappedUploaders.isEmpty()) {
@@ -21,11 +21,11 @@ abstract class DelayedMultiUploaderBase : IUploader {
 				"No commits have been resolved yet — discarding this coverage dump." +
 						" Provide a 'git.properties' file in the profiled JARs or set 'teamscale-commit'/'teamscale-revision' to avoid this."
 			)
-		} else {
-			wrappedUploaders.forEach { wrappedUploader ->
-				wrappedUploader.upload(coverageFile)
-			}
+			return false
 		}
+
+		// Every target gets the coverage. An any() around the upload would stop at the first success.
+		return wrappedUploaders.map { wrappedUploader -> wrappedUploader.upload(coverageFile) }.any { it }
 	}
 
 	override fun describe(): String {

@@ -27,9 +27,7 @@ class TeamscaleUploader(
 ) : IUploader, IUploadRetry {
 	private val logger = getLogger(this)
 
-	override fun upload(coverageFile: CoverageFile) {
-		doUpload(coverageFile, teamscaleServer, reportFormat)
-	}
+	override fun upload(coverageFile: CoverageFile) = doUpload(coverageFile, teamscaleServer, reportFormat)
 
 	override fun reupload(coverageFile: CoverageFile, properties: Properties) {
 		val server = TeamscaleServer()
@@ -50,9 +48,11 @@ class TeamscaleUploader(
 		doUpload(coverageFile, server, retryFormat)
 	}
 
-	private fun doUpload(coverageFile: CoverageFile, teamscaleServer: TeamscaleServer, format: EReportFormat) {
+	private fun doUpload(coverageFile: CoverageFile, teamscaleServer: TeamscaleServer, format: EReportFormat): Boolean {
+		var hasUploaded = false
 		benchmark("Uploading report to Teamscale") {
-			if (tryUploading(coverageFile, teamscaleServer, format)) {
+			hasUploaded = tryUploading(coverageFile, teamscaleServer, format)
+			if (hasUploaded) {
 				deleteCoverageFile(coverageFile)
 			} else {
 				logger.warn(
@@ -63,6 +63,7 @@ class TeamscaleUploader(
 				markFileForUploadRetry(coverageFile)
 			}
 		}
+		return hasUploaded
 	}
 
 	override fun markFileForUploadRetry(coverageFile: CoverageFile) {

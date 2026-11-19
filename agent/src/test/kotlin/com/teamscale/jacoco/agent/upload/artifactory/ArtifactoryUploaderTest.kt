@@ -55,6 +55,24 @@ class ArtifactoryUploaderTest : UploadTestBase() {
 		Assertions.assertThat(Files.notExists(Paths.get(coverageFile.toString()))).isEqualTo(true)
 	}
 
+	@Test
+	fun reportsSuccessfulUpload() {
+		mockWebServer!!.enqueue(MockResponse().setResponseCode(200))
+
+		Assertions.assertThat(uploader!!.upload(coverageFile!!))
+			.`as`("An upload that Artifactory accepted should count as an upload")
+			.isTrue()
+	}
+
+	@Test
+	fun reportsFailedUpload() {
+		mockWebServer!!.enqueue(MockResponse().setResponseCode(400))
+
+		Assertions.assertThat(uploader!!.upload(coverageFile!!))
+			.`as`("An upload that Artifactory rejected should not count as an upload")
+			.isFalse()
+	}
+
 	private fun generateBasicArtifactoryConfig(serverUrl: HttpUrl?): ArtifactoryConfig {
 		val config = ArtifactoryConfig()
 		config.commitInfo = CommitInfo("some_revision", CommitDescriptor("some_branch", 0))

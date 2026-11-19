@@ -96,5 +96,27 @@ class DelayedUploaderTest {
 		Assertions.assertThat(destination.uploadedFiles).doesNotContain(nestedCoverageFile)
 		Assertions.assertThat(Files.exists(nestedCoverageFilePath)).isTrue()
 	}
+
+	@Test
+	fun reportsNoUploadWhileCommitIsUnknown(@TempDir outputPath: Path) {
+		val coverageFile = CoverageFile(Files.createFile(outputPath.resolve("jacoco-1.xml")).toFile())
+		val store = DelayedUploader<String>(outputPath) { _ -> InMemoryUploader() }
+
+		Assertions.assertThat(store.upload(coverageFile))
+			.`as`("Caching coverage until the commit is known should not count as an upload")
+			.isFalse()
+	}
+
+	@Test
+	fun reportsUploadOfWrappedUploaderOnceCommitIsKnown(@TempDir outputPath: Path) {
+		val coverageFile = CoverageFile(Files.createFile(outputPath.resolve("jacoco-1.xml")).toFile())
+		val store = DelayedUploader<String>(outputPath) { _ -> InMemoryUploader() }
+
+		store.setCommitAndTriggerAsynchronousUpload("a2afb54566aaa")
+
+		Assertions.assertThat(store.upload(coverageFile))
+			.`as`("An upload through the wrapped uploader should count as an upload")
+			.isTrue()
+	}
 }
 

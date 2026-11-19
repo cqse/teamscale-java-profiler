@@ -6,6 +6,7 @@ import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.jacoco.agent.upload.IUploadRetry
 import com.teamscale.jacoco.agent.upload.IUploader
+import com.teamscale.jacoco.agent.upload.LocalDiskUploader
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader
 import com.teamscale.jacoco.agent.util.AgentUtils
 import com.teamscale.report.jacoco.CoverageFile
@@ -18,7 +19,8 @@ import java.io.IOException
 import java.lang.instrument.Instrumentation
 import java.nio.file.Files
 import java.util.Timer
-import kotlin.concurrent.fixedRateTimer
+import java.util.TimerTask
+import kotlin.concurrent.scheduleAtFixedRate
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.time.DurationUnit
@@ -30,26 +32,47 @@ import kotlin.time.toDuration
  */
 class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBase(options) {
 
-	/** Regular dump task.  */
+	/** Runs the regular dumps. Null when the agent dumps in no interval or shuts down.  */
 	private var timer: Timer? = null
+
+	/** The task of [timer] that dumps in the current interval.  */
+	private var intervalDumpTask: TimerTask? = null
 
 	/** Stores the XML files.  */
 	private val uploader = options.createUploader(instrumentation)
+
+	private val dumpIntervalGuard = DumpIntervalGuard(options.dumpIntervalInMinutes, uploader !is LocalDiskUploader)
 
 	init {
 		logger.info("Upload method: {}", uploader.describe())
 		retryUnsuccessfulUploads(options, uploader)
 
 		if (options.shouldDumpInIntervals()) {
-			val period = options.dumpIntervalInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
-			timer = fixedRateTimer("Teamscale-Java-Profiler", true, period, period) {
-				dumpReport()
-			}
-			logger.info("Dumping every ${options.dumpIntervalInMinutes} minutes.")
+			timer = Timer("Teamscale-Java-Profiler", true)
+			logDumpInterval()
+			scheduleIntervalDumps()
 		}
 		options.teamscaleServer.partition?.let { partition ->
 			controller.sessionId = partition
 		}
+	}
+
+	private fun logDumpInterval() {
+		if (dumpIntervalGuard.isShortUploadInterval) {
+			logger.warn(
+				"You configured an interval smaller than 1h. This causes excessive amounts of data to be sent to" +
+						" Teamscale. Applying this interval only once, then increasing the interval to 1h."
+			)
+		} else {
+			logger.info("Dumping every ${options.dumpIntervalInMinutes} minutes.")
+		}
+	}
+
+	private fun scheduleIntervalDumps() {
+		val timer = timer ?: return
+		intervalDumpTask?.cancel()
+		val period = dumpIntervalGuard.dumpIntervalInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
+		intervalDumpTask = timer.scheduleAtFixedRate(period, period) { dumpReport() }
 	}
 
 	/**
@@ -107,7 +130,10 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 	}
 
 	override fun prepareShutdown() {
-		timer?.cancel()
+		synchronized(this) {
+			timer?.cancel()
+			timer = null
+		}
 		if (options.shouldDumpOnExit) dumpReport()
 
 		val dir = options.outputDirectory ?: return
@@ -158,10 +184,14 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 		val generator = options.createReportGenerator(LoggingUtils.wrap(logger))
 
 		try {
+			var hasUploaded = false
 			benchmark("Generating the coverage report") {
 				val outputFile = options.createNewFileInOutputDirectory(format.fileNamePrefix, format.fileExtension)
 				val coverageFile = generator.convertSingleDumpToReport(dump, outputFile)
-				uploader.upload(coverageFile)
+				hasUploaded = uploader.upload(coverageFile)
+			}
+			if (hasUploaded) {
+				raiseShortDumpInterval()
 			}
 		} catch (e: IOException) {
 			logger.error(
@@ -176,5 +206,17 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 				e.message
 			)
 		}
+	}
+
+	private fun raiseShortDumpInterval() {
+		if (!dumpIntervalGuard.raiseAfterSuccessfulUpload()) {
+			return
+		}
+
+		logger.info(
+			"Increased the coverage dump interval from ${options.dumpIntervalInMinutes}" +
+					" to ${dumpIntervalGuard.dumpIntervalInMinutes} minutes."
+		)
+		scheduleIntervalDumps()
 	}
 }

@@ -110,9 +110,9 @@ class ArtifactoryUploader(
 		}
 	}
 
-	override fun upload(coverageFile: CoverageFile) {
+	override fun upload(coverageFile: CoverageFile): Boolean {
 		setUploadPath(coverageFile, this.artifactoryConfig)
-		super.upload(coverageFile)
+		return super.upload(coverageFile)
 	}
 
 	@Throws(IOException::class)
