@@ -84,6 +84,7 @@
         <module>coverage</module>
         <module>sub-project-A</module>
         <module>sub-project-B</module>
+        <module>test-utils</module>
     </modules>
 
 

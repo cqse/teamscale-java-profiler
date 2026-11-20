@@ -14,14 +14,22 @@ import com.teamscale.report.util.ClasspathWildcardIncludeFilter;
 import com.teamscale.report.util.CommandLineLogger;
 import com.teamscale.report.util.ILogger;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.DefaultDependencyResolutionRequest;
+import org.apache.maven.project.DependencyResolutionException;
+import org.apache.maven.project.DependencyResolutionResult;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectDependenciesResolver;
+import org.eclipse.aether.graph.Dependency;
 import org.jetbrains.annotations.NotNull;
+
+import javax.inject.Inject;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +37,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -83,6 +93,16 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 	@Parameter(property = "reactorProjects", readonly = true)
 	private List<MavenProject> reactorProjects;
 
+	/**
+	 * The running Maven session. Provided automatically by Maven.
+	 */
+	@Parameter(defaultValue = "${session}", readonly = true)
+	private MavenSession session;
+
+	/** Resolves the test classpaths of the projects whose tests produced execution data. */
+	@Inject
+	private ProjectDependenciesResolver dependenciesResolver;
+
 	private final ILogger logger = new CommandLineLogger();
 
 	@Override
@@ -92,7 +112,7 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 		List<File> projectBuildDirectories = collectBuildDirectories(projects);
 		logger.info("Generating the testwise coverage report");
 		JaCoCoTestwiseReportGenerator generator = createJaCoCoTestwiseReportGenerator(
-				collectClassDirectories(projects));
+				collectTestClasspaths(projects));
 
 		generateTestwiseCoverageReport(generator, projectBuildDirectories, TiaUnitTestMojo.OUTPUT_DIR_NAME);
 		generateTestwiseCoverageReport(generator, projectBuildDirectories, TiaIntegrationTestMojo.OUTPUT_DIR_NAME);
@@ -106,16 +126,44 @@ public class TestwiseCoverageReportMojo extends AbstractMojo {
 	}
 
 	/**
-	 * Returns the output and test output directories of the given projects. Other files below the build directories,
-	 * e.g. archives of earlier builds, are left out since the tests did not run their classes.
+	 * Returns the union of the test classpaths of the given projects, i.e., everything the tests of these projects may
+	 * have executed: their output and test output directories as well as all their dependencies, be they JARs from
+	 * the local repository or the output of other reactor projects. Other files below the build directories, e.g.
+	 * archives of earlier builds, are left out since the tests did not run their classes.
 	 */
-	private static @NotNull List<File> collectClassDirectories(List<MavenProject> projects) {
-		List<File> classDirectories = new ArrayList<>();
+	@SuppressWarnings("deprecation") // Artifact#getFile() is deprecated, but its replacement getPath() exists only in Maven 4
+	private List<File> collectTestClasspaths(List<MavenProject> projects) {
+		Set<File> classpath = new LinkedHashSet<>();
 		for (MavenProject mavenProject : projects) {
-			classDirectories.add(new File(mavenProject.getBuild().getOutputDirectory()));
-			classDirectories.add(new File(mavenProject.getBuild().getTestOutputDirectory()));
+			classpath.add(new File(mavenProject.getBuild().getTestOutputDirectory()));
+			classpath.add(new File(mavenProject.getBuild().getOutputDirectory()));
+			for (Dependency dependency : resolveTestDependencies(mavenProject)) {
+				File file = dependency.getArtifact().getFile();
+				if (file != null) {
+					classpath.add(file);
+				}
+			}
 		}
-		return classDirectories;
+		return new ArrayList<>(classpath);
+	}
+
+	/**
+	 * Resolves the dependencies of the given project in all scopes, i.e., those on its test classpath. Maven resolves
+	 * only the dependencies of the project this goal runs in and, depending on the goals executed since, may have
+	 * discarded those of the other reactor projects, so they are resolved here explicitly.
+	 */
+	private List<Dependency> resolveTestDependencies(MavenProject mavenProject) {
+		DefaultDependencyResolutionRequest request = new DefaultDependencyResolutionRequest(mavenProject,
+				session.getRepositorySession());
+		try {
+			return dependenciesResolver.resolve(request).getDependencies();
+		} catch (DependencyResolutionException e) {
+			DependencyResolutionResult result = e.getResult();
+			logger.warn("Could not resolve all test dependencies of " + mavenProject.getId()
+					+ ". Coverage of classes in " + result.getUnresolvedDependencies()
+					+ " will be missing from the testwise coverage report.");
+			return result.getResolvedDependencies();
+		}
 	}
 
 	private void generateTestwiseCoverageReport(JaCoCoTestwiseReportGenerator generator,

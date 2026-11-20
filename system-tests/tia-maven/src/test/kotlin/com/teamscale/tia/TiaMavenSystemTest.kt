@@ -224,7 +224,7 @@ class TiaMavenSystemTest {
 			assertThat(testwiseCoverageReport.tests)
 				.extracting<String> { it.coverage }.containsExactlyInAnyOrder(
 					"SUTA.java:7,10-11;UnitTest.java:10-11",
-					"SUTA.java:7,14-15;UnitTest.java:15-16",
+					"SUTA.java:7,14-15;TestUtils.java:5-6;UnitTest.java:15-17", // Ensure that test dependencies are considered
 					"SUTB1.java:7,14-15;UnitB1Test.java:10-11",
 					"SUTB1.java:7,10-11;UnitB1Test.java:15-16",  // Ensure that sources from the project itself (SUT2), but also other dependent projects is considered (SUT1)
 					"SUTB1.java:7,14-15;SUTB2.java:7,14-15;UnitB2Test.java:10-12",
