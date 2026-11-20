@@ -30,3 +30,9 @@ tasks.named<ShadowJar>("shadowJar") {
 	val archiveFile = this.archiveFile
 	doLast("revertKotlinPackageChanges") { revertKotlinPackageChanges(archiveFile) }
 }
+
+// The shaded jar takes over the plain jar's file name. Without a classifier of its own, the plain jar would
+// overwrite the shaded one whenever the jar task runs after the shadowJar task.
+tasks.named<Jar>("jar") {
+	archiveClassifier = "plain"
+}

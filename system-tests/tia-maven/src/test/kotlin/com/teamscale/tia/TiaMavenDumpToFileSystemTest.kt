@@ -4,6 +4,7 @@ import com.teamscale.client.EnvironmentVariableChecker
 import com.teamscale.client.JsonUtils
 import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestwiseCoverageReport
+import com.teamscale.test.commons.ProcessUtils
 import com.teamscale.test.commons.SystemTestUtils
 import com.teamscale.test.commons.SystemTestUtils.copyMavenProject
 import com.teamscale.test.commons.SystemTestUtils.coverage
@@ -41,10 +42,33 @@ class TiaMavenDumpToFileSystemTest {
 	@Test
 	@Throws(Exception::class)
 	fun testMavenTia() {
-		runMavenTests(MAVEN_PROJECT_NAME)
+		val result = runMavenTests(MAVEN_PROJECT_NAME)
 
 		assertCoverageReportsDumped(MAVEN_PROJECT_NAME)
+		// The same build logs class file exclusions with -X, see testMavenTiaWithDebugLogging
+		assertThat(findClassFileExclusions(result)).isEmpty()
 	}
+
+	/**
+	 * The include pattern excludes the test classes in package bar. The plugin logs each excluded class file at debug
+	 * level, so Maven shows the messages with -X.
+	 */
+	@Test
+	@Throws(Exception::class)
+	fun testMavenTiaWithDebugLogging() {
+		// Batch mode disables colors, so the log level shows up as a plain [DEBUG] prefix
+		val result = runMavenTests(MAVEN_PROJECT_NAME, "-X", "-B")
+
+		assertThat(result.exitCode)
+			.withFailMessage { "Maven failed:\n${result.stderr}" }
+			.isEqualTo(0)
+		assertThat(findClassFileExclusions(result)).anySatisfy { line ->
+			assertThat(line).startsWith("[DEBUG] ").endsWith("(bar/UnitTest)")
+		}
+	}
+
+	private fun findClassFileExclusions(result: ProcessUtils.ProcessResult) =
+		result.stdout.lines().filter { CLASS_FILE_EXCLUSION_MESSAGE in it }
 
 	/**
 	 * With `runImpacted=false`, the plugin must not require a commit or revision. So the build must succeed outside of
@@ -107,5 +131,6 @@ class TiaMavenDumpToFileSystemTest {
 
 	companion object {
 		private const val MAVEN_PROJECT_NAME = "maven-dump-local-project"
+		private const val CLASS_FILE_EXCLUSION_MESSAGE = "Excluding class file"
 	}
 }
