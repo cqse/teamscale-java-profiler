@@ -49,10 +49,12 @@ abstract class HttpZipUploaderBase<T>
 	@Throws(IOException::class, UploaderException::class)
 	protected abstract fun uploadCoverageZip(coverageFile: File): Response<ResponseBody>
 
-	override fun upload(coverageFile: CoverageFile) {
+	override fun upload(coverageFile: CoverageFile): Boolean {
+		var hasUploaded = false
 		try {
 			benchmark("Uploading report via HTTP") {
-				if (tryUpload(coverageFile)) {
+				hasUploaded = tryUpload(coverageFile)
+				if (hasUploaded) {
 					coverageFile.delete()
 				} else {
 					logger.warn(
@@ -69,6 +71,7 @@ abstract class HttpZipUploaderBase<T>
 				coverageFile, e
 			)
 		}
+		return hasUploaded
 	}
 
 	/** Performs the upload and returns `true` if successful.  */

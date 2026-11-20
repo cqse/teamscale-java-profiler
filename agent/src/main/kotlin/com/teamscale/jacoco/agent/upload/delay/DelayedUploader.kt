@@ -54,15 +54,17 @@ class DelayedUploader<T> internal constructor(
 	}
 
 	@Synchronized
-	override fun upload(coverageFile: CoverageFile) {
-		if (wrappedUploader == null) {
+	override fun upload(coverageFile: CoverageFile): Boolean {
+		val uploader = wrappedUploader
+		if (uploader == null) {
 			logger.info(
 				"The commit to upload to has not yet been found. Caching coverage XML in {}",
 				cacheDir.toAbsolutePath()
 			)
-		} else {
-			wrappedUploader?.upload(coverageFile)
+			return false
 		}
+
+		return uploader.upload(coverageFile)
 	}
 
 	override fun describe() =

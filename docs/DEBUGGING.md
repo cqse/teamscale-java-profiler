@@ -83,7 +83,8 @@ teamscale-partition=Agent Debugging
 ```
 
 `./gradlew :sample-app:run` then uploads the coverage during JVM shutdown (`dump-on-exit` defaults to `true`); add
-`interval=1` to also upload every minute while the application is still running. The commit is auto-detected from the
+`interval=1` to also upload a minute after the start while the application is still running. After its first
+successful upload, the agent dumps every hour. The commit is auto-detected from the
 `git.properties` the build generates into the jar, so coverage lands on the revision you have checked out —
 **Teamscale has to know that revision** so if you used a File System Connector for example you need to manually specify
  a branch name instead, otherwise the upload is rejected. Commit and let it be analyzed, or set

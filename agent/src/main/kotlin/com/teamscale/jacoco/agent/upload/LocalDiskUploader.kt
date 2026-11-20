@@ -7,9 +7,10 @@ import com.teamscale.report.jacoco.CoverageFile
  * but does not actually perform uploads.
  */
 class LocalDiskUploader : IUploader {
-	override fun upload(coverageFile: CoverageFile) {
+	override fun upload(coverageFile: CoverageFile): Boolean {
 		// Don't delete the file here. We want to store the file permanently on disk in
 		// case no uploader is configured.
+		return false
 	}
 
 	override fun describe() = "configured output directory on the local disk"

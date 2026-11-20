@@ -6,6 +6,7 @@ import com.teamscale.jacoco.agent.logging.LoggingUtils
 import com.teamscale.jacoco.agent.options.AgentOptions
 import com.teamscale.jacoco.agent.upload.IUploadRetry
 import com.teamscale.jacoco.agent.upload.IUploader
+import com.teamscale.jacoco.agent.upload.LocalDiskUploader
 import com.teamscale.jacoco.agent.upload.teamscale.TeamscaleUploader
 import com.teamscale.jacoco.agent.util.AgentUtils
 import com.teamscale.report.jacoco.CoverageFile
@@ -17,12 +18,8 @@ import java.io.File
 import java.io.IOException
 import java.lang.instrument.Instrumentation
 import java.nio.file.Files
-import java.util.Timer
-import kotlin.concurrent.fixedRateTimer
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.listDirectoryEntries
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 /**
  * A wrapper around the JaCoCo Java agent that automatically triggers a dump and XML conversion based on a time
@@ -30,23 +27,25 @@ import kotlin.time.toDuration
  */
 class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBase(options) {
 
-	/** Regular dump task.  */
-	private var timer: Timer? = null
-
 	/** Stores the XML files.  */
 	private val uploader = options.createUploader(instrumentation)
+
+	/** Runs the regular dumps. Null when the agent dumps in no interval.  */
+	private val intervalDumper = if (options.shouldDumpInIntervals()) {
+		IntervalDumper(
+			options.dumpIntervalInMinutes,
+			uploader !is LocalDiskUploader,
+			logger,
+			TimerScheduler("Teamscale-Java-Profiler")
+		) { dumpReport() }
+	} else {
+		null
+	}
 
 	init {
 		logger.info("Upload method: {}", uploader.describe())
 		retryUnsuccessfulUploads(options, uploader)
-
-		if (options.shouldDumpInIntervals()) {
-			val period = options.dumpIntervalInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
-			timer = fixedRateTimer("Teamscale-Java-Profiler", true, period, period) {
-				dumpReport()
-			}
-			logger.info("Dumping every ${options.dumpIntervalInMinutes} minutes.")
-		}
+		intervalDumper?.start()
 		options.teamscaleServer.partition?.let { partition ->
 			controller.sessionId = partition
 		}
@@ -107,7 +106,7 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 	}
 
 	override fun prepareShutdown() {
-		timer?.cancel()
+		intervalDumper?.stop()
 		if (options.shouldDumpOnExit) dumpReport()
 
 		val dir = options.outputDirectory ?: return
@@ -154,14 +153,9 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 			return
 		}
 
-		val format = options.normalModeReportFormat
-		val generator = options.createReportGenerator(LoggingUtils.wrap(logger))
-
 		try {
-			benchmark("Generating the coverage report") {
-				val outputFile = options.createNewFileInOutputDirectory(format.fileNamePrefix, format.fileExtension)
-				val coverageFile = generator.convertSingleDumpToReport(dump, outputFile)
-				uploader.upload(coverageFile)
+			if (uploadReport(dump)) {
+				intervalDumper?.recordSuccessfulUpload()
 			}
 		} catch (e: IOException) {
 			logger.error(
@@ -176,5 +170,18 @@ class Agent(options: AgentOptions, instrumentation: Instrumentation?) : AgentBas
 				e.message
 			)
 		}
+	}
+
+	/** Converts [dump] to a coverage report and returns whether the uploader uploaded that report. */
+	private fun uploadReport(dump: Dump): Boolean {
+		val format = options.normalModeReportFormat
+		val generator = options.createReportGenerator(LoggingUtils.wrap(logger))
+		var hasUploaded = false
+		benchmark("Generating the coverage report") {
+			val outputFile = options.createNewFileInOutputDirectory(format.fileNamePrefix, format.fileExtension)
+			val coverageFile = generator.convertSingleDumpToReport(dump, outputFile)
+			hasUploaded = uploader.upload(coverageFile)
+		}
+		return hasUploaded
 	}
 }

@@ -12,13 +12,14 @@ import java.io.IOException
 class InMemoryUploader : IUploader {
 	val uploadedFiles = mutableListOf<CoverageFile>()
 
-	override fun upload(coverageFile: CoverageFile) {
+	override fun upload(coverageFile: CoverageFile): Boolean {
 		uploadedFiles.add(coverageFile)
 		try {
 			coverageFile.delete()
 		} catch (_: IOException) {
 			// Do nothing as not being able to delete the file is not important for tests
 		}
+		return true
 	}
 
 	override fun describe() = "in memory uploader"
