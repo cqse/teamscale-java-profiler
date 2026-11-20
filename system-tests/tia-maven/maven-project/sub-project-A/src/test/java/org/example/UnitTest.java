@@ -13,5 +13,6 @@ public class UnitTest {
     @Test
     public void utFoo() {
         new SUTA().foo();
+        TestUtils.log("foo");
     }
 }

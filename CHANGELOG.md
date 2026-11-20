@@ -5,6 +5,7 @@ We use [semantic versioning](http://semver.org/):
 - PATCH version when you make backwards compatible bug fixes.
 
 # Next version
+- [fix] _teamscale-maven-plugin_: `testwise-coverage-report` analyzes exactly the test classpaths of the module and its reactor dependencies, so it now reports coverage of all executed classes, including those in dependency JARs, and files that earlier builds left in `target/` no longer cause "Non-identical class file" warnings.
 - [fix] _teamscale-maven-plugin_: `testwise-coverage-report` logs through Maven, so its debug messages (e.g. one per excluded class file) only show with `-X`.
 
 # 40.0.1
