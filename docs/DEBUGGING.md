@@ -138,8 +138,8 @@ The build pauses on port 5005 until you attach via IntelliJ's _Run → Attach to
 configuration.
 
 **The test spawns its own JVM** (e.g. `teamscale-profiler-configuration-test`, `sut-uses-logback-test`, which call
-`ProcessUtils.execute("java", ...)`). `--debug-jvm` only suspends the test JVM, not the spawned one. Use `-PdebugSut`
-instead:
+`ProcessUtils.execute(OLDEST_SUPPORTED_JAVA, ...)` to run the profiled application on Java 11). `--debug-jvm` only
+suspends the test JVM, not the spawned one. Use `-PdebugSut` instead:
 
 ```bash
 ./gradlew :system-tests:teamscale-profiler-configuration-test:test -PdebugSut

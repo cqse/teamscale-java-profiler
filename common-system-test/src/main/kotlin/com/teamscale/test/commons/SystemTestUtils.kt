@@ -38,6 +38,14 @@ object SystemTestUtils {
 	val AGENT_PORT: Int = Integer.getInteger("agentPort")
 
 	/**
+	 * The `java` executable of the oldest Java version that the profiler supports, provided by the system test
+	 * convention. System tests that start the profiled application themselves use it instead of the `java` on the
+	 * `PATH`, so that the profiler also runs on that version.
+	 */
+	@JvmField
+	val OLDEST_SUPPORTED_JAVA: String = System.getProperty("oldestSupportedJava")
+
+	/**
 	 * Turns the coverage of the given [TestInfo] into a string for simple assertions.
 	 *
 	 *

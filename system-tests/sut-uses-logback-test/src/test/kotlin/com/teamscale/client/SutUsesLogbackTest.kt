@@ -1,6 +1,7 @@
 package com.teamscale.client
 
 import com.teamscale.test.commons.ProcessUtils
+import com.teamscale.test.commons.SystemTestUtils.OLDEST_SUPPORTED_JAVA
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
@@ -9,7 +10,9 @@ class SutUsesLogbackTest {
 	@Test
 	@Throws(Exception::class)
 	fun systemTest() {
-		val result = ProcessUtils.execute("java", "-javaagent:$AGENT_JAR=debug=true", "-jar", "build/libs/app.jar")
+		val result = ProcessUtils.execute(
+			OLDEST_SUPPORTED_JAVA, "-javaagent:$AGENT_JAR=debug=true", "-jar", "build/libs/app.jar"
+		)
 
 		assertThat(result.stdout).contains("This warning is to test logging in the SUT")
 		assertThat(result.stdout).doesNotContainIgnoringCase("error")
