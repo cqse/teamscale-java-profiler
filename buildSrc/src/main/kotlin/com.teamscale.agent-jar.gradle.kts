@@ -17,10 +17,15 @@ dependencies {
 /**
  * Creates a copy of the agent jar file in the temporary directory of this task
  * to isolate it from other tasks running in parallel.
+ *
+ * The agent jar is an input of the task, which also makes the task depend on building it. A dependency alone is not
+ * enough: Gradle would consider the task up to date after a change to the agent, so it would not run against it.
  */
 fun Task.createAgentCopy() {
 	val agentJarFiles = agentJarSource.get()
-	dependsOn(agentJarFiles)
+	inputs.files(agentJarFiles)
+		.withPropertyName("agentJar")
+		.withPathSensitivity(PathSensitivity.NAME_ONLY)
 	doFirst("copyAgent", CopyAgent(agentJarFiles.elements.map { it.single().asFile }, agentJar))
 }
 

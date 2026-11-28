@@ -24,6 +24,9 @@ import java.io.IOException
 			"class coverage."
 )
 class ConvertCommand : ICommand {
+	// The required options are initialized with null, since JCommander does not enforce `required` for options with
+	// another initial value.
+
 	/** The directories and/or zips that contain all class files being profiled.  */
 	@JvmField
 	@Parameter(
@@ -31,7 +34,7 @@ class ConvertCommand : ICommand {
 				+ "The directories or zip/ear/jar/war/... files that contain the compiled Java classes being profiled."
 				+ " Searches recursively, including inside zips. You may also supply a *.txt file with one path per line.")
 	)
-	var classDirectoriesOrZips = mutableListOf<String>()
+	var classDirectoriesOrZips: MutableList<String>? = null
 
 	/**
 	 * Wildcard include patterns to apply during JaCoCo's traversal of class files.
@@ -65,7 +68,7 @@ class ConvertCommand : ICommand {
 		names = ["--in", "-i"], required = true, description = ("" + "The binary .exec file(s), test details and " +
 				"test executions to read. Can be a single file or a directory that is recursively scanned for relevant files.")
 	)
-	var inputFiles = mutableListOf<String>()
+	var inputFiles: MutableList<String>? = null
 
 	/** The output file. The extension selects the format: .xml = JaCoCo XML, .json = Teamscale Compact Coverage.  */
 	@JvmField
@@ -75,7 +78,7 @@ class ConvertCommand : ICommand {
 				+ ".xml for JaCoCo XML, .json for Teamscale Compact Coverage. When --testwise-coverage is set, "
 				+ "testwise JSON is produced regardless of the extension.")
 	)
-	var outputFile = ""
+	var outputFile: String? = null
 
 	/** Whether to ignore duplicate, non-identical class files.  */
 	@Parameter(
@@ -113,11 +116,11 @@ class ConvertCommand : ICommand {
 	fun getClassDirectoriesOrZips(): List<File> = ClasspathUtils
 		.resolveClasspathTextFiles(
 			"class-dir", FilePatternResolver(CommandLineLogger()),
-			classDirectoriesOrZips
+			classDirectoriesOrZips.orEmpty()
 		)
 
-	fun getInputFiles() = inputFiles.map { File(it) }
-	fun getOutputFile() = File(outputFile)
+	fun getInputFiles() = inputFiles.orEmpty().map { File(it) }
+	fun getOutputFile() = File(outputFile.orEmpty())
 
 	/** Makes sure the arguments are valid.  */
 	override fun validate() = Validator().apply {

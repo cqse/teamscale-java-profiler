@@ -8,9 +8,9 @@ import com.teamscale.report.testwise.model.ETestExecutionResult
 import com.teamscale.report.testwise.model.TestExecution
 import com.teamscale.report.testwise.model.TestInfo
 import java.io.IOException
-import javax.ws.rs.*
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
+import jakarta.ws.rs.*
+import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.core.Response
 
 /**
  * The resource of the Jersey + Jetty http server holding all the endpoints specific for the

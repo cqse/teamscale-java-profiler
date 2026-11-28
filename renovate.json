@@ -36,26 +36,72 @@
       "enabled": true
     },
     {
-      "matchPackagePrefixes": [
-        "ch.qos.logback"
+      "description": "This and the following rules keep the runtime dependencies of the profiler on the version lines known to run on Java 11. Raise a limit only after checking that the next line still supports Java 11.",
+      "matchPackageNames": [
+        "ch.qos.logback:*"
       ],
-      "allowedVersions": "< 1.4.0"
+      "allowedVersions": "< 1.7.0"
     },
     {
-      "matchPackagePrefixes": [
-        "org.eclipse.jetty"
+      "description": "Jersey 4 requires Java 17",
+      "matchPackageNames": [
+        "org.glassfish.jersey*:*"
       ],
-      "allowedVersions": "< 10"
+      "allowedVersions": "< 3.2.0"
     },
     {
-      "matchPackagePrefixes": [
-        "org.glassfish.jersey"
+      "matchPackageNames": [
+        "jakarta.activation:*"
+      ],
+      "allowedVersions": "< 2.2.0"
+    },
+    {
+      "description": "JCommander 3 requires Java 17",
+      "matchPackageNames": [
+        "org.jcommander:jcommander"
       ],
       "allowedVersions": "< 3"
     },
     {
-      "matchPackagePrefixes": [
-        "jakarta.activation"
+      "matchPackageNames": [
+        "org.jacoco:*"
+      ],
+      "allowedVersions": "< 0.9.0"
+    },
+    {
+      "matchPackageNames": [
+        "org.slf4j:*"
+      ],
+      "allowedVersions": "< 2.1.0"
+    },
+    {
+      "description": "Jackson 3 requires Java 17",
+      "matchPackageNames": [
+        "com.fasterxml.jackson*:*"
+      ],
+      "allowedVersions": "< 3"
+    },
+    {
+      "matchPackageNames": [
+        "com.squareup.retrofit2:*"
+      ],
+      "allowedVersions": "< 4"
+    },
+    {
+      "matchPackageNames": [
+        "com.squareup.okhttp3:*"
+      ],
+      "allowedVersions": "< 6"
+    },
+    {
+      "matchPackageNames": [
+        "commons-codec:commons-codec"
+      ],
+      "allowedVersions": "< 2"
+    },
+    {
+      "matchPackageNames": [
+        "org.jetbrains.kotlinx:kotlinx-coroutines-*"
       ],
       "allowedVersions": "< 2"
     },

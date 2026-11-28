@@ -133,7 +133,7 @@ class AgentHttpServerTest {
 		val client = OkHttpClient()
 		val endpointUrl = "$baseUri$endpointPath".toHttpUrlOrNull()
 		val request = Request.Builder()
-			.url(endpointUrl!!).header("Accept", javax.ws.rs.core.MediaType.APPLICATION_JSON)
+			.url(endpointUrl!!).header("Accept", jakarta.ws.rs.core.MediaType.APPLICATION_JSON)
 			.build()
 		val response = client.newCall(request).execute()
 		return response.body.string()

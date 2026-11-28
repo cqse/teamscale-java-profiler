@@ -19,7 +19,7 @@ class HttpServerShutdownSystemTest {
 		val agentJar = System.getenv("AGENT_JAR")
 		val systemUnderTestJar = System.getenv("SYSTEM_UNDER_TEST_JAR")
 		val result = ProcessUtils.execute(
-			"java",
+			SystemTestUtils.OLDEST_SUPPORTED_JAVA,
 			"-javaagent:$agentJar=http-server-port=${SystemTestUtils.AGENT_PORT}",
 			"-jar", systemUnderTestJar
 		)

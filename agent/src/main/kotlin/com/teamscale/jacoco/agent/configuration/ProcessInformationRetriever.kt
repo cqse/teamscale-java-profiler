@@ -2,7 +2,6 @@ package com.teamscale.jacoco.agent.configuration
 
 import com.teamscale.client.ProcessInformation
 import com.teamscale.report.util.ILogger
-import java.lang.management.ManagementFactory
 import java.net.InetAddress
 import java.net.UnknownHostException
 
@@ -33,27 +32,9 @@ class ProcessInformationRetriever(private val logger: ILogger) {
 			}
 		}
 
-	/**
-	 * Returns a string that *probably* contains the PID.
-	 *
-	 * On Java 9 there is an API to get the PID. But since we support Java 8, we may fall back to an undocumented API
-	 * that at least contains the PID in most JVMs.
-	 *
-	 * See [This StackOverflow question](https://stackoverflow.com/questions/35842/how-can-a-java-program-get-its-own-process-id)
-	 */
 	companion object {
+		/** The PID of the current process. */
 		val pID: String
-			get() {
-				try {
-					val processHandleClass = Class.forName("java.lang.ProcessHandle")
-					val processHandle = processHandleClass.getMethod("current").invoke(null)
-					val pid = processHandleClass.getMethod("pid").invoke(processHandle) as Long
-					return pid.toString()
-				} catch (_: ReflectiveOperationException) {
-					// getRunTimeMXBean().name returns 'pid@hostname'
-					val res = ManagementFactory.getRuntimeMXBean().name
-					return res.substringBefore('@')
-				}
-			}
+			get() = ProcessHandle.current().pid().toString()
 	}
 }

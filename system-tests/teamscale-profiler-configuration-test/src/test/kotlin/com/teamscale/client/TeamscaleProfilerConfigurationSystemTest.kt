@@ -1,6 +1,7 @@
 package com.teamscale.client
 
 import com.teamscale.test.commons.ProcessUtils
+import com.teamscale.test.commons.SystemTestUtils.OLDEST_SUPPORTED_JAVA
 import com.teamscale.test.commons.TeamscaleMockServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -22,7 +23,9 @@ class TeamscaleProfilerConfigurationSystemTest {
 
 		val agentJar = System.getenv("AGENT_JAR")
 		val sampleJar = System.getenv("SYSTEM_UNDER_TEST_JAR")
-		val result = ProcessUtils.execute("java", "-javaagent:$agentJar=config-id=my-config", "-jar", sampleJar)
+		val result = ProcessUtils.execute(
+			OLDEST_SUPPORTED_JAVA, "-javaagent:$agentJar=config-id=my-config", "-jar", sampleJar
+		)
 		println(result.stderr)
 		println(result.stdout)
 		assertThat(result.exitCode).isEqualTo(0)
@@ -49,7 +52,9 @@ class TeamscaleProfilerConfigurationSystemTest {
 	fun systemTestLenientFailure() {
 		val agentJar = System.getenv("AGENT_JAR")
 		val sampleJar = System.getenv("SYSTEM_UNDER_TEST_JAR")
-		val result = ProcessUtils.execute("java", "-javaagent:$agentJar=config-id=some-config", "-jar", sampleJar)
+		val result = ProcessUtils.execute(
+			OLDEST_SUPPORTED_JAVA, "-javaagent:$agentJar=config-id=some-config", "-jar", sampleJar
+		)
 		println(result.stderr)
 		println(result.stdout)
 		assertThat(result.exitCode).isEqualTo(0)
@@ -76,7 +81,9 @@ class TeamscaleProfilerConfigurationSystemTest {
 		val sampleJar = System.getenv("SYSTEM_UNDER_TEST_JAR")
 		val agentOptions = "config-id=my-config,teamscale-server-url=http://localhost:$FAKE_TEAMSCALE_PORT," +
 				"teamscale-user=fake,teamscale-access-token=$SECRET_ACCESS_TOKEN,debug=true"
-		val result = ProcessUtils.execute("java", "-javaagent:$agentJar=$agentOptions", "-jar", sampleJar)
+		val result = ProcessUtils.execute(
+			OLDEST_SUPPORTED_JAVA, "-javaagent:$agentJar=$agentOptions", "-jar", sampleJar
+		)
 		println(result.stderr)
 		println(result.stdout)
 		assertThat(result.exitCode).isEqualTo(0)

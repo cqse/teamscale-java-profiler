@@ -1,6 +1,7 @@
 package com.teamscale.logging
 
 import com.teamscale.test.commons.ProcessUtils
+import com.teamscale.test.commons.SystemTestUtils.OLDEST_SUPPORTED_JAVA
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ class InvalidOptionsLoggingSystemTest {
 	@Test
 	fun optionParseErrorIsPrintedToTheConsole() {
 		val result = ProcessUtils.execute(
-			"java", "-javaagent:$AGENT_JAR=config-id=foo", "-jar", SYSTEM_UNDER_TEST_JAR
+			OLDEST_SUPPORTED_JAVA, "-javaagent:$AGENT_JAR=config-id=foo", "-jar", SYSTEM_UNDER_TEST_JAR
 		)
 
 		assertThat(result.stderr)
@@ -53,7 +54,7 @@ class InvalidOptionsLoggingSystemTest {
 		assumeTrue(!Files.isWritable(logDirectory), "requires a non-writable directory, so cannot run as root")
 
 		val result = ProcessUtils.execute(
-			"java", "-javaagent:$AGENT_JAR=debug=$logDirectory", "-jar", SYSTEM_UNDER_TEST_JAR
+			OLDEST_SUPPORTED_JAVA, "-javaagent:$AGENT_JAR=debug=$logDirectory", "-jar", SYSTEM_UNDER_TEST_JAR
 		)
 
 		assertThat(result.stdout)

@@ -15,10 +15,18 @@ jobs:
       TEAMSCALE_PARTITION: 'Coverage'
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
+      # Anchored so the Windows job can reuse this step verbatim via *setup-java.
+      - &setup-java
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '25'
+          # The system tests run the profiled application on Java 11, the oldest version the profiler supports
+          # (cf. com.teamscale.system-test-convention). setup-java registers every JDK it installs in
+          # ~/.m2/toolchains.xml, where Gradle's toolchain detection finds it, so Gradle does not download it
+          # on every build. The last version listed is the one in JAVA_HOME and on the PATH.
+          java-version: |
+            11
+            25
       # Anchored so the Windows job can reuse this step verbatim via *setup-gradle.
       - &setup-gradle
         uses: gradle/actions/setup-gradle@v6
@@ -105,10 +113,7 @@ jobs:
       TEAMSCALE_PARTITION: 'Coverage Windows'
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
-        with:
-          distribution: 'temurin'
-          java-version: '25'
+      - *setup-java
       - *setup-gradle
       - name: Build with Gradle
         run: ./gradlew build --max-workers=2

@@ -17,7 +17,6 @@ import com.teamscale.report.util.ClasspathWildcardIncludeFilter
 import com.teamscale.report.util.CommandLineLogger
 import java.io.IOException
 import java.lang.String
-import java.nio.file.Paths
 import kotlin.Array
 import kotlin.Throws
 import kotlin.use
@@ -35,10 +34,10 @@ class Converter
 	@Throws(IOException::class, AgentOptionParseException::class)
 	fun runJaCoCoReportGeneration() {
 		val logger = LoggingUtils.getLogger(this)
-		val outputFile = Paths.get(arguments.outputFile).toFile()
+		val outputFile = arguments.getOutputFile()
 		val format = EAgentReportFormat.fromFileExtension(outputFile.extension)
 			?: throw AgentOptionParseException(
-				"Unsupported output file extension '${outputFile.extension}' for '${arguments.outputFile}'. " +
+				"Unsupported output file extension '${outputFile.extension}' for '$outputFile'. " +
 						"Use .xml for JaCoCo XML or .json for Teamscale Compact Coverage."
 			)
 		val generator = format.createGenerator(
